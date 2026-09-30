@@ -1,276 +1,757 @@
-# ROS2 LIMO
+# LIMO를 이용한 실내 자율 순찰 및 안내
 
-ROS 2 기반 LIMO 자율주행 로봇 학습 및 개발 프로젝트입니다.
+2026-2 캡스톤디자인 프로젝트
 
-## 1. Project Overview
+**AgileX LIMO Pro**를 활용하여 실내 환경에서 자율주행, 순찰 및 목적지 안내가 가능한 ROS 2 기반 로봇 시스템을 개발합니다.
 
-본 프로젝트는 ROS 2 환경에서 LIMO 이동로봇의 구조와 제어 방법을 학습하고,
-센서, ROS 2 통신, 로봇 모델링, Gazebo 시뮬레이션, 원격 제어 기능을 단계적으로
-구현하는 것을 목표로 합니다.
+---
 
-주요 개발 환경은 Oracle Cloud Ubuntu 서버와 웹 기반 VS Code(code-server)이며,
-GitHub를 통해 소스 코드와 프로젝트 이력을 관리합니다.
+## 1. 프로젝트 소개
 
-## 2. Architecture
+### 프로젝트명
 
+**LIMO를 이용한 실내 자율 순찰 및 안내**
+
+### 프로젝트 목적
+
+본 프로젝트는 AgileX LIMO Pro를 기반으로 실내 환경에서 안정적인 자율주행 시스템을 구축하고, 이를 활용하여 **자율 순찰 및 목적지 안내 서비스**를 구현하는 것을 목표로 합니다.
+
+이를 위해 LiDAR를 이용한 실내 지도 작성과 위치 추정, Navigation2 기반 경로 계획 및 주행, 동적 장애물 대응 등의 기능을 단계적으로 구현하고 실제 주행 환경에서 검증합니다.
+
+최종적으로는 복도 및 로비와 같은 실내 환경에서 LIMO가 지정된 경로를 따라 자율적으로 순찰하고, 사용자의 호출에 따라 목적지까지 안내할 수 있는 시스템을 구축하는 것을 목표로 합니다.
+
+---
+
+## 2. 주요 개발 범위
+
+본 프로젝트의 주요 개발 범위는 다음과 같습니다.
+
+- LiDAR 기반 실내 환경 인식
+- SLAM 기반 실내 지도 작성
+- AMCL 기반 로봇 위치 추정
+- Navigation2(Nav2) 기반 자율주행
+- Global / Local Path Planning
+- Costmap 구성 및 활용
+- 경로 추종
+- 정적 및 동적 장애물 대응
+- 동적 장애물 회피
+- Waypoint 기반 자율 순찰
+- ROS 2 Action 기반 순찰 로직
+- 목적지 안내 기능
+- 실제 주행 환경에서의 파라미터 튜닝
+- 주행 성능 및 기능 검증
+
+---
+
+## 3. 시스템 구성
+
+전체 시스템은 다음과 같은 흐름으로 구성합니다.
+
+```text
+                    AgileX LIMO Pro
+                           │
+             ┌─────────────┼─────────────┐
+             │             │             │
+           LiDAR          IMU         Odometry
+             │             │             │
+             └─────────────┼─────────────┘
+                           │
+                           ▼
+                    센서 데이터 처리
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+              ▼                         ▼
+          SLAM Mapping              Localization
+              │                       (AMCL)
+              │                         │
+              └────────────┬────────────┘
+                           ▼
+                    Navigation2
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+    Global Planner    Local Planner      Costmap
+          │                │                │
+          └────────────────┼────────────────┘
+                           ▼
+                      경로 추종
+                           │
+                           ▼
+                    장애물 대응
+                           │
+                           ▼
+                         LIMO
+                           │
+              ┌────────────┴────────────┐
+              ▼                         ▼
+          자율 순찰                    목적지 안내
 ```
-Local PC
-   │
-   │ Chrome / Edge
-   ▼
-Tailscale Funnel
-   │ HTTPS
-   ▼
-127.0.0.1:8080
-   │
-   ▼
-code-server
-   │
-   ▼
-Oracle Cloud Ubuntu
-   │
-   └── ROS 2 / LIMO
+
+위 구성은 프로젝트의 최종 목표 시스템이며, 각 기능은 실제 구현 및 검증을 거쳐 단계적으로 통합합니다.
+
+---
+
+## 4. 개발 환경
+
+### Hardware
+
+- AgileX LIMO Pro
+- LiDAR
+- IMU
+- Odometry
+- Depth Camera
+
+### Software
+
+- Ubuntu 22.04
+- ROS 2 Humble
+- C++
+- Python
+- RViz2
+- Gazebo
+- Navigation2
+- SLAM Toolbox
+- Git / GitHub
+
+---
+
+## 5. 저장소 구조
+
+현재 저장소에는 AgileX LIMO의 ROS 2 기본 소스를 포함하고 있습니다.
+
+```text
+src/
+└── limo_ros2/
+    ├── limo_base/
+    ├── limo_car/
+    ├── limo_description/
+    └── limo_msgs/
 ```
 
-서버 내부에서는 AI Knowledge Hub도 별도로 운영합니다.
+### `limo_base`
 
-```
-Oracle Cloud
-├── code-server
-│   └── 127.0.0.1:8080
-│
-├── AI Knowledge Hub
-│   └── 127.0.0.1:8000
-│
-└── PostgreSQL / pgvector
-```
-
-## 3. Package Structure
-
-```
-ros2-limo/
-├── README.md
-├── .gitignore
-│
-├── scripts/
-│   └── remote_teleop_node.py
-│
-└── src/
-    └── limo_ros2/
-        ├── limo_base/
-        ├── limo_car/
-        ├── limo_description/
-        └── limo_msgs/
-```
-
-### limo_base
-
-LIMO의 기본 드라이버와 하드웨어 인터페이스를 담당합니다.
+LIMO의 기본 통신 및 구동과 관련된 기능을 포함합니다.
 
 주요 구성:
-- C++ LIMO driver
-- Serial communication
-- TF publishing
-- LIMO base launch files
-- YDLIDAR 관련 launch
 
-### limo_car
+- LIMO Driver
+- Serial Port
+- LIMO Protocol
+- 기본 주행 관련 노드
+- TF 관련 기능
+- LiDAR 실행 관련 Launch
 
-LIMO Ackermann 모델과 Gazebo 시뮬레이션 관련 구성을 담당합니다.
+### `limo_car`
 
-주요 구성:
-- Ackermann model
-- Gazebo launch
-- RViz configuration
+LIMO 모델 및 Gazebo 시뮬레이션 관련 파일을 포함합니다.
+
+- LIMO 로봇 모델
+- Ackermann 모델
+- Gazebo 설정
+- 센서 모델
+- RViz 설정
+
+### `limo_description`
+
+LIMO의 URDF/Xacro 및 시각화 관련 파일을 포함합니다.
+
 - URDF / Xacro
+- Robot Mesh
+- Gazebo 설정
+- RViz 설정
 
-### limo_description
+### `limo_msgs`
 
-LIMO 로봇 모델의 URDF/Xacro 및 시각화 구성을 관리합니다.
+LIMO에서 사용하는 사용자 정의 ROS 2 메시지를 포함합니다.
 
-주요 구성:
-- URDF
-- Xacro
-- Gazebo model description
-- RViz configuration
+---
 
-### limo_msgs
+# 6. 구현 과정
 
-프로젝트에서 사용하는 사용자 정의 ROS 2 메시지를 관리합니다.
+본 프로젝트에서는 기능을 한 번에 통합하지 않고, **기본 소스 확인 → 센서 및 TF 확인 → 지도 작성 → 위치 추정 → Navigation2 → 장애물 대응 → 순찰 및 안내**의 순서로 단계적으로 개발합니다.
 
-예: `LimoStatus.msg`
+---
 
-## 4. Remote Teleoperation
+## 6.1 LIMO ROS 2 기본 소스 분석 및 통합
 
-`scripts/remote_teleop_node.py`를 이용하여 LIMO 원격 제어 기능을 실험합니다.
+### 목적
 
-향후에는 다음 기능을 단계적으로 추가할 예정입니다.
-- Keyboard teleoperation
-- Velocity command
-- Sensor feedback
-- Autonomous driving control integration
+AgileX에서 제공하는 LIMO ROS 2 소스의 구조와 각 패키지의 역할을 파악하고, 프로젝트에서 사용할 수 있는 형태로 저장소에 통합합니다.
 
-## 5. ROS 2 Topics and Concepts
+### 확인 내용
 
-본 프로젝트에서 중점적으로 학습하는 ROS 2 개념:
-- Node
-- Topic
-- Publisher / Subscriber
-- Service
-- Action
-- Parameter
-- QoS
-- TF / TF2
-- Launch system
-
-## 6. Simulation
-
-Gazebo와 RViz를 이용하여 LIMO의 동작과 센서 데이터를 확인합니다.
-
-주요 실습:
-- LIMO model visualization
-- Ackermann simulation
-- Sensor simulation
-- RViz visualization
-- TF 확인
-- Robot state 확인
-
-## 7. Cloud-Based Development Environment
-
-본 프로젝트는 Oracle Cloud 기반의 원격 개발 환경을 사용합니다.
-
-```
-Chrome / Edge
-      │
-      ▼
-Tailscale Funnel
-      │ HTTPS
-      ▼
-code-server
-      │
-      ▼
-Oracle Cloud Ubuntu
-      │
-      └── ROS 2 / LIMO workspace
-```
-
-장점:
-- 로컬 PC에 별도 VS Code 설치 없이 접근 가능
-- 장소와 장치에 관계없이 동일한 개발 환경 사용
-- ROS 2 환경과 프로젝트 파일의 중앙 관리
-- GitHub와 연계한 버전 관리
-
-## 8. Security
-
-웹 IDE는 다음과 같은 방식으로 보호합니다.
-
-**code-server**
-```
-bind-addr: 127.0.0.1:8080
-auth: password
-```
-code-server는 외부 네트워크 인터페이스가 아닌 localhost에만 바인딩합니다.
-
-**Tailscale Funnel**
-
-외부 브라우저 접근은 Tailscale Funnel을 통해 HTTPS로 전달합니다.
-```
-Internet
-   ↓
-Tailscale Funnel
-   ↓
-127.0.0.1:8080
-   ↓
-code-server
-```
-
-**Fail2Ban**
-
-code-server 전용 Fail2Ban 정책을 사용합니다.
-```
-maxretry = 5
-findtime = 600 seconds
-bantime  = 3600 seconds
-```
-즉, 10분 안에 로그인 5회 실패 → 1시간 차단 구조입니다.
-
-## 9. Large Mesh Assets
-
-LIMO 본체 모델에는 용량이 큰 `.dae` / `.stl` mesh 파일이 포함되어 있습니다.
-
-Git 저장소 크기와 관리 효율을 위해 대형 본체 mesh 일부는 GitHub 저장소에서 제외하고,
-실제 Oracle Cloud ROS 2 workspace에는 원본을 유지합니다.
-
-따라서 GitHub 저장소는 다음과 같은 핵심 요소를 중심으로 관리합니다.
-- Source code
-- CMake
-- package.xml
-- Launch files
+- `limo_base`
+- `limo_car`
+- `limo_description`
+- `limo_msgs`
+- Launch 파일
+- LIMO Driver
 - URDF / Xacro
-- RViz configuration
-- ROS 2 messages
-- Scripts
-- Documentation
+- 사용자 정의 Message
 
-## 10. Development Environment
+### 저장소 통합
 
-- OS: Ubuntu 22.04 LTS
-- ROS 2: Humble
-- Robot: LIMO
-- Language: C++ / Python
-- Simulation: Gazebo
-- Visualization: RViz
-- IDE: VS Code / code-server
-- Cloud: Oracle Cloud Infrastructure
-- Network: Tailscale
-- Version Control: Git / GitHub
+기존 `src/limo_ros2`가 Git Submodule 형태로 연결되어 있던 구조를 확인하고, 프로젝트 저장소에서 LIMO ROS 2 소스를 직접 관리할 수 있도록 일반 디렉터리 형태로 통합했습니다.
 
-## 11. Development Progress
+### 검증
 
-- [x] Oracle Cloud 원격 개발 환경 구축
-- [x] code-server 웹 IDE 구축
-- [x] Tailscale Funnel HTTPS 접속
-- [x] Fail2Ban 보안 구성
-- [x] LIMO ROS 2 패키지 GitHub 관리
-- [x] 원격 Teleoperation 코드 구성
-- [ ] ROS 2 Topic 통신 심화
-- [ ] LiDAR 데이터 처리
-- [ ] Camera 데이터 처리
-- [ ] Gazebo 자율주행 시뮬레이션
+통합 후 다음 항목을 확인했습니다.
+
+- LIMO ROS 2 소스 파일 정상 복사
+- 원본과 복사본의 파일 내용 비교
+- Git Submodule(Gitlink) 제거 확인
+- 불필요한 생성 파일 제외 확인
+- Git에 정상적으로 소스 등록
+
+최종적으로 LIMO ROS 2 관련 **58개 파일**을 프로젝트 저장소에 포함했습니다.
+
+---
+
+## 6.2 ROS 2 패키지 빌드 확인
+
+통합된 소스가 현재 ROS 2 환경에서 정상적으로 빌드되는지 확인합니다.
+
+```bash
+source /opt/ros/humble/setup.bash
+
+colcon build --symlink-install
+```
+
+### 현재 확인 결과
+
+다음 패키지가 정상적으로 빌드되었습니다.
+
+```text
+limo_msgs
+limo_car
+limo_description
+limo_base
+```
+
+빌드 결과:
+
+```text
+Summary: 4 packages finished
+```
+
+`limo_base`에서는 일부 기존 코드의 미사용 변수에 대한 컴파일 경고가 발생했지만, 빌드는 정상적으로 완료되었습니다.
+
+확인된 경고:
+
+```text
+unused variable 'left_wheel_odom'
+unused variable 'right_wheel_odom'
+unused variable 'present_theta_'
+unused variable 'last_theta_'
+```
+
+현재 단계에서는 해당 경고가 빌드 실패를 발생시키지 않는 것을 확인했으며, 이후 실제 주행 및 관련 코드 분석 과정에서 필요성을 검토합니다.
+
+---
+
+# 7. 자율주행 구현
+
+## 7.1 LiDAR 데이터 확인
+
+실제 LIMO에서 LiDAR 데이터를 정상적으로 수신할 수 있는지 확인합니다.
+
+확인 항목:
+
+- LiDAR Node
+- LaserScan 데이터
+- `/scan` Topic
+- RViz2에서 LaserScan 표시
+- 센서 좌표계 및 TF
+
+실제 하드웨어 연결 후 데이터를 확인하고 결과를 기록합니다.
+
+---
+
+## 7.2 TF 및 Odometry 확인
+
+자율주행을 위해서는 센서와 로봇의 좌표계 관계가 정상적으로 구성되어야 합니다.
+
+주요 확인 항목:
+
+```text
+map
+ └── odom
+      └── base_link
+           └── laser
+```
+
+확인 항목:
+
+- TF Tree
+- Odometry
+- `base_link`
+- LiDAR Frame
+- 좌표계 방향
+- 주행 중 TF 변화
+
+문제가 발생할 경우 TF Tree와 Topic 데이터를 기반으로 원인을 분석합니다.
+
+---
+
+## 7.3 SLAM Mapping
+
+LiDAR 센서 데이터를 이용하여 실제 실내 환경의 지도를 작성합니다.
+
+### 목표
+
+- 복도
+- 로비
+- 주요 이동 구역
+
+등의 환경을 지도에 반영합니다.
+
+### 구현 과정
+
+```text
+LiDAR
+  ↓
+LaserScan
+  ↓
+SLAM Toolbox
+  ↓
+지도 작성
+  ↓
+Map 저장
+```
+
+### 검증
+
+- 지도 생성 상태
+- 벽 및 복도 형태의 표현
+- 지도 왜곡 여부
+- 주행 중 위치 변화
+- Loop Closure 상태
+
+등을 확인합니다.
+
+---
+
+# 8. Localization 구현
+
+## 8.1 AMCL
+
+SLAM을 통해 작성한 정적 지도를 이용하여 로봇의 현재 위치를 추정합니다.
+
+### 구현 목표
+
+- Map 기반 위치 추정
+- 초기 위치 설정
+- 주행 중 위치 추정
+- 위치 추정 안정성 확인
+
+### 주요 확인 항목
+
+- AMCL Pose
+- Particle 분포
+- Map ↔ Odom 관계
+- 초기 위치 설정
+- 주행 중 위치 오차
+
+---
+
+## 8.2 AMCL 파라미터 튜닝
+
+실제 환경에서는 센서 특성 및 주행 환경에 따라 Localization 성능이 달라질 수 있으므로 파라미터를 단계적으로 조정합니다.
+
+주요 검토 항목:
+
+- Sensor Model
+- Motion Model
+- Particle 수
+- Update Threshold
+- Laser 관련 파라미터
+
+파라미터 변경 전후의 위치 추정 상태를 비교하여 실제 환경에 적합한 설정을 찾습니다.
+
+---
+
+# 9. Navigation2 구현
+
+Navigation2를 이용하여 목표 위치까지의 경로 계획과 주행을 구현합니다.
+
+전체 흐름은 다음과 같습니다.
+
+```text
+현재 위치
+   ↓
+목표 위치
+   ↓
+Global Planner
+   ↓
+Global Path
+   ↓
+Local Planner / Controller
+   ↓
+Local Path
+   ↓
+LIMO 주행
+```
+
+---
+
+## 9.1 Global Planning
+
+Global Planner를 이용하여 지도상에서 현재 위치부터 목표 위치까지의 전체 경로를 생성합니다.
+
+확인 항목:
+
+- 경로 생성
+- 장애물 반영
+- 목표 위치 변경
+- 경로 재계획
+
+---
+
+## 9.2 Local Planning 및 경로 추종
+
+Global Path를 기반으로 실제 로봇이 주행할 Local Path 및 제어 명령을 생성합니다.
+
+확인 항목:
+
+- 경로 추종
+- 회전 구간
+- 복도 주행
+- 속도 제어
+- 목표 위치 접근
+
+실제 LIMO의 주행 특성에 맞게 관련 파라미터를 조정합니다.
+
+---
+
+# 10. 동적 장애물 회피
+
+본 프로젝트의 주요 개발 항목 중 하나입니다.
+
+실내 환경에서는 사람과 같은 이동 물체가 경로에 진입할 수 있으므로 정적인 지도만 이용하는 자율주행으로는 충분하지 않습니다.
+
+### 목표
+
+- 동적 장애물 인식
+- Costmap 반영
+- 주행 중 경로 변경
+- 충돌 방지
+- 안전한 회피 주행
+
+### 기본 처리 흐름
+
+```text
+LiDAR / Sensor
+      ↓
+장애물 정보
+      ↓
+Local Costmap
+      ↓
+경로 재계획
+      ↓
+회피 주행
+```
+
+실제 복도 및 로비 환경에서 장애물을 배치하고 주행 테스트를 수행하여 회피 성능을 확인합니다.
+
+---
+
+# 11. 자율 순찰
+
+정해진 Waypoint를 순서대로 방문하는 자율 순찰 기능을 구현합니다.
+
+```text
+Waypoint 1
+    ↓
+Waypoint 2
+    ↓
+Waypoint 3
+    ↓
+Waypoint 4
+    ↓
+Waypoint 1
+    ↺
+```
+
+### 개발 항목
+
+- 순찰 지점 설정
+- Waypoint 순서 관리
+- ROS 2 Action 기반 목표 전달
+- 목표 도착 확인
+- 다음 Waypoint 전환
+- 순찰 반복
+
+실제 순찰 경로를 구성한 후 전체 경로의 주행 성공 여부를 검증합니다.
+
+---
+
+# 12. 목적지 안내
+
+사용자가 지정한 목적지까지 LIMO가 이동하는 안내 기능을 구현합니다.
+
+### 기본 흐름
+
+```text
+사용자 호출
+    ↓
+목적지 선택
+    ↓
+Navigation Goal
+    ↓
+경로 계획
+    ↓
+장애물 대응
+    ↓
+목적지 도착
+```
+
+안내 기능은 자율주행 시스템과 통합하여 실제 실내 환경에서 검증합니다.
+
+---
+
+# 13. 문제 해결 및 Troubleshooting
+
+개발 과정에서 발생한 문제를 단순히 수정하는 데 그치지 않고, **문제 → 원인 분석 → 해결 → 검증**의 형태로 기록합니다.
+
+예시:
+
+```text
+문제 발생
+   ↓
+증상 확인
+   ↓
+관련 Topic / Node / TF 확인
+   ↓
+원인 분석
+   ↓
+코드 또는 파라미터 수정
+   ↓
+재실행
+   ↓
+결과 검증
+   ↓
+문제 해결 과정 기록
+```
+
+앞으로 다음과 같은 문제를 기록할 예정입니다.
+
+- ROS 2 패키지 빌드 오류
+- Node 실행 오류
+- Topic 통신 문제
+- TF 연결 문제
+- LiDAR 데이터 문제
+- SLAM 지도 왜곡
+- AMCL 위치 추정 문제
+- Nav2 경로 생성 문제
+- Local Planner 문제
+- 동적 장애물 회피 문제
+- 실제 주행 중 발생하는 문제
+- 파라미터 튜닝 과정
+
+---
+
+# 14. 실험 및 검증
+
+구현한 기능은 실제 주행 환경에서 단계적으로 검증합니다.
+
+## 평가 항목
+
+### Localization
+
+- 위치 추정 안정성
+- 초기 위치 설정
+- 주행 중 위치 오차
+
+### Navigation
+
+- 목표 위치 도착 여부
+- 경로 추종 성능
+- 주행 시간
+- 경로 이탈 여부
+
+### 장애물 회피
+
+- 장애물 인식 여부
+- 회피 성공 여부
+- 충돌 여부
+- 경로 재계획 여부
+
+### Patrol
+
+- Waypoint 도착 성공률
+- 전체 순찰 성공 여부
+- 반복 순찰 가능 여부
+
+### Guide
+
+- 목적지 도착 여부
+- 안내 과정의 안정성
+- 장애물 발생 시 대응 여부
+
+실험 결과는 개발이 진행됨에 따라 측정값과 테스트 조건을 추가합니다.
+
+---
+
+# 15. 개발 기록
+
+프로젝트의 주요 개발 과정은 Git commit과 함께 기록합니다.
+
+예정된 개발 기록:
+
+```text
+[1] LIMO ROS 2 기본 소스 통합
+[2] LIMO 패키지 Build 확인
+[3] LiDAR 데이터 확인
+[4] TF / Odometry 확인
+[5] SLAM Mapping
+[6] Map 저장 및 검증
+[7] AMCL Localization
+[8] AMCL Parameter Tuning
+[9] Nav2 구성
+[10] Global Planning
+[11] Local Planning / Path Following
+[12] Dynamic Obstacle Avoidance
+[13] Waypoint Patrol
+[14] Guide 기능
+[15] 통합 테스트
+[16] 주행 파라미터 최적화
+[17] 최종 성능 평가
+```
+
+각 단계에서는 가능한 경우 다음 자료를 함께 남깁니다.
+
+- 변경된 코드
+- Launch 파일
+- Parameter 파일
+- RViz 화면
+- 실행 로그
+- 테스트 결과
+- 문제 해결 과정
+
+---
+
+# 16. 현재 진행 상황
+
+### 완료
+
+- [x] LIMO ROS 2 기본 소스 구조 확인
+- [x] LIMO ROS 2 소스 프로젝트 저장소 통합
+- [x] Git Submodule 구조 제거 및 일반 디렉터리로 통합
+- [x] 원본과 통합 소스 비교
+- [x] 불필요한 생성 파일 확인
+- [x] Git Commit 및 GitHub Push
+- [x] ROS 2 패키지 Build 확인
+
+### 진행 예정
+
+- [ ] LIMO 하드웨어 연결
+- [ ] LiDAR 데이터 확인
+- [ ] TF / Odometry 확인
+- [ ] 실내 SLAM Mapping
+- [ ] 지도 저장 및 검증
+- [ ] AMCL Localization
+- [ ] AMCL 파라미터 튜닝
+- [ ] Navigation2 구성
+- [ ] Global / Local Planning
 - [ ] 경로 추종
-- [ ] 장애물 회피
-- [ ] 자율주행 제어 알고리즘 고도화
+- [ ] 동적 장애물 회피
+- [ ] 자율 순찰
+- [ ] 목적지 안내
+- [ ] 실제 주행 테스트
+- [ ] 주행 파라미터 최적화
+- [ ] 최종 성능 평가
 
-## 12. Related Documentation
+---
 
-Cloud 기반 개발 환경 및 운영 과정에서 발생한 문제와 해결 과정은 별도 문서로 관리합니다.
+# 17. 팀 역할
 
+| 담당 | 주요 업무 |
+|---|---|
+| 정진우 | 자율주행 및 동적 장애물 회피 |
+| 김정민 | 순찰·안내 애플리케이션 및 검증 |
+| 배민혁 | 프로젝트 개발 지원 |
+| 한동훈 | 프로젝트 개발 지원 |
+
+### 정진우 — 자율주행 및 동적 장애물 회피
+
+- Nav2 기반 AMCL 위치 추정 및 파라미터 튜닝
+- 복도 및 로비 주행을 위한 Global / Local Path Planning
+- 동적 장애물 인식 및 회피 알고리즘 구현
+- 실제 주행 환경에서 주행 파라미터 최적화
+
+### 김정민 — 순찰·안내 애플리케이션 및 검증
+
+- ROS 2 Action 기반 Waypoint 순찰 로직 개발
+- 사용자 호출 기반 안내 기능 구현
+- 서비스 시나리오 필드 테스트
+- 테스트 결과 데이터 수집 및 기능 검증
+
+위 역할은 캡스톤디자인 팀별 계획서의 역할 분담을 기준으로 작성했습니다.
+
+---
+
+# 18. 향후 개발 방향
+
+프로젝트는 다음 순서로 통합합니다.
+
+```text
+LIMO 기본 동작
+      ↓
+센서 및 TF 확인
+      ↓
+SLAM Mapping
+      ↓
+AMCL Localization
+      ↓
+Navigation2
+      ↓
+경로 추종
+      ↓
+동적 장애물 회피
+      ↓
+자율 순찰
+      ↓
+목적지 안내
+      ↓
+통합 테스트
+      ↓
+파라미터 최적화
+      ↓
+최종 시연 및 평가
 ```
-docs/
-├── SETUP_GUIDE.md
-├── CLOUD.md
-├── ARCHITECTURE.md
-├── TROUBLESHOOTING.md
-└── CLOUD_WEB_IDE_SECURITY_RECOVERY.md
-```
 
-## 13. Git Workflow
+최종적으로는 실제 실내 환경에서 LIMO가 안정적으로 자율주행하면서 순찰 및 안내 서비스를 수행할 수 있도록 시스템을 통합하고 검증합니다.
 
-프로젝트 변경사항은 Git을 이용하여 관리합니다.
-```
-git add .
-git commit -m "feat: ..."
-git push origin main
-```
-GitHub를 통해 프로젝트의 구현 과정과 변경 이력을 지속적으로 관리합니다.
+---
 
-## 14. Future Work
+# 19. 참고자료 및 출처
 
-향후에는 다음 기능을 중심으로 프로젝트를 확장할 예정입니다.
-- LiDAR 기반 장애물 인식
-- Camera 기반 환경 인식
-- Sensor Fusion
-- 경로 계획 및 추종
-- 자율주행 제어
-- ROS 2 기반 멀티노드 시스템
-- AI Knowledge Hub와 개발 코드/문서 연계
+본 프로젝트의 개발 및 구현 과정에서는 다음 자료를 우선적으로 참고합니다.
+
+1. **WeGo, 「Limo_ROS2 교재」**
+2. **AgileX Robotics, LIMO 공식 자료**
+3. **ROS 2 공식 문서**
+4. **Navigation2 공식 문서**
+5. **SLAM Toolbox 공식 문서**
+6. **2026-2 캡스톤디자인 팀별계획서**
+7. 프로젝트 개발 과정에서 확인한 관련 기술 문서 및 커뮤니티 자료
+
+---
+
+## 20. 프로젝트 산출물
+
+최종적으로 다음 결과물을 구축하고 정리합니다.
+
+- ROS 2 기반 LIMO 자율주행 소스 코드
+- 커스텀 Node 및 Launch 파일
+- Navigation2 설정 및 Parameter 파일
+- 실내 지도 데이터
+- 자율 순찰 기능
+- 목적지 안내 기능
+- 동적 장애물 대응 기능
+- 주행 테스트 및 성능 평가 결과
+- 캡스톤디자인 최종 결과 보고서
+- 시연 영상
+- 발표 자료
