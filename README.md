@@ -93,31 +93,7 @@
 
 ---
 
-## 4. 개발 환경
-
-### Hardware
-
-- AgileX LIMO Pro
-- LiDAR
-- IMU
-- Odometry
-- Depth Camera
-
-### Software
-
-- Ubuntu 22.04
-- ROS 2 Humble
-- C++
-- Python
-- RViz2
-- Gazebo
-- Navigation2
-- SLAM Toolbox
-- Git / GitHub
-
----
-
-## 5. 저장소 구조
+## 4. 저장소 구조
 
 현재 저장소에는 AgileX LIMO의 ROS 2 기본 소스를 포함하고 있습니다.
 
@@ -168,92 +144,39 @@ LIMO에서 사용하는 사용자 정의 ROS 2 메시지를 포함합니다.
 
 ---
 
-# 6. 구현 과정
+# 5. 구현 과정
 
 본 프로젝트에서는 기능을 한 번에 통합하지 않고, **기본 소스 확인 → 센서 및 TF 확인 → 지도 작성 → 위치 추정 → Navigation2 → 장애물 대응 → 순찰 및 안내**의 순서로 단계적으로 개발합니다.
 
 ---
 
-## 6.1 LIMO ROS 2 기본 소스 분석 및 통합
+## 5.1 LIMO ROS 2 기본 소스
 
-### 목적
+프로젝트는 AgileX에서 제공하는 LIMO ROS 2 소스를 기반으로 구성한다.
 
-AgileX에서 제공하는 LIMO ROS 2 소스의 구조와 각 패키지의 역할을 파악하고, 프로젝트에서 사용할 수 있는 형태로 저장소에 통합합니다.
+현재 저장소에는 다음 패키지가 포함되어 있다.
 
-### 확인 내용
+- limo_base
+- limo_car
+- limo_description
+- limo_msgs
 
-- `limo_base`
-- `limo_car`
-- `limo_description`
-- `limo_msgs`
-- Launch 파일
-- LIMO Driver
-- URDF / Xacro
-- 사용자 정의 Message
-
-### 저장소 통합
-
-기존 `src/limo_ros2`가 Git Submodule 형태로 연결되어 있던 구조를 확인하고, 프로젝트 저장소에서 LIMO ROS 2 소스를 직접 관리할 수 있도록 일반 디렉터리 형태로 통합했습니다.
-
-### 검증
-
-통합 후 다음 항목을 확인했습니다.
-
-- LIMO ROS 2 소스 파일 정상 복사
-- 원본과 복사본의 파일 내용 비교
-- Git Submodule(Gitlink) 제거 확인
-- 불필요한 생성 파일 제외 확인
-- Git에 정상적으로 소스 등록
-
-최종적으로 LIMO ROS 2 관련 **58개 파일**을 프로젝트 저장소에 포함했습니다.
+각 패키지는 LIMO의 기본 구동, 로봇 모델 및 시뮬레이션,
+URDF/Xacro, 사용자 정의 메시지 등의 기능을 담당한다.
 
 ---
 
-## 6.2 ROS 2 패키지 빌드 확인
+## 5.2 ROS 2 패키지 빌드
 
-통합된 소스가 현재 ROS 2 환경에서 정상적으로 빌드되는지 확인합니다.
-
-```bash
-source /opt/ros/humble/setup.bash
-
-colcon build --symlink-install
-```
-
-### 현재 확인 결과
-
-다음 패키지가 정상적으로 빌드되었습니다.
-
-```text
-limo_msgs
-limo_car
-limo_description
-limo_base
-```
-
-빌드 결과:
-
-```text
-Summary: 4 packages finished
-```
-
-`limo_base`에서는 일부 기존 코드의 미사용 변수에 대한 컴파일 경고가 발생했지만, 빌드는 정상적으로 완료되었습니다.
-
-확인된 경고:
-
-```text
-unused variable 'left_wheel_odom'
-unused variable 'right_wheel_odom'
-unused variable 'present_theta_'
-unused variable 'last_theta_'
-```
-
-현재 단계에서는 해당 경고가 빌드 실패를 발생시키지 않는 것을 확인했으며, 이후 실제 주행 및 관련 코드 분석 과정에서 필요성을 검토합니다.
+프로젝트에 포함된 ROS 2 패키지는 개별적으로 빌드 및 검증한다.
+빌드 과정에서 발생한 오류와 경고, 해결 과정 및 검증 결과는
+DEVELOPMENT_LOG.md에 기록한다.
 
 ---
 
-# 7. 자율주행 구현
+# 6. 자율주행 구현
 
-## 7.1 LiDAR 데이터 확인
+## 6.1 LiDAR 데이터 확인
 
 실제 LIMO에서 LiDAR 데이터를 정상적으로 수신할 수 있는지 확인합니다.
 
@@ -269,7 +192,7 @@ unused variable 'last_theta_'
 
 ---
 
-## 7.2 TF 및 Odometry 확인
+## 6.2 TF 및 Odometry 확인
 
 자율주행을 위해서는 센서와 로봇의 좌표계 관계가 정상적으로 구성되어야 합니다.
 
@@ -295,7 +218,7 @@ map
 
 ---
 
-## 7.3 SLAM Mapping
+## 6.3 SLAM Mapping
 
 LiDAR 센서 데이터를 이용하여 실제 실내 환경의 지도를 작성합니다.
 
@@ -333,9 +256,9 @@ Map 저장
 
 ---
 
-# 8. Localization 구현
+# 7. Localization 구현
 
-## 8.1 AMCL
+## 7.1 AMCL
 
 SLAM을 통해 작성한 정적 지도를 이용하여 로봇의 현재 위치를 추정합니다.
 
@@ -356,7 +279,7 @@ SLAM을 통해 작성한 정적 지도를 이용하여 로봇의 현재 위치�
 
 ---
 
-## 8.2 AMCL 파라미터 튜닝
+## 7.2 AMCL 파라미터 튜닝
 
 실제 환경에서는 센서 특성 및 주행 환경에 따라 Localization 성능이 달라질 수 있으므로 파라미터를 단계적으로 조정합니다.
 
@@ -372,7 +295,7 @@ SLAM을 통해 작성한 정적 지도를 이용하여 로봇의 현재 위치�
 
 ---
 
-# 9. Navigation2 구현
+# 8. Navigation2 구현
 
 Navigation2를 이용하여 목표 위치까지의 경로 계획과 주행을 구현합니다.
 
@@ -396,7 +319,7 @@ LIMO 주행
 
 ---
 
-## 9.1 Global Planning
+## 8.1 Global Planning
 
 Global Planner를 이용하여 지도상에서 현재 위치부터 목표 위치까지의 전체 경로를 생성합니다.
 
@@ -409,7 +332,7 @@ Global Planner를 이용하여 지도상에서 현재 위치부터 목표 위치
 
 ---
 
-## 9.2 Local Planning 및 경로 추종
+## 8.2 Local Planning 및 경로 추종
 
 Global Path를 기반으로 실제 로봇이 주행할 Local Path 및 제어 명령을 생성합니다.
 
@@ -425,7 +348,7 @@ Global Path를 기반으로 실제 로봇이 주행할 Local Path 및 제어 명
 
 ---
 
-# 10. 동적 장애물 회피
+# 9. 동적 장애물 회피
 
 본 프로젝트의 주요 개발 항목 중 하나입니다.
 
@@ -457,7 +380,7 @@ Local Costmap
 
 ---
 
-# 11. 자율 순찰
+# 10. 자율 순찰
 
 정해진 Waypoint를 순서대로 방문하는 자율 순찰 기능을 구현합니다.
 
@@ -487,7 +410,7 @@ Waypoint 1
 
 ---
 
-# 12. 목적지 안내
+# 11. 목적지 안내
 
 사용자가 지정한 목적지까지 LIMO가 이동하는 안내 기능을 구현합니다.
 
@@ -511,7 +434,7 @@ Navigation Goal
 
 ---
 
-# 13. 문제 해결 및 Troubleshooting
+# 12. 문제 해결 및 Troubleshooting
 
 개발 과정에서 발생한 문제를 단순히 수정하는 데 그치지 않고, **문제 → 원인 분석 → 해결 → 검증**의 형태로 기록합니다.
 
@@ -552,7 +475,7 @@ Navigation Goal
 
 ---
 
-# 14. 실험 및 검증
+# 13. 실험 및 검증
 
 구현한 기능은 실제 주행 환경에서 단계적으로 검증합니다.
 
@@ -594,78 +517,15 @@ Navigation Goal
 
 ---
 
-# 15. 개발 기록
+# 14. 개발 기록
 
-프로젝트의 주요 개발 과정은 Git commit과 함께 기록합니다.
+프로젝트의 실제 개발 과정과 문제 해결 과정은 별도의 개발 기록 문서에 기록합니다.
 
-예정된 개발 기록:
-
-```text
-[1] LIMO ROS 2 기본 소스 통합
-[2] LIMO 패키지 Build 확인
-[3] LiDAR 데이터 확인
-[4] TF / Odometry 확인
-[5] SLAM Mapping
-[6] Map 저장 및 검증
-[7] AMCL Localization
-[8] AMCL Parameter Tuning
-[9] Nav2 구성
-[10] Global Planning
-[11] Local Planning / Path Following
-[12] Dynamic Obstacle Avoidance
-[13] Waypoint Patrol
-[14] Guide 기능
-[15] 통합 테스트
-[16] 주행 파라미터 최적화
-[17] 최종 성능 평가
-```
-
-각 단계에서는 가능한 경우 다음 자료를 함께 남깁니다.
-
-- 변경된 코드
-- Launch 파일
-- Parameter 파일
-- RViz 화면
-- 실행 로그
-- 테스트 결과
-- 문제 해결 과정
+개발 과정에서 확인한 오류, 원인 분석, 코드 및 파라미터 변경, 검증 결과 등을 단계적으로 기록합니다.
 
 ---
 
-# 16. 현재 진행 상황
-
-### 완료
-
-- [x] LIMO ROS 2 기본 소스 구조 확인
-- [x] LIMO ROS 2 소스 프로젝트 저장소 통합
-- [x] Git Submodule 구조 제거 및 일반 디렉터리로 통합
-- [x] 원본과 통합 소스 비교
-- [x] 불필요한 생성 파일 확인
-- [x] Git Commit 및 GitHub Push
-- [x] ROS 2 패키지 Build 확인
-
-### 진행 예정
-
-- [ ] LIMO 하드웨어 연결
-- [ ] LiDAR 데이터 확인
-- [ ] TF / Odometry 확인
-- [ ] 실내 SLAM Mapping
-- [ ] 지도 저장 및 검증
-- [ ] AMCL Localization
-- [ ] AMCL 파라미터 튜닝
-- [ ] Navigation2 구성
-- [ ] Global / Local Planning
-- [ ] 경로 추종
-- [ ] 동적 장애물 회피
-- [ ] 자율 순찰
-- [ ] 목적지 안내
-- [ ] 실제 주행 테스트
-- [ ] 주행 파라미터 최적화
-- [ ] 최종 성능 평가
-
----
-
-# 17. 팀 역할
+# 15. 팀 역할
 
 | 담당 | 주요 업무 |
 |---|---|
@@ -692,7 +552,7 @@ Navigation Goal
 
 ---
 
-# 18. 향후 개발 방향
+# 16. 향후 개발 방향
 
 프로젝트는 다음 순서로 통합합니다.
 
@@ -726,7 +586,7 @@ Navigation2
 
 ---
 
-# 19. 참고자료 및 출처
+# 17. 참고자료 및 출처
 
 본 프로젝트의 개발 및 구현 과정에서는 다음 자료를 우선적으로 참고합니다.
 
@@ -740,7 +600,7 @@ Navigation2
 
 ---
 
-## 20. 프로젝트 산출물
+## 18. 프로젝트 산출물
 
 최종적으로 다음 결과물을 구축하고 정리합니다.
 
