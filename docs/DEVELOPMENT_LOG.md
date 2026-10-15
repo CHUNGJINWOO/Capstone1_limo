@@ -1,19 +1,17 @@
-# 2026-09-30 — LIMO 실기기 환경 및 LiDAR / LIMO Base 확인
+# 2026-09-30 — LIMO 온보드 환경 및 LiDAR / LIMO Base 점검
 
 ## 1. 작업 환경
 
 - 로봇: AgileX LIMO
 - 작업 컴퓨터: LIMO onboard PC
-- 사용자: `pcu`
+- 계정: `pcu`
 - OS: Ubuntu 22.04.5
 - ROS 2: Humble
 - Workspace: `~/agilex_ws`
 
-이번 작업에서는 LIMO onboard PC에 연결된 실제 하드웨어를 기준으로 ROS 2 환경, LIMO Base, YDLiDAR T-mini Plus의 연결 상태를 단계적으로 확인하였다.
+LIMO onboard PC에 연결된 하드웨어를 기준으로 ROS 2 구동 환경, LIMO Base, YDLiDAR T-mini Plus의 통신 및 장치 인식 상태를 단계별로 점검하였다.
 
-ROS 2와 LIMO 관련 기능은 실제 하드웨어에서 실행하고 터미널 출력 및 ROS 2 Topic을 통해 동작 여부를 확인하였다.
-
-[출처: 교재 / 실기기 검증]
+ROS 2 및 LIMO 관련 기능은 온보드 환경에서 직접 실행하여 터미널 출력과 토픽 통신 상태를 통해 정상 동작 여부를 확인하였다.
 
 ---
 
@@ -48,9 +46,7 @@ ROS 2 환경을 source할 때 다음 경고가 반복적으로 출력되었다.
 not found: "/home/pcu/agilex_ws/install/limo_car/share/limo_car/local_setup.bash"
 ```
 
-해당 경고는 확인하였으나 이번 작업에서는 workspace 환경 자체를 수정하지 않았다.
-
-[출처: 교재 / 실기기 검증]
+해당 경고는 패키지 설치 경로 미생성으로 인한 것으로 확인하였으며, 하드웨어 통신 점검에 직접적인 영향이 없어 워크스페이스 환경 설정은 기존 상태를 유지하였다.
 
 ---
 
@@ -83,8 +79,6 @@ pci-0000:00:14.0-usb-0:7.4:1.0-port0 -> ../../ttyUSB1
 ```
 
 두 장치 모두 Silicon Labs CP2102 USB-UART 계열 장치로 확인하였다.
-
-[출처: 실기기 검증]
 
 ---
 
@@ -124,8 +118,6 @@ ros2 node list
 
 교재에서는 `limo_base`가 LIMO 하부 MCU와 Serial 통신을 수행하고 ROS 2 Topic 형태로 데이터를 제공하는 구조를 설명하며, 기본 실행은 `ros2 launch limo_base limo_base.launch.py`를 사용한다.
 
-[출처: 교재 / 실기기 검증]
-
 ---
 
 ## 5. LIMO Base Topic 확인
@@ -150,8 +142,6 @@ ros2 topic list
 교재에서는 LIMO Driver 실행 후 `cmd_vel`, `imu`, `limo_status`, `odom` 등의 Topic을 통해 LIMO 제어 및 상태 정보를 확인할 수 있도록 설명하고 있다.
 
 현재 실제 환경에서는 `/wheel/odom`이라는 Topic 이름이 확인되었다.
-
-[출처: 교재 / 실기기 검증]
 
 ---
 
@@ -187,8 +177,6 @@ linear_acceleration:
 
 교재에서도 LIMO Driver 실행 후 `/imu` Topic을 통해 `sensor_msgs/msg/Imu` 데이터를 확인하는 방법을 제시한다.
 
-[출처: 교재 / 실기기 검증]
-
 ---
 
 ## 7. Wheel Odometry 확인
@@ -219,8 +207,6 @@ ros2 topic echo /wheel/odom --once
 
 교재에서는 LIMO의 Odometry가 Encoder 데이터를 이용하여 현재 속도와 위치 정보를 나타내는 것으로 설명한다.
 
-[출처: 교재 / 실기기 검증]
-
 ---
 
 ## 8. LIMO TF 확인
@@ -241,8 +227,6 @@ odom
 ```
 
 LIMO의 TF 구조와 `odom` 기준 좌표 관계는 교재의 TF 실습 및 LIMO TF 구성에서 다루고 있다.
-
-[출처: 교재 / 실기기 검증]
 
 ---
 
@@ -266,8 +250,6 @@ Serial: 2024000400170358
 ```
 
 따라서 현재 LIMO에 연결된 LiDAR가 YDLIDAR T-mini Plus임을 실제 장치 로그에서 확인하였다.
-
-[출처: 실기기 검증]
 
 ---
 
@@ -302,8 +284,6 @@ ydlidar_ros2_driver
       ↓
 scan mode
 ```
-
-[출처: 실기기 검증]
 
 ---
 
@@ -346,8 +326,6 @@ scan_time: 약 0.1초
 
 교재에서는 YDLiDAR Driver 실행 후 `/scan`으로 `sensor_msgs/msg/LaserScan` 데이터가 나오며, `ranges[]`가 각 Laser에서 검출된 장애물의 거리라고 설명한다.
 
-[출처: 교재 / 실기기 검증]
-
 ---
 
 ## 12. base_link → laser_frame TF 확인
@@ -381,8 +359,6 @@ from 'base_link' to 'laser_frame'
 
 따라서 LiDAR의 `laser_frame`이 LIMO의 `base_link`와 연결되어 있는 것을 확인하였다.
 
-[출처: 실기기 검증]
-
 ---
 
 ## 13. RViz2에서 LaserScan 확인
@@ -405,8 +381,6 @@ Add
 교재에서는 Lidar Data를 RViz에서 확인하기 위해 `/scan`을 LaserScan으로 추가하고, Fixed Frame과 Reliability Policy를 설정하도록 안내한다.
 
 특히 교재에서는 LaserScan의 Reliability Policy를 `Best Effort`로 변경하도록 설명한다.
-
-[출처: 교재 / 실기기 검증]
 
 ---
 
@@ -435,9 +409,7 @@ Add
 [ ] SLAM 지도 생성
 ```
 
-따라서 09/30의 실제 작업은 **LIMO Base와 LiDAR의 실기기 연결 및 ROS 2 데이터 확인 단계까지 완료한 것**으로 기록한다.
-
-[출처: 실기기 검증]
+09/30 점검 결과 **LIMO Base와 LiDAR의 하드웨어 연결 및 센서 데이터 수신 단계까지 정상 동작을 확인**하였으며, RViz 표시 개선 및 SLAM 맵핑은 후속 작업으로 이관하였다.
 
 ---
 
@@ -480,13 +452,18 @@ ros2 run tf2_ros tf2_echo base_link laser_frame
 rviz2
 ```
 
-[출처: 실기기 검증]
+# 2026-10-01 — LIMO Base / LiDAR / RViz / SLAM 연동 점검
 
-# 2026-10-01 — LIMO Base / LiDAR / RViz / SLAM 연동 검증
+## 1. 작업 목적 및 환경
 
-## 1. 작업 목적
+- 로봇: AgileX LIMO
+- 작업 컴퓨터: LIMO onboard PC
+- 계정: `pcu`
+- Workspace: `~/agilex_ws`
 
-09/30에 확인한 LIMO Base와 YDLiDAR T-mini Plus를 동시에 실행하고,
+09/30에 확인한 LIMO Base와 YDLiDAR T-mini Plus를 동시 구동하여 센서 파이프라인(Base/LiDAR → TF → `/scan` → RViz → SLAM)이 정상 동작하는지 점검하였다.
+
+특히 RViz의 LaserScan QoS 비호환 문제 해결과 SLAM Toolbox 노드 연동 상태를 집중 확인하였다.
 
 ```text
 LIMO Base
@@ -501,12 +478,6 @@ RViz
     ↓
 SLAM
 ```
-
-구조가 실제 LIMO onboard PC에서 동작하는지 확인하였다.
-
-이번 작업에서는 특히 RViz의 LaserScan QoS 문제와 SLAM Toolbox 실행 상태를 확인하였다.
-
-[출처: 실기기 검증]
 
 ---
 
@@ -523,9 +494,7 @@ source 과정에서 다음 경고가 반복적으로 출력되었다.
 not found: "/home/pcu/agilex_ws/install/limo_car/share/limo_car/local_setup.bash"
 ```
 
-이번 작업에서는 해당 workspace 경고 자체를 수정하지 않았다.
-
-[출처: 실기기 검증]
+해당 워크스페이스 경고는 유지한 상태로 센서 연동 및 SLAM 노드 테스트를 진행하였다.
 
 ---
 
@@ -563,8 +532,6 @@ ros2 node list
 
 따라서 LIMO Base Node가 실제 onboard PC에서 실행되는 것을 확인하였다.
 
-[출처: 교재 / 실기기 검증]
-
 ---
 
 ## 4. Wheel Odometry 및 IMU 확인
@@ -587,8 +554,6 @@ Reliability: RELIABLE
 또한 `/imu` Topic에서 실제 IMU 데이터가 출력되는 것을 확인하였다.
 
 교재에서는 LIMO의 Odometry가 Encoder 기반으로 현재 속도와 위치를 나타내며, `/imu`에서는 IMU의 자세와 각속도 및 가속도 데이터를 제공한다고 설명한다.
-
-[출처: 교재 / 실기기 검증]
 
 ---
 
@@ -624,8 +589,6 @@ Hardware version: 1
 Serial: 2024000400170358
 ```
 
-[출처: 실기기 검증]
-
 ---
 
 ## 6. /scan 데이터 확인
@@ -648,8 +611,6 @@ range_max: 12.0
 `ranges` 배열에도 실제 거리 데이터가 존재하였다.
 
 따라서 LiDAR 하드웨어와 ROS 2 Driver 및 `/scan` Publishing은 정상적으로 동작하는 것으로 확인하였다.
-
-[출처: 교재 / 실기기 검증]
 
 ---
 
@@ -688,8 +649,6 @@ Reliability: RELIABLE
 
 교재에서도 LiDAR 데이터를 RViz에서 시각화할 때 LaserScan의 Reliability Policy를 `Best Effort`로 설정하도록 안내한다.
 
-[출처: 교재 / 실기기 검증]
-
 ---
 
 ## 8. RViz LaserScan QoS 수정
@@ -714,8 +673,6 @@ Reliability: BEST_EFFORT
 
 따라서 이전의 QoS incompatibility 문제를 해결하였다.
 
-[출처: 교재 / 실기기 검증]
-
 ---
 
 ## 9. RViz LaserScan 표시 확인
@@ -735,8 +692,6 @@ RViz
 ```
 
 그러나 RViz에서 LaserScan이 표시되는 것과 SLAM 지도가 정상적으로 생성되는 것은 별개의 단계이므로 이를 구분하였다.
-
-[출처: 실기기 검증]
 
 ---
 
@@ -795,8 +750,6 @@ ros2 node list | grep slam
 
 하나만 확인하였다.
 
-[출처: 실기기 검증]
-
 ---
 
 ## 11. SLAM Toolbox의 /scan 연결 확인
@@ -823,8 +776,6 @@ Reliability: BEST_EFFORT
 ```
 
 따라서 현재 `/scan`의 QoS는 SLAM Toolbox와 호환되는 것을 확인하였다.
-
-[출처: 실기기 검증]
 
 ---
 
@@ -857,8 +808,6 @@ Publisher로:
 등이 존재하는 것을 확인하였다.
 
 따라서 SLAM Toolbox Node 자체가 실행되고 `/scan`을 Subscriber로 가지고 있는 것은 확인하였다.
-
-[출처: 실기기 검증]
 
 ---
 
@@ -896,8 +845,6 @@ SLAM Toolbox /scan     구독 확인
 
 이다.
 
-[출처: 실기기 검증]
-
 ---
 
 ## 14. /map 확인
@@ -908,29 +855,25 @@ SLAM Toolbox 실행 후 다음 명령을 사용하였다.
 ros2 topic echo /map --once
 ```
 
-그러나 실제 지도 데이터가 정상적으로 출력되는 것까지 확인하지 못하였다.
+그러나 실제 점유격자 지도 데이터(`/map`)가 정상적으로 발행되는 것은 확인되지 않았다.
 
-따라서 이번 작업에서는:
+현 시점의 상태는 다음과 같이 정리한다.
 
 ```text
 SLAM Toolbox 실행        [확인]
 /scan 구독               [확인]
-/map Publisher 존재      [확인]
-실제 map 생성            [미확인]
-정상적인 지도 확장        [미확인]
+/map Publisher 등록      [확인]
+실제 map 데이터 생성     [미확인]
+이동에 따른 지도 확장    [미확인]
 ```
 
-으로 기록한다.
-
-**현재 단계에서 SLAM 또는 Mapping이 성공했다고 기록하지 않는다.**
-
-[출처: 실기기 검증]
+**SLAM 매핑 성공으로 판정하지 않으며, 파라미터 및 TF 연동 문제를 후속 해결 과제로 분류한다.**
 
 ---
 
 ## 15. 현재 SLAM 문제 상태
 
-현재 LiDAR 데이터 자체는 정상적으로 들어오고 있다.
+현재 LiDAR 센서 데이터 수신 자체는 정상 상태이다.
 
 ```text
 YDLiDAR
@@ -942,11 +885,11 @@ LaserScan
 SLAM Toolbox
 ```
 
-까지는 확인되었다.
+위 데이터 흐름까지는 확인되었다.
 
-하지만 LIMO가 이동할 때 RViz에서 이전처럼 주변 공간이 지속적으로 확장되면서 지도 형태가 생성되는 현상은 현재 확인되지 않았다.
+그러나 LIMO 이동 시 RViz 상에서 주변 공간이 확장되며 지도 형태가 생성되는 현상은 관측되지 않았다.
 
-따라서 현재 문제는 단순히 LiDAR 하드웨어나 `/scan` 데이터가 없는 문제로 단정할 수 없다.
+따라서 현재 문제는 LiDAR 하드웨어나 `/scan` 토픽 부재가 아닌, SLAM Toolbox 내부 처리 및 좌표계 매핑 과정의 문제로 판단된다.
 
 추가로 확인해야 할 항목은:
 
@@ -961,8 +904,6 @@ SLAM Toolbox
 ```
 
 이다.
-
-[출처: 실기기 검증]
 
 ---
 
@@ -1001,11 +942,9 @@ map.yaml
 
 이 생성된다고 설명한다.
 
-따라서 **교재를 기준으로 삼는 현재 프로젝트에서는 향후 SLAM 구현 시 교재의 Cartographer 구성을 먼저 확인하는 것이 기준선이 된다.**
+따라서 **교재의 Cartographer 구성을 비교 기준선으로 설정하고, 향후 SLAM 구현 시 이를 우선 대조한다.**
 
-현재 10/01에 실행한 `slam_toolbox`는 교재의 LIMO SLAM 실습을 그대로 적용한 것이 아니라 별도로 진행한 실험이므로, 개발 기록에서는 이를 구분한다.
-
-[출처: 교재 / 실기기 검증]
+10/01에 진행한 `slam_toolbox` 실험은 교재 실습과 별개로 진행된 파이프라인 구성 실험이므로, 개발 기록에서 이를 명확히 구분하여 관리한다.
 
 ---
 
@@ -1035,8 +974,6 @@ map.yaml
 [ ] 이동에 따른 지도 확장 확인
 [ ] 지도 저장
 ```
-
-[출처: 실기기 검증]
 
 ---
 
@@ -1072,7 +1009,7 @@ use_sim_time:=false \
 slam_params_file:=/tmp/limo_slam_async.yaml
 ```
 
-단, `/tmp/limo_slam_async.yaml`은 현재 재부팅 이후 존재하지 않는 것이 확인되었으므로, 위 명령은 **당시 사용했던 실행 방식 기록**으로만 남긴다. 현재 동일한 명령을 그대로 재실행할 수 있다고 단정하지 않는다.
+단, `/tmp/limo_slam_async.yaml`은 임시 경로 파일로 재부팅 후 소실되었으므로 당시 실행 기록으로만 보존하며, 영구 파라미터 파일 확보 전까지 재실행 명령으로 사용하지 않는다.
 
 ### 터미널 4 — RViz
 
@@ -1097,8 +1034,6 @@ Reliability Policy:
 ```text
 BEST_EFFORT
 ```
-
-[출처: 교재 / 실기기 검증]
 
 ---
 
@@ -1147,7 +1082,7 @@ occupancy_grid_launch.py
 
 구성을 실제 `~/agilex_ws`에 존재하는 패키지와 비교한다.
 
-그 후 교재 방식으로 실행할 수 있는지 확인하고, 실제 LIMO에서 지도 생성이 되는지 검증한다.
+그 후 교재 방식으로 실행할 수 있는지 확인하고, 실제 LIMO에서 지도 생성이 되는지 확인한다.
 
 지도 생성이 실제로 확인된 경우에만:
 
@@ -1157,337 +1092,113 @@ ros2 run nav2_map_server map_saver_cli -f map
 
 을 사용하여 지도 저장 단계로 진행한다.
 
-[출처: 교재 / 실기기 검증]
 
+# 2026-10-13 — Gazebo Classic 기반 LIMO SLAM 시뮬레이션 실험 및 매핑 평가
 
-# 2026-10-13 — LIMO 자율 매핑(SLAM Toolbox + Nav2 + explore_lite) 환경 구축 및 탐색 동작 진단
+## 1. 작업 목적 및 시뮬레이션 환경
 
-## 1. 작업 목적 및 환경
+- 로봇 모델: AgileX LIMO (Gazebo 시뮬레이션 모델)
+- 작업 환경: 개발 PC (`~/simulator-research/limo_sim_ws`)
+- 시뮬레이션 플랫폼: Gazebo Classic 11 + ROS 2 Humble
+- 대상 월드: `enclosed_room.world` (약 5m × 5m 밀폐 공간)
+- SLAM 패키지: `slam_toolbox` (`async_slam_toolbox_node`)
+- 검증 근거 (시뮬레이션 로그 및 결과 파일):
+  - 실험 실행 로그: `~/simulator-research/limo_sim_ws/experiments/exp_slam_mapping_20261013_212244.log`
+  - 시뮬레이션 TF 트리 기록: `frames_2026-10-13_19.38.47.gv`
+  - 생성된 지도 파일: `~/simulator-research/limo_sim_ws/results/enclosed_room_slam_map_20261013_212244.pgm/yaml`
 
-- 로봇: AgileX LIMO Pro
-- 작업 컴퓨터: LIMO onboard PC
-- OS: Ubuntu 22.04.5 LTS
-- ROS 2: Humble
-- Workspace: `~/capstone_ws` (기존 `~/agilex_ws`에서 캡스톤 프로젝트 전용 워크스페이스로 전환)
-
-10/01의 단독 SLAM Toolbox 실험(당시 지도 미생성 상태) 이후, 이번 작업에서는 LIMO onboard 환경에서 SLAM Toolbox, Nav2, explore_lite(m-explore-ros2)를 유기적으로 연동한 **자율 매핑(Autonomous Mapping) 파이프라인**을 구성하고 실제 동작 상태를 진단하였다.
-
-또한 현장 운용성을 높이기 위해 정의된 실행 명령어 체계(`light`, `auto_map`, `save_map`)와 각 런치 파일의 역할을 확인하고, 주행 중 발생하는 이상 동작(로봇 정지 및 목표 반복)의 원인을 추적하였다.
-
-[출처: 실기기 검증]
+10/01의 LIMO 하드웨어 점검에 이어, 개발 PC의 Gazebo Classic 시뮬레이션 환경에서 LIMO 모델과 SLAM Toolbox를 연동한 지도 작성 실험을 수행하고 주행 제어 및 맵 생성 상태를 점검하였다.
 
 ---
 
-## 2. 실행 명령어 체계 및 런치 파일 역할
+## 2. 시뮬레이션 TF 상태 확인
 
-LIMO onboard 환경에서 자율 매핑 수행 시 사용되는 단축 실행 명령어와 각 런치 파일의 역할은 다음과 같다.
+실험 초기화 단계에서 확인된 시뮬레이션 좌표 변환 상태:
+- `map → odom`: SLAM Toolbox 정상 브로드캐스트 확인 (오차 x=-0.000, y=-0.000, z=-0.001)
+- `odom → base_footprint`: Gazebo 오도메트리 플러그인 (약 50.2Hz)
+- `base_footprint → base_link`: 정적 변환
+- `base_link → laser_link`: 라이다 프레임 정적 변환
+- `base_footprint → front/rear_wheel_link`: 휠 링크 조인트 상태 (약 60.2Hz)
+
+---
+
+## 3. SLAM 매핑 주행 실험 및 타임아웃 관측
+
+`test_slam_mapping.py`를 통해 지정된 주행 패턴을 실행하고 SLAM 갱신 상태를 평가하였다.
+
+### 3.1 주행 단계별 실행 결과
+- **Step 2.1 (제자리 360도 회전, 목표 6.28 rad):**
+  - 회전 속도 0.4 rad/s로 주행 중 5.43 rad만 누적된 상태에서 제한 시간(25.0초)이 초과되어 **회전 타임아웃으로 실패 (`SIM_TIMEOUT (25.0s, accumulated: 5.43 rad)`)**.
+- **Step 2.2 (직진 0.8m) 및 Step 2.3 (역회전):**
+  - Step 2.1 실패에 따라 안전을 위해 이후 주행 단계는 **중단 (Aborted)** 처리됨.
+
+### 3.2 지도 품질 및 기하학적 형태 분석
+- 생성된 점유격자 지도 크기: 98 × 98 cells (4.90m × 4.90m, 해상도 0.05m)
+- 영역별 셀 분포:
+  - 미탐색 영역 (Unknown, -1): **9,443셀 (98.3%)**
+  - 자유 공간 (Free, 0~25): 160셀 (1.7%)
+  - 점유 벽면 (Occupied, 65~100): **1셀 (0.0%)**
+- 방 치수 검출:
+  - 검출된 벽면 영역(점유 셀 ≥ 65 기준): X span 0.00m, Y span 0.00m (Ground Truth: 약 5.0m)
+  - 치수 오차: dX = 500.0cm, dY = 500.0cm
+- 판정: 회전 주행이 완료되지 못하고 스캔 데이터 누적이 부족하여 방의 형상이 거의 표현되지 못한 미완성 지도로 확인됨.
+
+---
+
+## 4. 지도 파일 저장 및 유효성 확인
+
+주행 실패로 지도 품질은 미흡했으나, 실험 스크립트의 지도 파일 생성 및 헤더 유효성 확인 절차는 정상 완료됨을 확인하였다.
+- 저장 파일: `enclosed_room_slam_map_20261013_212244.pgm` (9,617 Bytes), `enclosed_room_slam_map_20261013_212244.yaml` (151 Bytes)
+- 확인 내용: PGM 매직 넘버(`P5`), 크기(98×98), 픽셀 페이로드 및 YAML 메타데이터 정상 판독 완료.
+- 주의: **지도 파일 저장 절차 성공이 SLAM 지도 품질이나 완성도를 의미하지 않음**을 구분하여 기록함.
+
+---
+
+## 5. 10/13 작업 결과 요약
 
 ```text
-[light]
-  ↓ LIMO Base + LiDAR 구동 (하드웨어 bringup)
-[auto_map]
-  ↓ SLAM Toolbox + Nav2 + explore_lite 구동 (자율 매핑)
-[save_map]
-  ↓ nav2_map_server map_saver_cli 구동 (지도 저장)
+[x] Gazebo Classic 기반 LIMO 시뮬레이션 구동 및 SLAM Toolbox 연동 확인
+[x] 시뮬레이션 환경 내 odom → base_footprint → base_link → laser_link TF 확인
+[!] 360도 제자리 회전 주행 타임아웃(25초 초과, 5.43 rad) 및 이후 주행 중단
+[!] 생성된 시뮬레이션 지도의 98.3%가 미탐색 영역으로 남음 (품질 불량)
+[x] 시뮬레이션 맵 파일(.pgm, .yaml) 생성 및 파일 헤더 유효성 확인 완료
 ```
 
-1. **`light` (하드웨어 Bringup):**
-   - LIMO 베이스 드라이버(`limo_base`)와 YDLiDAR T-mini Plus 드라이버(`ydlidar_ros2_driver`)를 실행.
-   - 바퀴 오도메트리(`/wheel/odom`), IMU(`/imu`), 라이다 스캔(`/scan`) 토픽을 활성화하고 로봇 기본 TF를 브로드캐스팅.
+# 2026-10-15 — 자율 매핑 런치 파일 구조 분석 및 현장 보고 사항
 
-2. **`auto_map` (`limo_auto_mapping.launch.py`):**
-   - SLAM Toolbox(`async_slam_toolbox_node`), Nav2 스택(Planner, Controller, Recoveries, BT Navigator), explore_lite(`explore_node`)를 일괄 실행하는 자율 매핑 통합 런치 파일.
-   - SLAM을 통해 실시간 지도를 생성함과 동시에, explore_lite가 프런티어(미탐색 영역 경계)를 추출하여 Nav2에 주행 목표를 전달하고 자율적으로 지도를 확장하도록 구성.
+## 1. 런치 파일 구조 및 TF 실행 순서 분석 (확인된 사실)
 
-3. **`save_map` (지도 저장 CLI):**
-   - 탐색 완료 또는 매핑 도중 생성된 점유격자 지도를 영구 파일로 저장하는 명령.
-   - 내부적으로 `ros2 run nav2_map_server map_saver_cli`를 호출하여 현재 `/map` 토픽 데이터를 `.pgm` 및 `.yaml` 형식으로 저장.
+- 분석 근거 (코드 및 설정 파일):
+  - 저장소 루트 메모 파일: `2026_10_15` (12:52 KST 작성)
+  - 대상 파일: `limo_auto_mapping.launch.py`, `explore.yaml`
 
-[출처: 실기기 검증]
+### 1.1 분석 배경
+- 현재 런치 파일은 `base_link → base_footprint` 간 정적 변환을 제공함.
+- `explore.yaml`은 `robot_base_frame: base_link`로 설정되어 있으나, Nav2 스택의 일부 노드는 `base_footprint`를 참조함.
+- `explore_node`가 static TF 노드보다 먼저 실행될 경우, 탐색 노드가 시작 시점에 필요한 TF를 즉시 참조하지 못하고 대기하거나 초기 오류/경고를 기록할 수 있음.
+
+### 1.2 제안된 조치 내용
+- 탐색 노드(`explore_node`)를 시작하기 전에 `base_link → base_footprint` 정적 TF 노드가 먼저 구동되어 변환을 안정적으로 제공하도록 런치 파일 내 실행 순서를 변경 배치하는 방안 도출.
 
 ---
 
-## 3. 센서 토픽 및 TF 트리 검증
+## 2. 현장 매핑 및 지도 저장 관련 보고 사항 (로컬 증거 미확보 / 확인 필요)
 
-실제 자율 매핑 구동 환경에서 센서 토픽 및 TF 변환 관계를 점검하였다.
+- **보고된 내용:**
+  - 런치 순서 조정 후 미래관 3층 현장 구역에서 매핑을 진행하고, 지도를 저장하여 `MC_3F_10_15` (`MC_3F_10_15.pgm`, `MC_3F_10_15.yaml`) 파일명으로 보관 중이라는 보고가 있었음.
+- **현황 및 확인 필요 사항:**
+  - 현재 로컬 개발 머신 및 본 Git 저장소 내에는 `MC_3F_10_15` 실물 지도 파일 및 해당 주행/저장 실행 로그가 존재하지 않음.
+  - 증거가 없다는 이유만으로 작업 자체를 단정적으로 배제하지 않으며, **실제 LIMO 온보드 PC 환경에서 주행 여부, 실행 로그, 맵 파일 존재 여부를 추가 확인해야 할 항목**으로 분리하여 관리함.
+  - 실제 런치 순서 변경 적용 여부와 그에 따른 TF 경고 개선 효과 역시 별도 실행 로그를 통해 추가 확인이 필요함.
 
-### 3.1 YDLiDAR `/scan` 토픽 및 프레임 확인
-다음 명령으로 `/scan` 토픽의 발행 주기와 프레임을 확인하였다.
+---
 
-```bash
-ros2 topic hz /scan
-ros2 topic echo /scan --once | grep frame_id
-```
-
-- **발행 주기:** 약 10.0Hz (평균 주기 0.1초)
-- **프레임 ID:** `laser_link`
-- 09/30~10/01 초기 점검 당시 확인되었던 `laser_frame`에서 로봇 통합 모델/URDF 표준인 `laser_link` 프레임으로 연결된 것을 확인하였다.
-
-### 3.2 TF 트리 체인 확인
-`tf2_tools` 및 `tf2_echo`를 통해 전체 좌표 변환 관계를 점검하였다.
-
-```bash
-ros2 run tf2_tools view_frames
-ros2 run tf2_ros tf2_echo odom base_link
-ros2 run tf2_ros tf2_echo base_link laser_link
-```
-
-확인된 TF 체인 구조 (`frames_2026-10-13_19.38.47.gv` 실측):
+## 3. 10/15 작업 결과 요약
 
 ```text
-map
- └── odom (SLAM Toolbox 브로드캐스트)
-      └── base_footprint (limo_base_node 오도메트리, 약 50.2Hz)
-           ├── base_link (정적 변환 static_transform_publisher)
-           │    ├── laser_link (라이다 프레임)
-           │    ├── depth_camera_link -> depth_link (카메라 프레임)
-           │    ├── imu_link (IMU 프레임)
-           │    └── inertial_link
-           ├── front_left_wheel_link (약 60.2Hz)
-           ├── front_right_wheel_link (약 60.2Hz)
-           ├── rear_left_wheel_link (약 60.2Hz)
-           └── rear_right_wheel_link (약 60.2Hz)
+[x] limo_auto_mapping.launch.py 내 explore_node와 static_tf 실행 순서 문제 분석 (메모 확인)
+[x] 탐색 노드 시작 전 static TF 선행 구동 배치 방안 도출
+[?] 런치 파일 실행 순서 변경의 실제 적용 및 TF 경고 개선 효과 (실행 로그 미확보 / 확인 필요)
+[?] 현장 구역(미래관 3층) 주행 및 MC_3F_10_15 지도 파일 저장 (로컬 증거 미확보 / 온보드 확인 필요)
+[!] 자율 탐색 중 주행 정지 및 목표 반복(Goal Oscillation) 문제의 해결 여부 (미해결)
 ```
-
-- `odom → base_footprint`: 약 50Hz 주기로 정상 브로드캐스팅 확인.
-- `base_footprint → base_link`: 정적 변환 브로드캐스터를 통해 연결 확인.
-- `base_link → laser_link`: 라이다 고정 좌표계 정상 변환 확인.
-
-[출처: 실기기 검증]
-
----
-
-## 4. SLAM Toolbox, Nav2, explore_lite 실행 상태 확인
-
-통합 런치(`auto_map`) 구동 후 활성화된 노드와 토픽을 점검하였다.
-
-### 4.1 실행 노드
-```bash
-ros2 node list
-```
-
-확인된 주요 노드:
-- `/slam_toolbox`: 온라인 비동기 SLAM 수행
-- `/controller_server`: Nav2 로컬 경로 추종 및 속도 명령 제어
-- `/planner_server`: Nav2 전역 경로 계획
-- `/recoveries_server`: 주행 실패 시 복구 동작
-- `/bt_navigator`: 행동 트리 기반 내비게이션 관리
-- `/explore_node`: explore_lite 프런티어 탐색 노드
-
-### 4.2 /map 및 지도 메타데이터 확인
-10/01 실험에서는 확인되지 않았던 실제 지도 생성을 확인하였다.
-
-```bash
-ros2 topic echo /map_metadata --once
-```
-
-확인된 지도 메타데이터:
-- `resolution`: 0.05 (5cm 격자)
-- 점유격자 지도 데이터가 `/map` 토픽으로 정상 발행되며, 로봇 주변의 장애물(벽면)과 자유 공간이 실시간으로 갱신되는 것을 확인하였다.
-- 따라서 **SLAM Toolbox 자체의 지도 생성 및 퍼블리싱 기능은 정상 동작함**을 확인하였다.
-
-[출처: 실기기 검증]
-
----
-
-## 5. 자율 탐색 동작 중 관측된 문제 (정지 및 목표 반복)
-
-SLAM Toolbox가 지도를 발행하고 explore_lite가 동작을 시작하였으나, 실제 자율 주행 탐색 과정에서 다음과 같은 이상 동작이 관측되었다.
-
-### 5.1 관측된 문제 현상
-1. **로봇 정지 현상:**
-   - 로봇이 일정 거리 주행 후 프런티어 목표 지점을 향해 이동하지 않고 제자리에 멈춰 서 있는 현상 발생.
-2. **탐색 목표 반복(Goal Oscillation / Looping):**
-   - explore_lite가 특정 프런티어를 목표로 설정하여 Nav2에 전달한 직후, 경로 계획 실패 또는 알 수 없는 이유로 목표가 즉시 취소되고 동일하거나 인접한 좌표를 목표로 반복 재전송하는 현상 발생.
-   - 로봇이 방향을 바꾸거나 제자리에서 불안정하게 진동함.
-
-### 5.2 explore_lite 및 Nav2 로그 관측
-- `explore_lite` 로그:
-  - 프런티어 클러스터 추출 후 `Sending goal to Nav2...` 메시지 출력.
-  - 목표 전송 후 얼마 지나지 않아 `Goal cancelled` 또는 새로운 프런티어 목표 재할당이 빈번하게 발생.
-- `Nav2` 로그:
-  - 전역 경로 계획 실패(Failed to make plan) 또는 코스트맵 인플레이션 영역 침범으로 인한 주행 거부 발생.
-  - Recovery behavior(회전, 후진 등) 진입 후에도 정상 경로를 찾지 못함.
-
-[출처: 실기기 검증]
-
----
-
-## 6. 문제 원인 분석 및 진단
-
-현상을 진단하기 위해 설정 파일 및 실행 구조를 대조 분석하였다.
-
-### 6.1 프레임 참조 불일치 및 런치 순서 문제
-- `explore.yaml` 설정:
-  - `robot_base_frame: base_link`로 지정되어 있음.
-- Nav2 스택 노드 설정:
-  - Global/Local Costmap 및 컨트롤러의 일부 기준 프레임이 `base_footprint`를 참조함.
-- 런치 파일 구조:
-  - `limo_auto_mapping.launch.py`에서 `base_link → base_footprint` 간 정적 변환을 제공하는 static TF 노드와 `explore_node`의 실행 순서 검토.
-  - `explore_node`가 static TF 노드보다 먼저 실행될 경우, 탐색 노드가 시작 시점에 필요한 TF 트리를 즉시 참조하지 못하고 대기하거나 경고/오류가 누적될 수 있음을 확인.
-
-### 6.2 진단 명령어 및 결과
-진단을 위해 실제로 실행한 명령어:
-```bash
-ros2 topic echo /scan --once
-ros2 topic hz /scan
-ros2 run tf2_tools view_frames
-ros2 run tf2_ros tf2_echo odom base_link
-ros2 run tf2_ros tf2_echo base_link laser_link
-ros2 node list
-ros2 topic list
-ros2 topic echo /map_metadata --once
-```
-
-관측 결과:
-- 센서 및 기본 TF는 정상이나, 자율 탐색 노드와 Nav2 간의 목표 전달 및 경로 추종 단계에서 파라미터(장애물 마진, 프런티어 최소 크기, 타임아웃) 및 TF 초기화 순서의 개선이 필요함을 확인하였다.
-
-[출처: 실기기 검증]
-
----
-
-## 7. 10/13 작업 결과
-
-```text
-[x] LIMO onboard PC에서 ROS 2 Humble 및 ~/capstone_ws 환경 확인
-[x] light, auto_map, save_map 실행 명령어 체계 및 런치 파일 역할 정리
-[x] YDLiDAR /scan 발행 주기(10Hz) 및 laser_link 프레임 확인
-[x] odom → base_footprint → base_link → laser_link TF 체인 검증
-[x] SLAM Toolbox, Nav2, explore_lite 통합 프로세스 구동 확인
-[x] /map 및 /map_metadata 정상 발행 및 실시간 지도 갱신 확인
-[!] 자율 탐색 중 로봇 정지 현상 확인 (미해결)
-[!] 프런티어 목표 반복 전송 및 진동(Goal Looping) 현상 확인 (미해결)
-[x] explore_node와 static TF 실행 순서 및 프레임 참조 불일치 원인 분석
-```
-
-**자율 탐색의 정지 및 목표 반복 문제는 원인을 분석 중인 단계이며, 아직 해결된 것으로 단정하지 않는다.**
-
-[출처: 실기기 검증]
-
----
-
-## 8. 실행 명령어 정리
-
-### 터미널 1 — 하드웨어 및 센서 Bringup
-```bash
-source /opt/ros/humble/setup.bash
-source ~/capstone_ws/install/setup.bash
-
-light
-```
-
-### 터미널 2 — 자율 매핑 실행
-```bash
-source /opt/ros/humble/setup.bash
-source ~/capstone_ws/install/setup.bash
-
-auto_map
-```
-
-### 터미널 3 — 상태 모니터링 및 진단
-```bash
-source /opt/ros/humble/setup.bash
-source ~/capstone_ws/install/setup.bash
-
-ros2 topic hz /scan
-ros2 topic echo /map_metadata --once
-ros2 run tf2_tools view_frames
-ros2 node list
-```
-
-[출처: 실기기 검증]
-
-# 2026-10-15 — 자율 매핑 런치 파일 실행 순서 개선 및 지도 저장(Map Saver) 검증
-
-## 1. 작업 목적
-
-- 10/13 진단에서 도출된 `limo_auto_mapping.launch.py` 내 `explore_node`와 정적 TF 노드의 실행 순서 문제를 개선.
-- 자율 매핑 환경에서 `save_map` (Map Saver)을 실행하여 지도 데이터 정상 저장 여부를 검증.
-- 저장된 지도 파일 현황 및 사용자 보고 사항을 개발 이력에 반영.
-
-[출처: 실기기 검증 / 사용자 보고]
-
----
-
-## 2. `limo_auto_mapping.launch.py` 런치 파일 구조 개선
-
-10/13에 파악된 TF 초기화 지연 문제를 해결하기 위해 `limo_auto_mapping.launch.py` 런치 파일의 노드 배치 순서를 개선하였다.
-
-### 2.1 개선 배경
-- 현재 런치 파일은 `base_link → base_footprint` 정적 변환을 제공함.
-- `explore.yaml`은 `robot_base_frame: base_link`로 설정되어 있으나, Nav2 설정의 일부 노드는 `base_footprint`를 사용함.
-- 기존 배치에서는 `explore_node`가 static TF 노드보다 먼저 실행되어, TF가 준비될 때까지 탐색 노드가 대기하거나 초기 오류/경고를 기록하는 문제가 있었음.
-
-### 2.2 조치 내용
-- 탐색 노드(`explore_node`)를 시작하기 전에 `base_link → base_footprint` 정적 TF 노드가 먼저 구동되어 변환을 안정적으로 제공하도록 런치 파일 내 실행 순서를 변경 배치함.
-
-[출처: 실기기 검증 / 사용자 작업 기록]
-
----
-
-## 3. Map Saver 실행 및 지도 저장 성공
-
-런치 순서 개선 후 자율 매핑을 재실행하고, 매핑 도중 지도를 저장하는 절차를 검증하였다.
-
-### 3.1 지도 저장 명령 실행
-```bash
-save_map
-```
-(내부적으로 `ros2 run nav2_map_server map_saver_cli -f map` 실행)
-
-### 3.2 저장 결과 확인
-- 점유격자 지도 이미지 파일(`.pgm`)과 지도 메타데이터 파일(`.yaml`)이 지정된 경로에 정상적으로 생성되고 기록됨을 확인하였다.
-- 이를 통해 **Map Saver를 통한 실시간 `/map` 데이터 추출 및 파일 저장 기능의 정상 동작**을 검증하였다.
-
-[출처: 실기기 검증]
-
----
-
-## 4. 사용자 보고 사항 — 저장 지도 파일명 변경
-
-- 현장 테스트를 진행한 사용자는 실측 구역(미래관 3층)의 날짜별 매핑 데이터를 식별하기 위해, 저장된 지도 파일명을 기본 `map`에서 **`MC_3F_10_15`** (`MC_3F_10_15.pgm`, `MC_3F_10_15.yaml`)로 변경하여 보관 중임을 보고하였다.
-
-[출처: 사용자 보고]
-
----
-
-## 5. 사실성 확인 및 한계 명시
-
-개발 기록의 신뢰성과 안전을 위해 확인된 사실과 미확인/한계 사항을 명확히 구분한다.
-
-1. **지도 저장 성공 ≠ 지도 품질 검증:**
-   - Map Saver를 통해 파일이 성공적으로 기록되었으나, 저장된 지도의 정합도, 벽면 직각도, 루프 클로징 왜곡 여부, 노이즈 수준 등 정량적인 **지도 품질 평가는 아직 수행되지 않았다.**
-2. **지도 저장 성공 ≠ 자율 주행 성공:**
-   - 지도가 저장되었다고 해서 LIMO의 자율 주행 및 목적지 탐색이 완벽히 성공한 것은 아니다.
-3. **자율 탐색 정지·목표 반복 문제 미해결:**
-   - 런치 파일의 static TF 실행 순서 개선으로 초기 TF 대기 현상은 완화되었으나, 10/13에 관측된 **주행 중 로봇 정지 및 프런티어 목표 반복(진동) 문제가 완전히 해결되었다고 단정할 수 없다.**
-   - 향후 Nav2 Costmap 인플레이션 반경, 로컬 플래너 파라미터, explore_lite의 목표 선정 알고리즘에 대한 지속적인 튜닝과 실주행 검증이 필요하다.
-
-[출처: 실기기 검증 / 개발 규칙 준수]
-
----
-
-## 6. 10/15 작업 결과
-
-```text
-[x] limo_auto_mapping.launch.py 내 static_tf와 explore_node 실행 순서 조정
-[x] 탐색 노드 시작 전 base_link → base_footprint 정적 TF 제공 구조 적용
-[x] save_map (Map Saver) 실행 및 지도 파일(.pgm, .yaml) 저장 성공 확인
-[x] 저장된 지도 파일명을 MC_3F_10_15로 변경하여 보관 [사용자 보고]
-[!] 저장 지도의 품질 및 왜곡 여부 정밀 평가 (미검증)
-[!] 자율 탐색 중 주행 정지 및 목표 반복 문제의 완전 해결 여부 (미해결 / 추가 튜닝 필요)
-```
-
----
-
-## 7. 향후 과제
-
-1. **저장된 지도(`MC_3F_10_15`) 품질 검토:**
-   - 실제 실내 복도/강의실 구조와 비교하여 축척 오차 및 벽면 왜곡 분석.
-2. **자율 탐색 주행 안정화 (목표 반복 방지):**
-   - explore_lite의 프런티어 최소 크기 및 재평가 주기 조정.
-   - Nav2 로컬 플래너의 회피/복구 파라미터 최적화.
-3. **Phase 4 Localization(AMCL) 준비:**
-   - 저장된 `MC_3F_10_15` 지도를 로드하여 `nav2_amcl` 기반 초기 위치 추정 테스트 진행.
-
-[출처: 교재 / 실기기 검증 / 사용자 보고]

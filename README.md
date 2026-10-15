@@ -95,52 +95,39 @@
 
 ## 4. 저장소 구조
 
-현재 저장소에는 AgileX LIMO의 ROS 2 기본 소스를 포함하고 있습니다.
+저장소의 주요 디렉터리 구성은 다음과 같습니다.
 
 ```text
-src/
-└── limo_ros2/
-    ├── limo_base/
-    ├── limo_car/
-    ├── limo_description/
-    └── limo_msgs/
+├── docs/
+│   ├── DEVELOPMENT_LOG.md     # 시스템 점검 이력 및 일자별 개발 기록
+│   └── PROJECT_PLAN.md        # 프로젝트 전체 개발 계획 및 단계별 목표
+├── scripts/
+│   └── remote_teleop_node.py  # 원격 조향 제어 퍼블리셔 노드
+└── src/
+    └── limo_ros2/
+        ├── limo_base/         # LIMO 통신 및 기본 구동 드라이버
+        ├── limo_car/          # 로봇 모델 및 시뮬레이션 패키지
+        ├── limo_description/  # URDF / Xacro 및 시각화 리소스
+        └── limo_msgs/         # 커스텀 ROS 2 메시지 정의
 ```
 
-### `limo_base`
+### `docs`
 
-LIMO의 기본 통신 및 구동과 관련된 기능을 포함합니다.
+- `DEVELOPMENT_LOG.md`: LIMO 온보드 환경에서의 하드웨어 연결, 센서 검증, SLAM 매핑, Nav2 연동 및 문제 해결 과정을 일자별로 상세히 기록합니다.
+- `PROJECT_PLAN.md`: 캡스톤 디자인 목표, 개발 단계(Phase 1~9), 팀원별 역할 분담 및 최종 평가 항목을 정의합니다.
 
-주요 구성:
+### `scripts`
 
-- LIMO Driver
-- Serial Port
-- LIMO Protocol
-- 기본 주행 관련 노드
-- TF 관련 기능
-- LiDAR 실행 관련 Launch
+- `remote_teleop_node.py`: ROS 2 `geometry_msgs/msg/Twist` 표준 인터페이스를 사용하여 LIMO의 속도 명령(`/cmd_vel`)을 발행하는 조향 제어 스크립트입니다.
 
-### `limo_car`
+### `src/limo_ros2`
 
-LIMO 모델 및 Gazebo 시뮬레이션 관련 파일을 포함합니다.
+LIMO Pro 구동을 위한 핵심 ROS 2 패키지입니다.
 
-- LIMO 로봇 모델
-- Ackermann 모델
-- Gazebo 설정
-- 센서 모델
-- RViz 설정
-
-### `limo_description`
-
-LIMO의 URDF/Xacro 및 시각화 관련 파일을 포함합니다.
-
-- URDF / Xacro
-- Robot Mesh
-- Gazebo 설정
-- RViz 설정
-
-### `limo_msgs`
-
-LIMO에서 사용하는 사용자 정의 ROS 2 메시지를 포함합니다.
+- **`limo_base`**: 하부 MCU와의 시리얼 통신, 기본 주행 제어 노드, 센서 및 TF 브로드캐스팅, LiDAR 실행 런치 파일을 포함합니다.
+- **`limo_car`**: LIMO 모델(Ackermann 등), Gazebo 시뮬레이션 환경, 센서 모델, 시뮬레이션 런치 파일을 포함합니다.
+- **`limo_description`**: 로봇 형상 URDF/Xacro, 3D 메쉬, Gazebo 설명 파일 및 RViz 시각화 설정을 포함합니다.
+- **`limo_msgs`**: LIMO 시스템 전용 커스텀 ROS 2 메시지 정의를 포함합니다.
 
 ---
 
@@ -170,7 +157,7 @@ URDF/Xacro, 사용자 정의 메시지 등의 기능을 담당한다.
 
 프로젝트에 포함된 ROS 2 패키지는 개별적으로 빌드 및 검증한다.
 빌드 과정에서 발생한 오류와 경고, 해결 과정 및 검증 결과는
-DEVELOPMENT_LOG.md에 기록한다.
+[DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md)에 기록한다.
 
 ---
 
@@ -436,42 +423,25 @@ Navigation Goal
 
 # 12. 문제 해결 및 Troubleshooting
 
-개발 과정에서 발생한 문제를 단순히 수정하는 데 그치지 않고, **문제 → 원인 분석 → 해결 → 검증**의 형태로 기록합니다.
-
-예시:
+개발 과정에서 발생한 문제는 단순히 수정하는 데 그치지 않고, **문제 → 원인 분석 → 해결 → 검증**의 체계로 분석하여 기록합니다.
 
 ```text
 문제 발생
    ↓
-증상 확인
+증상 확인 및 로그 수집
    ↓
-관련 Topic / Node / TF 확인
+관련 Topic / Node / TF 상태 확인
    ↓
-원인 분석
+원인 분석 및 가설 수립
    ↓
-코드 또는 파라미터 수정
+코드 또는 파라미터 최소 수정
    ↓
-재실행
+재실행 및 비교 검증
    ↓
-결과 검증
-   ↓
-문제 해결 과정 기록
+개발 로그 기록 및 미해결 과제 분류
 ```
 
-앞으로 다음과 같은 문제를 기록할 예정입니다.
-
-- ROS 2 패키지 빌드 오류
-- Node 실행 오류
-- Topic 통신 문제
-- TF 연결 문제
-- LiDAR 데이터 문제
-- SLAM 지도 왜곡
-- AMCL 위치 추정 문제
-- Nav2 경로 생성 문제
-- Local Planner 문제
-- 동적 장애물 회피 문제
-- 실제 주행 중 발생하는 문제
-- 파라미터 튜닝 과정
+실제 하드웨어 구동 및 자율 매핑 과정에서 발생한 주요 트러블슈팅(USB 시리얼 포트 충돌, RViz `/scan` QoS 비호환, 런치 파일 static TF 실행 순서 지연, 자율 탐색 목표 진동 등)의 상세 내역은 [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md)에서 확인할 수 있습니다.
 
 ---
 
@@ -513,15 +483,16 @@ Navigation Goal
 - 안내 과정의 안정성
 - 장애물 발생 시 대응 여부
 
-실험 결과는 개발이 진행됨에 따라 측정값과 테스트 조건을 추가합니다.
+실험 결과는 개발이 진행됨에 따라 측정값과 테스트 조건을 지속적으로 갱신합니다.
 
 ---
 
 # 14. 개발 기록
 
-프로젝트의 실제 개발 과정과 문제 해결 과정은 별도의 개발 기록 문서에 기록합니다.
+프로젝트의 실제 개발 과정과 문제 해결 과정은 별도의 상세 문서에서 관리합니다.
 
-개발 과정에서 확인한 오류, 원인 분석, 코드 및 파라미터 변경, 검증 결과 등을 단계적으로 기록합니다.
+- **[docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md)**: 실제 하드웨어 센서 검증, SLAM 매핑, Nav2 연동, 오류 분석 및 현장 검증 기록
+- **[docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md)**: 전체 개발 단계(Phase 1~9), 팀원별 역할 분담 및 평가 기준 정의
 
 ---
 
@@ -530,9 +501,9 @@ Navigation Goal
 | 담당 | 주요 업무 |
 |---|---|
 | 정진우 | 자율주행 및 동적 장애물 회피 |
+| 배민혁 | 실내 SLAM 맵핑 |
+| 한동훈 | 시스템 구축 및 센서 융합 |
 | 김정민 | 순찰·안내 애플리케이션 및 검증 |
-| 배민혁 | 프로젝트 개발 지원 |
-| 한동훈 | 프로젝트 개발 지원 |
 
 ### 정진우 — 자율주행 및 동적 장애물 회피
 
@@ -540,6 +511,20 @@ Navigation Goal
 - 복도 및 로비 주행을 위한 Global / Local Path Planning
 - 동적 장애물 인식 및 회피 알고리즘 구현
 - 실제 주행 환경에서 주행 파라미터 최적화
+
+### 배민혁 — 실내 SLAM 맵핑
+
+- 실내 2D/3D 점유격자지도 작성
+- 센서 노이즈 및 맵핑 오차 보정
+- 센서 데이터 정합성 검증
+
+### 한동훈 — 시스템 구축 및 센서 융합
+
+- ROS 2 개발환경 구축 및 관리
+- LIMO Pro 드라이버 및 하드웨어 제어
+- LiDAR / Depth Camera / IMU 데이터 수집
+- 센서 좌표계 및 데이터 정합성 확인
+- 시스템 통합
 
 ### 김정민 — 순찰·안내 애플리케이션 및 검증
 
