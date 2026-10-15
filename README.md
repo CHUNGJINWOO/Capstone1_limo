@@ -146,7 +146,7 @@ LIMO Pro 구동을 위한 핵심 ROS 2 패키지입니다.
 | **기본 패키지** | `limo_msgs`, `limo_description`, `limo_base`, `limo_car` | **완료** | `colcon build --symlink-install` 전체 빌드 성공 |
 | **제어 스크립트** | `scripts/remote_teleop_node.py` | **완료** | ROS 2 표준 `geometry_msgs/Twist` 기반 조향 퍼블리셔 |
 | **로봇 시각화** | URDF, Xacro, RViz2 런치 | **완료** | 차동 구동 및 Ackermann 조향 모델 시각화 확인 |
-| **실내 SLAM** | SLAM Toolbox / 2D 지도 작성 | **진행 중** | LIMO 온보드 현장 매핑 검증 진행 중, 저장소 패키지 통합 예정 |
+| **실내 SLAM (지도 작성)** | SLAM Toolbox 2D 지도 생성 | **지도 생성 완료** | 온보드 자율 매핑을 통해 실내 지도(`MC_3F_10_15`) 생성 완료 (지도는 LIMO 온보드 PC에 보관 중이며 Git 저장소 동기화 예정. SLAM 패키지 통합 및 튜닝 진행 중) |
 | **위치 추정 (AMCL)** | Nav2 AMCL 파라미터 튜닝 | **계획** | 실내 지도 구축 완료 후 단계적 적용 |
 | **자율주행 (Nav2)** | Global / Local Path Planning, Costmap | **계획** | 실내 복도 및 로비 주행 파이프라인 구성 예정 |
 | **동적 장애물 회피** | Costmap 기반 동적 장애물 회피 | **계획** | 보행자 및 장애물 회피 실험 및 파라미터 최적화 예정 |
@@ -216,7 +216,7 @@ ros2 launch limo_car display_ackermann.launch.py
 ```
 
 > [!NOTE]
-> 실내 지도 작성(SLAM) 노드 및 Nav2 자율주행 런치 파일은 온보드 현장 주행 검증을 거쳐 향후 단계별로 저장소에 통합될 예정입니다.
+> 온보드 실차 자율 매핑을 통해 생성된 실내 지도 파일(`MC_3F_10_15`)은 현재 LIMO 온보드 PC에 보관 중이며, SLAM 파이프라인 및 Nav2 자율주행 런치 파일과 함께 향후 순차적으로 본 저장소에 동기화될 예정입니다.
 
 ---
 
