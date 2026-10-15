@@ -146,8 +146,8 @@ LIMO Pro 구동을 위한 핵심 ROS 2 패키지입니다.
 | **기본 패키지** | `limo_msgs`, `limo_description`, `limo_base`, `limo_car` | **완료** | `colcon build --symlink-install` 전체 빌드 성공 |
 | **제어 스크립트** | `scripts/remote_teleop_node.py` | **완료** | ROS 2 표준 `geometry_msgs/Twist` 기반 조향 퍼블리셔 |
 | **로봇 시각화** | URDF, Xacro, RViz2 런치 | **완료** | 차동 구동 및 Ackermann 조향 모델 시각화 확인 |
-| **실내 SLAM (지도 작성)** | SLAM Toolbox 2D 지도 생성 | **지도 생성 완료** | 온보드 자율 매핑을 통해 실내 지도(`MC_3F_10_15`) 생성 완료 (지도는 LIMO 온보드 PC에 보관 중이며 Git 저장소 동기화 예정. SLAM 패키지 통합 및 튜닝 진행 중) |
-| **위치 추정 (AMCL)** | Nav2 AMCL 파라미터 튜닝 | **계획** | 실내 지도 구축 완료 후 단계적 적용 |
+| **실내 SLAM (지도 작성)** | SLAM Toolbox 2D 지도 생성 | **온보드 파일 생성 보고** | 사용자 보고에 따르면 `MC_3F_10_15.pgm` 및 `.yaml`이 LIMO 온보드 PC에 있음. 저장소에는 미동기화 상태이며, 지도 품질과 파일/YAML 참조는 별도 검증 필요 |
+| **위치 추정 (AMCL)** | Nav2 AMCL 파라미터 튜닝 | **계획** | 온보드 지도 파일의 경로·품질 확인 후 단계적 적용 |
 | **자율주행 (Nav2)** | Global / Local Path Planning, Costmap | **계획** | 실내 복도 및 로비 주행 파이프라인 구성 예정 |
 | **동적 장애물 회피** | Costmap 기반 동적 장애물 회피 | **계획** | 보행자 및 장애물 회피 실험 및 파라미터 최적화 예정 |
 | **순찰 / 안내** | Action 기반 Waypoint 순찰 및 안내 | **계획** | 사용자 호출 및 목적지 안내 애플리케이션 개발 예정 |
@@ -216,7 +216,7 @@ ros2 launch limo_car display_ackermann.launch.py
 ```
 
 > [!NOTE]
-> 온보드 실차 자율 매핑을 통해 생성된 실내 지도 파일(`MC_3F_10_15`)은 현재 LIMO 온보드 PC에 보관 중이며, SLAM 파이프라인 및 Nav2 자율주행 런치 파일과 함께 향후 순차적으로 본 저장소에 동기화될 예정입니다.
+> 사용자 보고에 따르면 실내 지도 파일(`MC_3F_10_15.pgm`, `MC_3F_10_15.yaml`)은 LIMO 온보드 PC에 보관 중이며 Git 저장소에는 아직 동기화되지 않았습니다. 지도 품질 및 YAML의 이미지 경로는 별도 확인이 필요합니다. 지도 생성만으로 SLAM 전체 파이프라인, localization 또는 Nav2 주행이 검증된 것은 아닙니다.
 
 ---
 
