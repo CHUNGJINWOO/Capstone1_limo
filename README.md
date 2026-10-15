@@ -131,33 +131,92 @@ LIMO Pro 구동을 위한 핵심 ROS 2 패키지입니다.
 
 ---
 
-# 5. 구현 과정
+# 5. 구현 과정 및 빌드 가이드
 
 본 프로젝트에서는 기능을 한 번에 통합하지 않고, **기본 소스 확인 → 센서 및 TF 확인 → 지도 작성 → 위치 추정 → Navigation2 → 장애물 대응 → 순찰 및 안내**의 순서로 단계적으로 개발합니다.
 
 ---
 
-## 5.1 LIMO ROS 2 기본 소스
+## 5.1 LIMO ROS 2 기본 소스 및 구현 상태
 
-프로젝트는 AgileX에서 제공하는 LIMO ROS 2 소스를 기반으로 구성한다.
+프로젝트는 AgileX에서 제공하는 LIMO ROS 2 소스를 기반으로 구성하며, 현재 저장소의 구현 및 준비 상태는 다음과 같습니다.
 
-현재 저장소에는 다음 패키지가 포함되어 있다.
-
-- limo_base
-- limo_car
-- limo_description
-- limo_msgs
-
-각 패키지는 LIMO의 기본 구동, 로봇 모델 및 시뮬레이션,
-URDF/Xacro, 사용자 정의 메시지 등의 기능을 담당한다.
+| 구분 | 대상 | 현재 상태 | 상세 설명 |
+|---|---|:---:|---|
+| **기본 패키지** | `limo_msgs`, `limo_description`, `limo_base`, `limo_car` | **완료** | `colcon build --symlink-install` 전체 빌드 성공 |
+| **제어 스크립트** | `scripts/remote_teleop_node.py` | **완료** | ROS 2 표준 `geometry_msgs/Twist` 기반 조향 퍼블리셔 |
+| **로봇 시각화** | URDF, Xacro, RViz2 런치 | **완료** | 차동 구동 및 Ackermann 조향 모델 시각화 확인 |
+| **실내 SLAM** | SLAM Toolbox / 2D 지도 작성 | **진행 중** | LIMO 온보드 현장 매핑 검증 진행 중, 저장소 패키지 통합 예정 |
+| **위치 추정 (AMCL)** | Nav2 AMCL 파라미터 튜닝 | **계획** | 실내 지도 구축 완료 후 단계적 적용 |
+| **자율주행 (Nav2)** | Global / Local Path Planning, Costmap | **계획** | 실내 복도 및 로비 주행 파이프라인 구성 예정 |
+| **동적 장애물 회피** | Costmap 기반 동적 장애물 회피 | **계획** | 보행자 및 장애물 회피 실험 및 파라미터 최적화 예정 |
+| **순찰 / 안내** | Action 기반 Waypoint 순찰 및 안내 | **계획** | 사용자 호출 및 목적지 안내 애플리케이션 개발 예정 |
 
 ---
 
-## 5.2 ROS 2 패키지 빌드
+## 5.2 빌드 환경 및 방법
 
-프로젝트에 포함된 ROS 2 패키지는 개별적으로 빌드 및 검증한다.
-빌드 과정에서 발생한 오류와 경고, 해결 과정 및 검증 결과는
-[DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md)에 기록한다.
+### 개발 환경
+
+- **OS**: Ubuntu 22.04 LTS
+- **ROS 2**: Humble Hawksbill
+- **빌드 도구**: `colcon`
+
+### 빌드 명령어
+
+저장소 루트 디렉터리에서 아래 명령어를 순차적으로 실행하여 패키지를 빌드하고 환경을 설정합니다.
+
+```bash
+# 1. ROS 2 Humble 기본 환경 로드
+source /opt/ros/humble/setup.bash
+
+# 2. 전체 패키지 빌드 (심볼릭 링크 설치)
+colcon build --symlink-install
+
+# 3. 빌드 결과물 환경 오버레이
+source install/setup.bash
+```
+
+> [!NOTE]
+> `src/limo_ros2/limo_car/CMakeLists.txt`에서 저장소에 존재하지 않는 설치 디렉터리(`log`, `src`, `worlds`) 참조로 인해 발생하던 `ament_cmake_symlink_install_directory()` 오류를 수정한 후(`commit: 8c3d4f3`), 현재 4개 패키지 모두 성공적으로 빌드됩니다. 빌드 상세 기록은 [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md)에서 확인할 수 있습니다.
+
+---
+
+## 5.3 현재 실행 가능한 기능 및 명령
+
+현재 저장소 상태에서 즉시 실행 가능한 주요 노드 및 런치 명령입니다.
+
+### 1) LIMO Base 하드웨어 구동 (온보드 환경)
+
+LIMO onboard PC에서 하부 MCU와 시리얼 통신을 연결하고 오도메트리(`odom`) 및 좌표계(`base_link`)를 브로드캐스팅합니다.
+
+```bash
+ros2 launch limo_base limo_base.launch.py port_name:=ttyUSB1
+```
+*(장치 연결 상태에 따라 `/dev/ttyUSB0` 또는 `/dev/ttyUSB1` 포트 지정)*
+
+### 2) 원격 조향 제어 스크립트 실행
+
+`geometry_msgs/msg/Twist` 표준 메시지 인터페이스를 통해 LIMO에 주행 속도 명령(`/cmd_vel`)을 발행합니다.
+
+```bash
+python3 scripts/remote_teleop_node.py
+```
+
+### 3) 로봇 모델 RViz2 시각화
+
+LIMO의 URDF/Xacro 형상 및 센서 좌표계를 3D로 시각화합니다.
+
+```bash
+# 차동 구동 모델 시각화
+ros2 launch limo_description display_models_diff.launch.py
+
+# 또는 Ackermann 조향 모델 시각화
+ros2 launch limo_car display_ackermann.launch.py
+```
+
+> [!NOTE]
+> 실내 지도 작성(SLAM) 노드 및 Nav2 자율주행 런치 파일은 온보드 현장 주행 검증을 거쳐 향후 단계별로 저장소에 통합될 예정입니다.
 
 ---
 
