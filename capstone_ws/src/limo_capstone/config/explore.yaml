@@ -1,0 +1,13 @@
+explore_node:
+  ros__parameters:
+    robot_base_frame: base_link
+    costmap_topic: /global_costmap/costmap
+    costmap_updates_topic: /global_costmap/costmap_updates
+    visualize: true
+    planner_frequency: 0.33      # 3초마다 새로운 프론티어 탐색
+    progress_timeout: 10.0       # 10초간 진전이 없으면 다음 프론티어로 전환
+    potential_scale: 3.0
+    orientation_scale: 0.0
+    gain_scale: 1.0
+    transform_tolerance: 0.6     # 0.3 -> 0.6 (TF 10ms 지연 에러 방지)
+    min_frontier_size: 0.20      # 0.35 -> 0.20 (작은 방의 좁은 미탐색 구역도 목표로 인식)

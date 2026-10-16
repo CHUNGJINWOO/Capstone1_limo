@@ -1,0 +1,77 @@
+## limo_auto_mapping.launch.py
+
+# explore_node와 static_tf 위치 변경.
+현재 런치 파일은 base_link → base_footprint 정적 변환을 제공. 
+explore.yaml은 robot_base_frame: base_link로 설정되어 있지만, 
+Nav2 설정의 일부 노드는 base_footprint를 사용.
+따라서 탐색 노드를 시작하기 전에 해당 TF를 제공하도록 배치.
+
+explore_node 먼저 실행 시 TF노드보다 탐색 노드가 먼저  실행 됨. 때문에 TF가 준비될 때까지 탐색 노드가 기다리거나 오류를 기록할 수 있음.
+
+--------------------------------------------------------------------------------
+1. 현재 발생한 문제
+LiDAR /scan 배열
+243개
+
+OpenKarto가 기대하는 배열
+244개
+
+실제 확인된 오류 메시지
+LaserRangeScan contains 243 range readings,
+expected 244
+
+- RViz에 Message No map received 표시
+- /map 토픽은 등록되어 있지만 실제 지도가 발행되지 않음
+- /slam_toolbox/dynamic_map 호출 시 width=0, height=0인 빈 지도 반환
+- explore_lite에서 탐색할 frontier를 찾지 못함
+- Nav2에서 costmap 경계 관련 경고 발생
+
+2. 원인은 무엇인가?
+문제가 발생하는 코드: YDLIDAR 드라이버의 ydlidar_ros2_driver_node.cpp 배열 크기 계산.
+기존 코드:
+int size = (scan.config.max_angle - scan.config.min_angle)
+    / scan.config.angle_increment + 1;
+
+
+현재 스캔 설정.
+항목	값
+최소 각도	약 -110°
+최대 각도	약 +110°
+각도 간격	약 0.9068°
+각도 간격 계산값	약 242.611개
+기존 배열 크기	243개
+SLAM Toolbox의 기대 크기	244개
+각도 구간 계산 결과는 정수아님. 
+기존 코드에서 이 값이 정수로 변환되는 과정에서 소수 부분이 버려지며 243개짜리 배열 생성.
+OpenKarto는 각도 구간 수를 반올림한 다음 양 끝점을 포함해 244개를 기대. 따라서 배열 크기 검증에서 불일치가 발생.
+
+추가로 확인된 문제
+드라이버는 각 측정 포인트의 각도를 배열 인덱스로 변환할 때 std::ceil()을 사용.
+int index = std::ceil(
+    (scan.points[i].angle - scan.config.min_angle)
+    / scan.config.angle_increment
+);
+
+
+기존 배열은 인덱스 0~242만 허용하므로, 인덱스 243으로 계산되는 끝단 측정값은 저장되지 않음.
+배열 크기 불일치와 끝단 측정값 누락.
+
+3. 원인 해결 방안
+배열 크기 계산만 반올림 방식으로 변경.
+
+드라이버의 배열 크기 계산 수정
+수정 대상: ydlidar_ros2_driver_node.cpp
+기존 코드:
+int size = (scan.config.max_angle - scan.config.min_angle)
+    / scan.config.angle_increment + 1;
+
+
+변경 제안:
+int size = std::round(
+    (scan.config.max_angle - scan.config.min_angle)
+    / scan.config.angle_increment
+) + 1;
+
+----------------------------------------------------------------------------------------------
+alias stop='ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"' // 정지명령 추가
+

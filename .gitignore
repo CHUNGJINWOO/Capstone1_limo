@@ -50,4 +50,13 @@ src/limo_ros2/limo_car/meshes/limo_base.dae
 src/limo_ros2/limo_car/meshes/limo_base.stl
 src/limo_ros2/limo_description/meshes/limo_base.dae
 src/limo_ros2/limo_description/meshes/limo_base.stl
+capstone_ws/src/limo_ros2/limo_description/meshes/limo_base.dae
+capstone_ws/src/limo_ros2/limo_description/meshes/limo_base.stl
+
+# Windows / WSL Zone.Identifier metadata files
+*Zone.Identifier
+
+# Upstream test bag files (not needed for runtime)
+capstone_ws/src/robot_localization/test/*.bag
+
 README.md.before-*
