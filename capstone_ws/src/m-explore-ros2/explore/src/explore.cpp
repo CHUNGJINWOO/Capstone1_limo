@@ -193,7 +193,7 @@ void Explore::visualizeFrontiers(
     m.scale.y = 0.1;
     m.scale.z = 0.1;
     m.points = frontier.points;
-    if (goalOnBlacklist(frontier.centroid)) {
+    if (goalOnBlacklist(frontier.middle)) {
       m.color = red;
     } else {
       m.color = blue;
@@ -255,7 +255,7 @@ void Explore::makePlan()
   auto frontier =
       std::find_if_not(frontiers.begin(), frontiers.end(),
                        [this](const frontier_exploration::Frontier& f) {
-                         return goalOnBlacklist(f.centroid);
+                         return goalOnBlacklist(f.middle);
                        });
   if (frontier == frontiers.end()) {
     RCLCPP_WARN(logger_, "All frontiers traversed/tried out, stopping.");
@@ -265,7 +265,7 @@ void Explore::makePlan()
     stop(true);
     return;
   }
-  geometry_msgs::msg::Point target_position = frontier->centroid;
+  geometry_msgs::msg::Point target_position = frontier->middle;
 
   // time out if we are not making any progress
   bool same_goal = same_point(prev_goal_, target_position);
