@@ -1,7 +1,7 @@
 # Navigation2 자율주행 및 위치추정 분석 (Navigation)
 
 본 문서는 AgileX LIMO Pro 모바일 로봇에 구축된 **Navigation2(Nav2)** 자율주행 스택의 소프트웨어 아키텍처, 좌표계(TF) 구조, 위치추정(AMCL), 코스트맵(Costmap), 그리고 실제 실차/시뮬레이션 주행 파이프라인을 분석하고 설명합니다.
-본 문서에 수록된 수치와 설정값은 저장소의 실제 파라미터 파일([`nav2_explore_params.yaml`](../capstone_ws/src/limo_capstone/config/nav2_explore_params.yaml)) 및 실측 로그/계측 파일(`frames_2026-10-13_19.38.47.gv` 등)을 기준으로 작성되었습니다.
+본 문서에 수록된 수치와 설정값은 저장소의 실제 파라미터 파일([`nav2_explore_params.yaml`](../capstone_ws/src/limo_capstone/config/nav2_explore_params.yaml)) 및 실측 로그/계측 파일(`frames_2026-10-13_19.38.47.gv`, `frames_2026-10-21_15.11.43.gv` 등)을 기준으로 작성되었습니다.
 
 ---
 
@@ -67,8 +67,11 @@ LIMO의 자율주행 시스템은 센서 측정값으로부터 최종 구동 명
 
 자율주행의 안정성은 로봇 좌표계 변환 트리의 무결성에 직결됩니다. LIMO Pro 시스템에서는 `tf2_tools view_frames`를 통해 좌표계 무결성을 실측하였으며, 실제 저장소 및 로그에서 확인되는 계측 결과는 다음과 같습니다.
 
-### 2.1 실제 계측 파일 기반 TF 트리 구조 (`frames_2026-10-13_19.38.47.gv`)
+### 2.1 실제 계측 파일 기반 TF 트리 구조
 로봇 온보드 환경에서 실제로 추출된 Graphviz 데이터에 따른 프레임 연결 및 브로드캐스트 주파수 실측치는 다음과 같습니다.
+
+#### 1) 10월 13일 초기 계측 (`frames_2026-10-13_19.38.47.gv`)
+정적 TF 패치 전후의 기본 좌표계 연결 및 센서 프레임 계측 결과입니다.
 
 ```mermaid
 graph TD
@@ -85,9 +88,23 @@ graph TD
     base_footprint -->|60.24 Hz| rear_left_wheel["rear_left_wheel_link"]
 ```
 
+#### 2) 10월 21일 8주차 실차 Nav2 구동 현장 실측 (`frames_2026-10-21_15.11.43.gv`)
+미래관 실차 주행 시험에서 AMCL 위치추정이 활성화된 상태로 추출된 전체 10개 프레임 무결성 실측치입니다.
+
 > [!NOTE]
-> - **10월 13일 계측 (`frames_2026-10-13_19.38.47.gv`):** `odom → base_footprint` (50.20 Hz), `base_footprint → base_link` (정적 TF, 10,000 Hz), 4륜 링크(약 60.2 Hz), 센서 링크들(10,000 Hz)이 확인되었습니다.
-> - **8주차 AMCL 구동 시 (10월 21일 보고서 기록):** AMCL 노드가 활성화되어 상위에 `map → odom` (약 10.36 Hz) 변환이 결합됨으로써 `map → odom → base_link → base_footprint`로 이어지는 전체 10개 프레임 체인이 단일 트리로 완성됨이 보고되었습니다.
+> **계측 파일 보관 위치 및 미추적 안내:**
+> 해당 계측 파일(`frames_2026-10-21_15.11.43.gv` 및 PDF)은 8주차 실차 시험 시 온보드 PC에서 생성된 실측 자료로, 현재 로컬 작업 디렉터리(`capstone_ws_10_21/src/limo_capstone/MC3F_nav2/`)에 보관되어 있습니다. 본 디렉터리는 현장 작업본으로 Git 미추적(untracked) 상태이므로, 다른 개발 환경이나 저장소 클론 환경에서는 파일이 직접 포함되어 있지 않을 수 있음을 참고하시기 바랍니다.
+
+**10월 21일 Graphviz 실측 데이터 상세:**
+- `map → odom`: **10.356 Hz** (AMCL 위치추정 브로드캐스터, 버퍼 2.993s)
+- `odom → base_link`: **50.139 Hz** (LIMO 모터 드라이버 오도메트리)
+- `base_link → base_footprint`: **10,000.0 Hz** (`static_transform_publisher` 정적 TF)
+- `base_link → laser_link`: **10,000.0 Hz** (LiDAR 센서 프레임)
+- `base_link → imu_link`: **10,000.0 Hz**
+- `base_link → inertial_link`: **10,000.0 Hz**
+- `base_link → front/rear_wheel_links (4개)`: **10.204 Hz**
+
+이 실측치를 통해 AMCL 구동 시 `map → odom → base_link → base_footprint` 체인이 단일 트리로 견고하게 결합됨을 정량적으로 확인할 수 있습니다.
 
 ### 2.2 `base_footprint` 정적 TF 추가 배경
 - **문제:** LIMO 하드웨어 드라이버(`limo_driver.cpp`)는 `odom → base_link` 변환만 브로드캐스트하여, Nav2 Costmap2D가 필수로 요구하는 `base_footprint` 프레임이 누락됨.

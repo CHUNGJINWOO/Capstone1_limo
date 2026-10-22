@@ -7,7 +7,7 @@
 [![ROS 2](https://img.shields.io/badge/ROS_2-Humble_Hawksbill-22314E?logo=ros)](https://docs.ros.org/en/humble/)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04.5_LTS-E95420?logo=ubuntu)](https://ubuntu.com/)
 [![Platform](https://img.shields.io/badge/Platform-AgileX_LIMO_Pro-orange)]()
-[![Navigation](https://img.shields.io/badge/Stack-Navigation2_(Nav2)-007ACC)]()
+[![Navigation](https://img.shields.io/badge/Stack-Navigation2_%28Nav2%29-007ACC)](https://navigation.ros.org/)
 
 **AgileX LIMO Pro**를 활용하여 실내 환경에서 자율주행, 순찰 및 목적지 안내가 가능한 ROS 2 기반 로봇 시스템을 개발합니다.
 
@@ -189,21 +189,42 @@ LIMO Pro 구동을 위한 핵심 ROS 2 패키지입니다.
 - **ROS 2**: Humble Hawksbill
 - **빌드 도구**: `colcon`
 
-#### 빌드 명령어
-저장소 루트 디렉터리 또는 `capstone_ws`에서 아래 명령어를 순차적으로 실행하여 패키지를 빌드하고 환경을 설정합니다.
+#### 워크스페이스 구조 및 빌드 안내
+현재 저장소에는 LIMO 공식 하드웨어 드라이버 및 모델 패키지가 위치한 `src/`와, 캡스톤 내비게이션 통합 패키지 및 센서 드라이버가 위치한 `capstone_ws/`가 함께 구성되어 있습니다.
+
+저장소 루트에서 전체 빌드를 직접 실행할 경우 하위 디렉터리 간 동일 패키지명(`limo_base` 등)이 중복 탐색되어 패키지 경합이 발생할 수 있으므로, **캡스톤 메인 워크스페이스(`capstone_ws`)로 이동하여 필요한 패키지를 선별 빌드하는 것을 기본으로 권장합니다.**
+
+#### 1) 캡스톤 메인 패키지 빌드 (기본 권장)
+캡스톤 프로젝트의 핵심 패키지인 `limo_capstone`(Launch, 파라미터, 지도, 스크립트)을 빌드합니다.
+*(※ 저장소 경로는 개발 환경에 따라 다를 수 있으므로 실제 작업 경로에 맞게 조정합니다.)*
 
 ```bash
-# 1. ROS 2 Humble 기본 환경 로드
+# 1. 캡스톤 메인 워크스페이스로 이동
+cd ~/school/2026-2/Capstone1_limo/capstone_ws
+
+# 2. ROS 2 Humble 기본 환경 로드
 source /opt/ros/humble/setup.bash
 
-# 2. 전체 패키지 빌드 (저장소 루트 기준)
-colcon build --symlink-install
-
-# 또는 캡스톤 메인 패키지만 선별 빌드
-cd capstone_ws
+# 3. limo_capstone 패키지 선별 빌드 (심볼릭 링크 설치)
 colcon build --symlink-install --packages-select limo_capstone
 
-# 3. 빌드 결과물 환경 오버레이
+# 4. 빌드 결과물 환경 오버레이
+source install/setup.bash
+```
+
+> [!TIP]
+> 위 명령은 `limo_capstone` 패키지만 선별하여 빠르게 빌드합니다. `ydlidar_ros2_driver`, `m-explore-ros2` 등 다른 패키지를 함께 빌드해야 할 경우 `--packages-select <패키지명>`에 추가하거나, 별도 워크스페이스 구성 및 중복 패키지 존재 여부를 점검한 후 `capstone_ws` 내에서 전체 빌드(`colcon build --symlink-install`)를 수행합니다.
+
+#### 2) LIMO 기본 드라이버 패키지 빌드 (루트 `src/` 기준)
+LIMO 하부 MCU 시리얼 통신 드라이버 및 시뮬레이션 모델 패키지(`limo_base`, `limo_car`, `limo_description`, `limo_msgs`)를 빌드할 경우:
+
+```bash
+# 저장소 루트로 이동
+cd ~/school/2026-2/Capstone1_limo
+
+# 기본 ROS 2 환경 로드 후 드라이버 패키지 빌드
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install --base-paths src
 source install/setup.bash
 ```
 
