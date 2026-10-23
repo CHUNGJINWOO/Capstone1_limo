@@ -6,7 +6,7 @@ amcl:
     alpha3: 0.2
     alpha4: 0.2
     alpha5: 0.2
-    base_frame_id: "base_footprint"
+    base_frame_id: "base_link" # base_footprint -> base_link (로봇 네이티브 TF 프레임 일치)
     beam_skip_distance: 0.5
     beam_skip_error_threshold: 0.9
     beam_skip_threshold: 0.3
@@ -14,8 +14,8 @@ amcl:
     global_frame_id: "map"
     lambda_short: 0.1
     laser_likelihood_max_dist: 2.0
-    laser_max_range: 100.0
-    laser_min_range: -1.0
+    laser_max_range: 10.0 # 기존 100.0 -> 10.0 (실제 LIMO LiDAR 스펙 8~10m에 맞춤)
+    laser_min_range: 0.05 # 기존 -1.0 -> 0.05 (비정상 음수 필터링)
     laser_model_type: "likelihood_field"
     max_beams: 60
     max_particles: 2000
@@ -31,8 +31,8 @@ amcl:
     sigma_hit: 0.2
     tf_broadcast: true
     transform_tolerance: 1.0
-    update_min_a: 0.2
-    update_min_d: 0.25
+    update_min_a: 0.10 # 기존 0.20 -> 0.10 (약 5.7도 회전 시 위치 즉시 갱신)
+    update_min_d: 0.10 # 기존 0.25 -> 0.10 (10cm만 움직여도 위치 즉시 갱신)
     z_hit: 0.5
     z_max: 0.05
     z_rand: 0.5
@@ -135,7 +135,7 @@ controller_server:
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.08
+      xy_goal_tolerance: 0.25 # 0.08 -> 0.25 (실차 주행 도달 판정 신뢰성 향상)
       yaw_goal_tolerance: 0.25
     # DWB parameters
     FollowPath:
@@ -164,7 +164,7 @@ controller_server:
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 0.2
-      xy_goal_tolerance: 0.08
+      xy_goal_tolerance: 0.25 # 0.08 -> 0.25 (실차 DWB 제어기 도달 공차 허용)
       trans_stopped_velocity: 0.25
       short_circuit_trajectory_evaluation: True
       stateful: True

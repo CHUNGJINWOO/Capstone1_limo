@@ -60,3 +60,10 @@ capstone_ws/src/limo_ros2/limo_description/meshes/limo_base.stl
 capstone_ws/src/robot_localization/test/*.bag
 
 README.md.before-*
+
+# Temporary onboard workspace backup
+capstone_ws_10_21/
+
+# Local presentation and raw work notes
+발표/
+작업 문서/

@@ -92,8 +92,8 @@ graph TD
 미래관 실차 주행 시험에서 AMCL 위치추정이 활성화된 상태로 추출된 전체 10개 프레임 무결성 실측치입니다.
 
 > [!NOTE]
-> **계측 파일 보관 위치 및 미추적 안내:**
-> 해당 계측 파일(`frames_2026-10-21_15.11.43.gv` 및 PDF)은 8주차 실차 시험 시 온보드 PC에서 생성된 실측 자료로, 현재 로컬 작업 디렉터리(`capstone_ws_10_21/src/limo_capstone/MC3F_nav2/`)에 보관되어 있습니다. 본 디렉터리는 현장 작업본으로 Git 미추적(untracked) 상태이므로, 다른 개발 환경이나 저장소 클론 환경에서는 파일이 직접 포함되어 있지 않을 수 있음을 참고하시기 바랍니다.
+> **계측 파일 보관 위치:**
+> 해당 계측 파일(`frames_2026-10-21_15.11.43.gv` 및 PDF)은 8주차 실차 시험 시 온보드 PC에서 생성된 실측 자료로, 문서 자산 디렉터리([`docs/assets/frames_2026-10-21_15.11.43.gv`](assets/frames_2026-10-21_15.11.43.gv))에 정식 보관되어 있습니다.
 
 **10월 21일 Graphviz 실측 데이터 상세:**
 - `map → odom`: **10.356 Hz** (AMCL 위치추정 브로드캐스터, 버퍼 2.993s)
@@ -131,22 +131,23 @@ amcl:
     alpha3: 0.2
     alpha4: 0.2
     alpha5: 0.2
-    base_frame_id: "base_footprint"
+    base_frame_id: "base_link"        # base_link (Costmap 및 드라이버 네이티브 프레임 일치)
     global_frame_id: "map"
     odom_frame_id: "odom"
     scan_topic: scan
     min_particles: 500
     max_particles: 2000
-    update_min_d: 0.25        # 25cm 이동 시 파티클 갱신 (저장소 설정값)
-    update_min_a: 0.20        # 약 11.5도(0.2 rad) 회전 시 파티클 갱신
-    laser_min_range: -1.0     # 기본 최소 거리
-    laser_max_range: 100.0    # 기본 최대 거리
+    update_min_d: 0.10        # 10cm 이동 시 파티클 즉시 갱신 (실차 튜닝값)
+    update_min_a: 0.10        # 약 5.7도(0.1 rad) 회전 시 파티클 즉시 갱신
+    laser_min_range: 0.05     # 5cm 미만 본체 자가 반사 필터링
+    laser_max_range: 10.0     # YDLiDAR T-mini Plus 하드웨어 사양(8~10m) 일치
     laser_model_type: "likelihood_field"
     robot_model_type: "nav2_amcl::DifferentialMotionModel"
 ```
 
 > [!NOTE]
-> 진도보고서 10주차 계획에 제안된 파라미터(`update_min_d: 0.10`, `update_min_a: 0.10`, `laser_min_range: 0.05`, `laser_max_range: 10.0`)는 좁은 복도에서의 빠른 위치 갱신을 위해 향후 적용을 검토 중인 튜닝 제안값이며, 현재 저장소의 기본 설정 파일에는 위의 표기된 값(`update_min_d: 0.25` 등)이 적용되어 있습니다.
+> **실차 하드웨어 기반 파라미터 최적화 반영:**
+> 10월 21일 LIMO 실차 주행 시험을 통해 도출된 파라미터(`update_min_d: 0.10`, `update_min_a: 0.10`, `laser_min_range: 0.05`, `laser_max_range: 10.0`, `base_frame_id: "base_link"`)가 저장소 기본 설정 파일([`nav2_explore_params.yaml`](../capstone_ws/src/limo_capstone/config/nav2_explore_params.yaml))에 통합되었습니다. 이를 통해 YDLiDAR 센서의 유효 거리(10m)에 맞춰 likelihood field 계산량을 절감하고 미세 회전/이동 시 위치 갱신 빈도를 확보했습니다. (단, 현장 주행 성능의 정밀 평가는 향후 실차 시험을 통해 지속 검증 예정)
 
 ---
 
@@ -230,14 +231,21 @@ ros2 lifecycle set /amcl configure && ros2 lifecycle set /amcl activate
 
 ---
 
-## 7. 실차 주행 검증 결과 및 한계점
+## 7. 주행 검증 결과 및 한계점
 
 ### 7.1 검증 완료된 항목 (Verified)
-- **정적 지도 기반 주행:** 연구실(`demo_map`) 및 미래관 3층 세미나실(`MC3F_room_map`)에서 목표점 지정 시 전역 경로 생성 및 목적지 도착 확인.
-- **TF 무결성:** 전체 프레임 연결 및 고주파수 발행 확인.
-- **QoS 및 Lifecycle 전이:** Map Server 및 AMCL 수명주기 활성화 및 토픽 수신 안정화.
+- **패키지 빌드 및 리소스 자동 설치:** `colcon build --symlink-install --packages-select limo_capstone explore_lite` 빌드 성공 (에러 0건) 및 신규 지도 배포 확인.
+- **정적 지도 기반 주행:** 연구실(`demo_map`) 및 10월 21일 실차 매핑으로 신규 취득한 미래관 3층 세미나실([`MC3F_room_map`](../capstone_ws/src/limo_capstone/maps/MC3F_room_map.yaml), 123 × 129 격자)에서 목표점 지정 시 전역 경로 생성 및 목적지 도착 확인.
+- **TF 단일 트리 무결성:** 10월 21일 온보드 PC 실측 데이터([`docs/assets/frames_2026-10-21_15.11.43.gv`](assets/frames_2026-10-21_15.11.43.gv))를 통해 전체 10개 프레임의 고주파수(50Hz 오도메트리, 10Hz AMCL, 정적 10,000Hz) 결합 확인.
+- **QoS 및 Lifecycle 전이:** Map Server 및 AMCL 수명주기 활성화 및 `Transient Local` QoS 토픽 수신 안정화.
 
-### 7.2 한계점 및 향후 보완 과제 (Limitations & Next Steps)
-1. **수동 초기 위치 의존성:** 현재는 주행 전 사용자가 RViz에서 `2D Pose Estimate`를 수동으로 입력해야 함 $\rightarrow$ 고정 위치 초기화 로직 개발 필요.
-2. **동적 장애물 회피 실차 튜닝:** 정적 장애물 회피는 Local Costmap을 통해 작동하나, 보행자 출현 시 즉각 정지 및 우회 제어기는 추가 파라미터 최적화 필요.
-3. **배터리 관리:** 전압 강하로 인한 USB 통신 단절을 방지하기 위해 배터리 3칸 이상에서만 주행 시험을 지속해야 함.
+### 7.2 시뮬레이션 및 실차 파라미터 분리 기준
+- **탐색 파라미터 (`explore.yaml`):**
+  - **실차 최적화 (현재 기본값):** `progress_timeout: 25.0` (저속 회피 타임아웃 방지), `potential_scale: 3.0` (인접 프론티어 우선), `min_frontier_size: 0.20` (작은 방 출입문 및 틈새 탐색).
+  - **대형 시뮬레이션 복도용:** 넓은 복도를 장거리 횡단할 때는 `potential_scale: 0.1` 및 `min_frontier_size: 0.75`를 파라미터 인자(`explore_params_file:=...`)로 지정하여 원거리 대형 프론티어를 우선할 수 있음.
+
+### 7.3 한계점 및 향후 보완 과제 (Limitations & Next Steps)
+1. **실제 로봇 런타임 주행 재검증:** 파라미터 통합(`update_min: 0.10`, `xy_goal_tolerance: 0.25`)과 패키지 빌드는 완료되었으나, 본 개발 환경 외 실물 LIMO 로봇에 패키지를 탑재하여 복도 자율 순찰을 완주하는 현장 평가는 지속 검증 필요.
+2. **수동 초기 위치 의존성:** 현재는 주행 전 사용자가 RViz에서 `2D Pose Estimate`를 수동으로 입력해야 함 $\rightarrow$ 고정 위치 초기화 로직 개발 필요.
+3. **동적 장애물 회피 실차 튜닝:** 정적 장애물 회피는 Local Costmap을 통해 작동하나, 보행자 출현 시 즉각 정지 및 우회 제어기는 추가 파라미터 최적화 필요.
+4. **배터리 관리:** 전압 강하로 인한 USB 통신 단절을 방지하기 위해 배터리 3칸 이상에서만 주행 시험을 지속해야 함.
