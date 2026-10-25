@@ -1,0 +1,149 @@
+{
+  "scenario": "stage_F_blocked_corridor",
+  "stage_id": "F",
+  "domain_id": "172",
+  "world": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/complex_indoor_env/complex_indoor_stageF.sdf",
+  "map": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/complex_indoor_env/complex_indoor_map.yaml",
+  "initial_pose": [
+    -6.2,
+    -2.0,
+    0.0
+  ],
+  "goal_pose": [
+    1.5,
+    -1.95,
+    0.0
+  ],
+  "applied_behavior_tree": {
+    "goal_behavior_tree_field": "/home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/limo_capstone/config/navigate_to_pose_ackermann_backup30.xml",
+    "bt_xml_sha256": "db173a863e8d74a3dbeb28c1a4a9224bb147e2babe777bda047b010e21cb563a",
+    "binding_verified": true
+  },
+  "action_execution": {
+    "timed_out": true,
+    "cancel_requested": true,
+    "cancel_accepted": true,
+    "action_result_received": true,
+    "final_action_status_code": 5,
+    "final_action_status_str": "STATUS_CANCELED"
+  },
+  "phase_timestamps": {
+    "nav_start_sim": 45.984,
+    "nav_end_sim": 86.0
+  },
+  "milestone_events": {
+    "stage_id": "F",
+    "stage_name": "stage_F_blocked_corridor",
+    "nav_start_sim_time": 45.984,
+    "initial_plan_sim_time": 4.989,
+    "obstacle_detections": {
+      "blocking_obs_south_seal": {
+        "sim_time": 46.012,
+        "hit_rays": 9,
+        "robot_pose": [
+          -6.2,
+          -2.0
+        ]
+      },
+      "blocking_obs_north_seal": {
+        "sim_time": 46.3,
+        "hit_rays": 2,
+        "robot_pose": [
+          -6.152,
+          -2.0
+        ]
+      },
+      "blocking_obs_main": {
+        "sim_time": 54.5,
+        "hit_rays": 8,
+        "robot_pose": [
+          -4.025,
+          -2.029
+        ],
+        "obstacle_pose": [
+          -1.2,
+          -1.95
+        ]
+      }
+    },
+    "costmap_reflections": {
+      "blocking_obs_north_seal": {
+        "sim_time": 47.055,
+        "lethal_cells": 134
+      },
+      "blocking_obs_south_seal": {
+        "sim_time": 47.055,
+        "lethal_cells": 455
+      },
+      "blocking_obs_main": {
+        "sim_time": 47.055,
+        "lethal_cells": 120
+      }
+    },
+    "path_replans": [
+      {
+        "plan_id": 1,
+        "sim_time": 47.671,
+        "waypoint_count": 291,
+        "mid_y": -2.0
+      },
+      {
+        "plan_id": 2,
+        "sim_time": 49.15,
+        "waypoint_count": 277,
+        "mid_y": -2.0
+      },
+      {
+        "plan_id": 3,
+        "sim_time": 50.797,
+        "waypoint_count": 261,
+        "mid_y": -2.0
+      },
+      {
+        "plan_id": 4,
+        "sim_time": 52.311,
+        "waypoint_count": 246,
+        "mid_y": -2.011
+      },
+      {
+        "plan_id": 5,
+        "sim_time": 53.9,
+        "waypoint_count": 230,
+        "mid_y": -2.011
+      },
+      {
+        "plan_id": 6,
+        "sim_time": 54.6,
+        "waypoint_count": 227,
+        "mid_y": -1.605
+      },
+      {
+        "plan_id": 7,
+        "sim_time": 55.302,
+        "waypoint_count": 514,
+        "mid_y": 1.04
+      },
+      {
+        "plan_id": 8,
+        "sim_time": 64.104,
+        "waypoint_count": 224,
+        "mid_y": -2.659
+      }
+    ],
+    "decelerate_or_wait_events": [
+      {
+        "start_sim_time": 63.581,
+        "robot_pose": [
+          -3.5429,
+          -1.0847
+        ]
+      }
+    ],
+    "motion_resumed_sim_time": null,
+    "action_end_sim_time": 86.0,
+    "final_action_status": "STATUS_CANCELED"
+  },
+  "simulation_duration_seconds": 40.02,
+  "host_duration_seconds": 50.76,
+  "evaluation_source": "AUTOMATIC_RUNTIME_RECORD"
+}

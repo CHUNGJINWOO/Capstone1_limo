@@ -1,0 +1,100 @@
+# ROS 2 build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Colcon
+.colcon/
+
+# Gazebo
+*.world.bak
+
+# Secrets / local configuration
+.env
+.env.*
+*.key
+*.pem
+*.secret
+
+# Large LIMO mesh assets
+src/limo_ros2/limo_car/meshes/limo_base.dae
+src/limo_ros2/limo_car/meshes/limo_base.stl
+src/limo_ros2/limo_description/meshes/limo_base.dae
+src/limo_ros2/limo_description/meshes/limo_base.stl
+capstone_ws/src/limo_ros2/limo_description/meshes/limo_base.dae
+capstone_ws/src/limo_ros2/limo_description/meshes/limo_base.stl
+
+# Windows / WSL Zone.Identifier metadata files
+*Zone.Identifier
+
+# Upstream test bag files (not needed for runtime)
+capstone_ws/src/robot_localization/test/*.bag
+
+README.md.before-*
+
+# Temporary onboard workspace backup
+capstone_ws_10_21/
+
+# Local presentation and raw work notes
+발표/
+작업 문서/
+
+# Local authoring receipts, presentation archives, videos and experiment output
+/.artifact-validation/
+/발표.zip
+/output/*
+!/output/simulation/
+
+# Local camera world generated from the tracked MC3F world and camera fragment
+/capstone_ws/src/limo_capstone/worlds/mc3f_with_camera.sdf
+
+# School reports and slide drafting/review notes stay local, including final versions.
+/local-only/
+/docs/CAPSTONE_PROGRESS_REPORT_WEEK7.md
+/docs/CAPSTONE_PROGRESS_REPORT_WEEK7.docx
+/docs/PRESENTATION_EVIDENCE_REVIEW_2026-10-23.md
+/docs/PRESENTATION_AND_VIDEO_UPDATE_2026-10-24.md
+/docs/weekly-progress.md
+
+# Academic submissions are local-only, including final versions.
+/docs/PROJECT_PLAN.md
+/deliverables/
+*.hwp
+*.hwpx
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.odp
+*진도보고서*.pdf
+*팀별계획서*.pdf
+*발표*.pdf

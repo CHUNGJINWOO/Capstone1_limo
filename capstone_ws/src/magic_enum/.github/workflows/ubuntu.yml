@@ -1,0 +1,132 @@
+name: ubuntu
+
+on: [push, pull_request]
+
+permissions: read-all
+
+jobs:
+  ubuntu:
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+        - { cc: "gcc-11",   cxx: "g++-11",     os: "ubuntu-22.04" }
+        - { cc: "gcc-12",   cxx: "g++-12",     os: "ubuntu-22.04" }
+        - { cc: "gcc-13",   cxx: "g++-13",     os: "ubuntu-24.04" }
+        - { cc: "gcc-14",   cxx: "g++-14",     os: "ubuntu-24.04" }
+        - { cc: "gcc-15",   cxx: "g++-15",     os: "ubuntu-24.04" }
+        - { cc: "gcc-16",   cxx: "g++-16",     os: "ubuntu-26.04" }
+        - { cc: "clang-13", cxx: "clang++-13", os: "ubuntu-22.04" }
+        - { cc: "clang-14", cxx: "clang++-14", os: "ubuntu-22.04" }
+        - { cc: "clang-15", cxx: "clang++-15", os: "ubuntu-22.04" }
+        - { cc: "clang-16", cxx: "clang++-16", os: "ubuntu-22.04" }
+        - { cc: "clang-17", cxx: "clang++-17", os: "ubuntu-24.04" }
+        - { cc: "clang-18", cxx: "clang++-18", os: "ubuntu-24.04" }
+        - { cc: "clang-19", cxx: "clang++-19", os: "ubuntu-24.04" }
+        - { cc: "clang-20", cxx: "clang++-20", os: "ubuntu-24.04" }
+        - { cc: "clang-21", cxx: "clang++-21", os: "ubuntu-24.04" }
+        - { cc: "clang-22", cxx: "clang++-22", os: "ubuntu-24.04" }
+
+    name: "${{ matrix.compiler.cc }}"
+    runs-on: ${{ matrix.compiler.os }}
+    env:
+      CC: ${{ matrix.compiler.cc }}
+      CXX: ${{ matrix.compiler.cxx }}
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Configure clang
+      if: ${{ startsWith(matrix.compiler.cc, 'clang') }}
+      run: |
+        wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/llvm-archive-keyring.gpg > /dev/null
+
+        clang_version="${{ matrix.compiler.cc }}"
+        clang_version="${clang_version#clang-}"
+        ubuntu_codename="$(lsb_release -cs)"
+        llvm_repository="http://apt.llvm.org/${ubuntu_codename}/"
+        llvm_suite="llvm-toolchain-${ubuntu_codename}-${clang_version}"
+
+        echo "deb [signed-by=/etc/apt/keyrings/llvm-archive-keyring.gpg] ${llvm_repository} ${llvm_suite} main" \
+          | sudo tee /etc/apt/sources.list.d/llvm.list
+        sudo apt update
+        sudo apt install -y ${{ matrix.compiler.cc }}
+
+    - name: Configure gcc
+      if: ${{ startsWith(matrix.compiler.cc, 'gcc') }}
+      run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+        sudo apt update
+        sudo apt install -y ${{ matrix.compiler.cxx }}
+
+    - name: Test Unicode identifiers
+      if: ${{ matrix.compiler.cc == 'gcc-16' }}
+      run: |
+        "${CXX}" -std=c++17 -Wall -Wextra -Wshadow -pedantic-errors -Werror -Iinclude test/test_nonascii.cpp -o test_nonascii
+        ./test_nonascii
+        "${CXX}" -std=c++26 -freflection -Wall -Wextra -Wshadow -pedantic-errors -Werror -Iinclude test/test_nonascii.cpp -o test_nonascii_reflection
+        ./test_nonascii_reflection
+
+    - name: Configure Release
+      run: |
+        standard_options=()
+        if [[ "${{ matrix.compiler.cc }}" == "gcc-16" ]]; then
+          standard_options=(-DCMAKE_CXX_STANDARD=26 -DCMAKE_CXX_STANDARD_REQUIRED=ON)
+        fi
+        cmake -S . -B build-release \
+          -DCMAKE_BUILD_TYPE=Release \
+          "${standard_options[@]}"
+
+    - name: Build Release
+      run: cmake --build build-release --parallel --config Release
+
+    - name: Test Release
+      run: ctest --test-dir build-release --output-on-failure --no-tests=error -C Release
+
+    - name: Configure Debug
+      run: |
+        standard_options=()
+        if [[ "${{ matrix.compiler.cc }}" == "gcc-16" ]]; then
+          standard_options=(-DCMAKE_CXX_STANDARD=26 -DCMAKE_CXX_STANDARD_REQUIRED=ON)
+        fi
+        cmake -S . -B build-debug \
+          -DCMAKE_BUILD_TYPE=Debug \
+          "${standard_options[@]}"
+
+    - name: Build Debug
+      run: cmake --build build-debug --parallel --config Debug
+
+    - name: Test Debug
+      run: ctest --test-dir build-debug --output-on-failure --no-tests=error -C Debug
+
+  bazel:
+    name: Bazel
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Test
+      working-directory: test
+      run: bazelisk test //... --config=ci
+
+  meson:
+    name: Meson
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install Meson
+      run: |
+        sudo apt update
+        sudo apt install -y meson ninja-build
+
+    - name: Configure
+      run: meson setup build-meson
+
+    - name: Test
+      run: meson test -C build-meson --print-errorlogs
+
+    - name: Configure with hash
+      run: meson setup build-meson-hash -Dhash=true
+
+    - name: Test with hash
+      run: meson test -C build-meson-hash --print-errorlogs

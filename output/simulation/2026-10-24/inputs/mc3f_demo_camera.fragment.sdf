@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<model name="demo_camera">
+      <static>true</static>
+      <pose>-1.84 0.31 8.0 0 1.57079632679 0</pose>
+      <link name="camera_link">
+        <sensor name="overhead" type="camera">
+          <always_on>true</always_on>
+          <update_rate>10</update_rate>
+          <topic>/demo/overhead</topic>
+          <camera>
+            <horizontal_fov>1.10</horizontal_fov>
+            <image>
+              <width>1280</width>
+              <height>960</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip><near>0.1</near><far>30</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>

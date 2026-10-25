@@ -1,0 +1,54 @@
+{
+  "stage_id": "B",
+  "stage_name": "stage_B_multi_unmapped",
+  "title": "Stage B: 여러 미등록 고정 장애물 발견과 단계적 경로 재계획",
+  "random_seed": 20261024,
+  "deterministic": true,
+  "gt_obstacle_fed_to_nav2": false,
+  "nav2_perception_source": "LiDAR /scan only (sensor-based costmap update & replanning; no future trajectory prediction)",
+  "unmapped_static_obstacles": [
+    {
+      "name": "unmapped_obs_1",
+      "pose": [
+        -1.55,
+        -1.95,
+        0.35
+      ],
+      "size": [
+        0.45,
+        1.55,
+        0.7
+      ],
+      "role": "남측 주 통로(Route 1, y=-1.95) 차단 → 교차로(x=-3.0) 진입 전 라이다 감지 후 중앙 복도(Route 2)로 1차 우회 재계획 유도"
+    },
+    {
+      "name": "unmapped_obs_2",
+      "pose": [
+        -2.05,
+        1.4,
+        0.35
+      ],
+      "size": [
+        0.4,
+        1.36,
+        0.7
+      ],
+      "role": "중앙 좁은 복도(Route 2, y=+1.40) 입구 차단 → 북상 중 라이다 감지 후 북측 광폭 통로(Route 3, y=+4.70)로 2차 우회 재계획 유도"
+    },
+    {
+      "name": "unmapped_obs_3",
+      "pose": [
+        0.8,
+        3.95,
+        0.35
+      ],
+      "size": [
+        0.45,
+        0.45,
+        0.7
+      ],
+      "role": "북측 광폭 통로(Route 3) 내 부분 장애물 → 발견 시 북측 여유 공간(y=+4.85)으로 3차 경로 조정 유도"
+    }
+  ],
+  "moving_obstacles": []
+}

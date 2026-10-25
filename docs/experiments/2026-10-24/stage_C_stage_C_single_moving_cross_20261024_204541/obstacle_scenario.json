@@ -1,0 +1,44 @@
+{
+  "stage_id": "C",
+  "stage_name": "stage_C_single_moving_cross",
+  "title": "Stage C: 이동 장애물 1개가 통로를 완전히 횡단한 뒤 이탈",
+  "random_seed": 20261024,
+  "deterministic": true,
+  "gt_obstacle_fed_to_nav2": false,
+  "nav2_perception_source": "LiDAR /scan only (sensor-based costmap update & replanning; no future trajectory prediction)",
+  "unmapped_static_obstacles": [],
+  "moving_obstacles": [
+    {
+      "name": "moving_obs_1",
+      "size": [
+        0.42,
+        0.42,
+        0.7
+      ],
+      "initial_pose": [
+        -3.0,
+        -0.35,
+        0.35
+      ],
+      "start_pose": [
+        -3.0,
+        -0.55,
+        0.35
+      ],
+      "end_pose": [
+        -3.0,
+        -4.35,
+        0.35
+      ],
+      "speed_mps": 0.38,
+      "trigger_type": "robot_x_ge",
+      "trigger_value": -4.8,
+      "clears_corridor": true,
+      "corridor_y_range": [
+        -2.8,
+        -1.1
+      ],
+      "description": "로봇이 x=-4.8m 통과 시 (-3.0, -0.55)에서 출발해 y=-1.95 통로를 0.38m/s로 횡단 후 (-3.0, -4.35)로 완전 이탈"
+    }
+  ]
+}

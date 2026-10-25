@@ -1,0 +1,253 @@
+# Navigation2 자율주행 및 위치추정 분석 (Navigation)
+
+본 문서는 AgileX LIMO Pro 모바일 로봇에 구축된 **Navigation2(Nav2)** 자율주행 스택의 소프트웨어 아키텍처, 좌표계(TF) 구조, 위치추정(AMCL), 코스트맵(Costmap), 그리고 실제 실차/시뮬레이션 주행 파이프라인을 분석하고 설명합니다.
+본 문서에 수록된 수치와 설정값은 저장소의 실제 파라미터 파일([`nav2_explore_params.yaml`](../capstone_ws/src/limo_capstone/config/nav2_explore_params.yaml)) 및 실측 로그/계측 파일(`frames_2026-10-13_19.38.47.gv`, `frames_2026-10-21_15.11.43.gv` 등)을 기준으로 작성되었습니다.
+
+---
+
+## 목차
+- [1. 시스템 아키텍처 및 제어 흐름](#1-시스템-아키텍처-및-제어-흐름)
+- [2. TF(좌표계) 트리 구조 및 실측 데이터 대조](#2-tf좌표계-트리-구조-및-실측-데이터-대조)
+- [3. 점유격자지도 및 AMCL 위치추정 파라미터](#3-점유격자지도-및-amcl-위치추정-파라미터)
+- [4. Costmap(코스트맵) 레이어 및 파라미터 구성](#4-costmap코스트맵-레이어-및-파라미터-구성)
+- [5. 경로 계획(Planner) 및 경로 추종 제어기(Controller)](#5-경로-계획planner-및-경로-추종-제어기controller)
+- [6. 실행 가이드 및 단계별 운용 절차](#6-실행-가이드-및-단계별-운용-절차)
+- [7. 실차 주행 검증 결과 및 한계점](#7-실차-주행-검증-결과-및-한계점)
+
+---
+
+## 1. 시스템 아키텍처 및 제어 흐름
+
+LIMO의 자율주행 시스템은 센서 측정값으로부터 최종 구동 명령(`/cmd_vel`)에 이르기까지 다음과 같은 단일화된 ROS 2 파이프라인으로 동작합니다.
+
+```text
+    [YDLiDAR T-mini Plus]       [LIMO 휠 엔코더 & IMU]
+              │                            │
+              ▼                            ▼
+        /scan (LaserScan)          /wheel/odom, /imu
+              │                            │
+              │                            ▼
+              │                  odom → base_link TF (50 Hz)
+              │                            │
+              │                            ▼
+              │            base_link → base_footprint (정적 TF)
+              │                            │
+              ▼                            ▼
+   ┌──────────────────────────────────────────────┐
+   │         AMCL (Adaptive Monte Carlo Localization)│
+   │  - 정적 점유격자지도 (/map) 로드                │
+   │  - 초기 위치 (/initialpose) 수신 시 파티클 수렴│
+   │  - map → odom TF 브로드캐스트 (10 Hz)          │
+   └──────────────────────┬───────────────────────┘
+                          │
+                          ▼
+   ┌──────────────────────────────────────────────┐
+   │                 Nav2 Costmaps                │
+   │  - Global Costmap: Static + Obstacle + Inflation│
+   │  - Local Costmap: Rolling 3m×3m, Voxel + Inflation│
+   └──────────────────────┬───────────────────────┘
+                          │
+                          ▼
+   ┌──────────────────────────────────────────────┐
+   │            Nav2 Planner & Controller         │
+   │  - Global Planner (Navfn / Smac): 전역 경로 생성│
+   │  - Local Controller (DWB / RPP): 궤적 추종   │
+   └──────────────────────┬───────────────────────┘
+                          │
+                          ▼
+                  /cmd_vel (Twist)
+                          │
+                          ▼
+               [LIMO Base MCU 모터 구동]
+```
+
+---
+
+## 2. TF(좌표계) 트리 구조 및 실측 데이터 대조
+
+자율주행의 안정성은 로봇 좌표계 변환 트리의 무결성에 직결됩니다. LIMO Pro 시스템에서는 `tf2_tools view_frames`를 통해 좌표계 무결성을 실측하였으며, 실제 저장소 및 로그에서 확인되는 계측 결과는 다음과 같습니다.
+
+### 2.1 실제 계측 파일 기반 TF 트리 구조
+로봇 온보드 환경에서 실제로 추출된 Graphviz 데이터에 따른 프레임 연결 및 브로드캐스트 주파수 실측치는 다음과 같습니다.
+
+#### 1) 10월 13일 초기 계측 (`frames_2026-10-13_19.38.47.gv`)
+정적 TF 패치 전후의 기본 좌표계 연결 및 센서 프레임 계측 결과입니다.
+
+```mermaid
+graph TD
+    odom["odom"] -->|50.20 Hz| base_footprint["base_footprint"]
+    base_footprint -->|정적 TF| base_link["base_link"]
+    base_link -->|정적 TF| laser_link["laser_link"]
+    base_link -->|정적 TF| imu_link["imu_link"]
+    base_link -->|정적 TF| inertial_link["inertial_link"]
+    base_link -->|정적 TF| depth_camera_link["depth_camera_link"]
+    depth_camera_link -->|정적 TF| depth_link["depth_link"]
+    base_footprint -->|60.20 Hz| front_right_wheel["front_right_wheel_link"]
+    base_footprint -->|60.20 Hz| front_left_wheel["front_left_wheel_link"]
+    base_footprint -->|60.24 Hz| rear_right_wheel["rear_right_wheel_link"]
+    base_footprint -->|60.24 Hz| rear_left_wheel["rear_left_wheel_link"]
+```
+
+#### 2) 10월 21일 8주차 실차 Nav2 구동 현장 실측 (`frames_2026-10-21_15.11.43.gv`)
+MC관 실차 주행 시험에서 AMCL 위치추정이 활성화된 상태로 추출된 전체 10개 프레임 무결성 실측치입니다.
+
+> [!NOTE]
+> **계측 파일 보관 위치:**
+> 해당 계측 파일(`frames_2026-10-21_15.11.43.gv` 및 PDF)은 8주차 실차 시험 시 온보드 PC에서 생성된 실측 자료로, 문서 자산 디렉터리([`docs/assets/frames_2026-10-21_15.11.43.gv`](assets/frames_2026-10-21_15.11.43.gv))에 정식 보관되어 있습니다.
+
+**10월 21일 Graphviz 실측 데이터 상세:**
+- `map → odom`: **10.356 Hz** (AMCL 위치추정 브로드캐스터, 버퍼 2.993s)
+- `odom → base_link`: **50.139 Hz** (LIMO 모터 드라이버 오도메트리)
+- `base_link → base_footprint`: **정적 TF (도구 표시 10000)** (`static_transform_publisher` 정적 TF)
+- `base_link → laser_link`: **정적 TF (도구 표시 10000)** (LiDAR 센서 프레임)
+- `base_link → imu_link`: **정적 TF (도구 표시 10000)**
+- `base_link → inertial_link`: **정적 TF (도구 표시 10000)**
+- `base_link → front/rear_wheel_links (4개)`: **10.204 Hz**
+
+정적 TF의 도구 표시 10000은 실제 10kHz 발행률이나 성능 지표가 아니다. 동적 변환의 주기도 해당 관측 구간의 값이다.
+
+이 기록을 통해 AMCL 구동 시 `map → odom → base_link → base_footprint` 체인이 단일 트리로 견고하게 결합됨을 정량적으로 확인할 수 있습니다.
+
+### 2.2 `base_footprint` 정적 TF 추가 배경
+- **문제:** LIMO 하드웨어 드라이버(`limo_driver.cpp`)는 `odom → base_link` 변환만 브로드캐스트하여, Nav2 Costmap2D가 필수로 요구하는 `base_footprint` 프레임이 누락됨.
+- **해결:** [`capstone_ws/src/limo_capstone/launch/limo_nav2.launch.py`](../capstone_ws/src/limo_capstone/launch/limo_nav2.launch.py#L35-L42)에 `static_transform_publisher` 노드를 추가하여 `base_link → base_footprint` (0, 0, 0, 0, 0, 0) 항등 변환을 제공함 (Commit `7439841`).
+
+---
+
+## 3. 점유격자지도 및 AMCL 위치추정 파라미터
+
+### 3.1 지도 로딩 및 수명주기(Lifecycle) 관리
+Nav2의 `map_server`와 `amcl` 노드는 ROS 2 Managed Node(Lifecycle Node)입니다.
+- **상태 전이:** `unconfigured` $\rightarrow$ `inactive` (configure 단계에서 YAML 및 PGM 파싱) $\rightarrow$ `active` (activate 단계에서 토픽 퍼블리셔 활성화).
+- **QoS 특성:** `/map` 토픽은 `Transient Local` (Latched) 내구성으로 방출되므로, 늦게 구독한 RViz2가 보존된 지도를 받도록 `Transient Local` 수신을 설정합니다. `Volatile` 구독자가 무조건 비호환인 것은 아니며 과거 샘플 수신 여부와 Lifecycle 활성 상태를 구분합니다.
+
+### 3.2 실제 설정 파일 파라미터 ([`nav2_explore_params.yaml`](../capstone_ws/src/limo_capstone/config/nav2_explore_params.yaml))
+현재 저장소의 실제 AMCL 설정값은 다음과 같습니다:
+
+```yaml
+amcl:
+  ros__parameters:
+    use_sim_time: False
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.2
+    base_frame_id: "base_link"        # base_link (Costmap 및 드라이버 네이티브 프레임 일치)
+    global_frame_id: "map"
+    odom_frame_id: "odom"
+    scan_topic: scan
+    min_particles: 500
+    max_particles: 2000
+    update_min_d: 0.10        # 10cm 이동 시 파티클 즉시 갱신 (실차 튜닝값)
+    update_min_a: 0.10        # 약 5.7도(0.1 rad) 회전 시 파티클 즉시 갱신
+    laser_min_range: 0.05     # 5cm 미만 본체 자가 반사 필터링
+    laser_max_range: 10.0     # YDLiDAR T-mini Plus 하드웨어 사양(8~10m) 일치
+    laser_model_type: "likelihood_field"
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
+```
+
+> [!NOTE]
+> **실차 하드웨어 기반 파라미터 최적화 반영:**
+> 10월 21일 LIMO 실차 주행 시험을 통해 도출된 파라미터(`update_min_d: 0.10`, `update_min_a: 0.10`, `laser_min_range: 0.05`, `laser_max_range: 10.0`, `base_frame_id: "base_link"`)가 저장소 기본 설정 파일([`nav2_explore_params.yaml`](../capstone_ws/src/limo_capstone/config/nav2_explore_params.yaml))에 통합되었습니다. 이를 통해 YDLiDAR 센서의 유효 거리(10m)에 맞춰 likelihood field 계산량을 절감하고 미세 회전/이동 시 위치 갱신 빈도를 확보했습니다. (단, 현장 주행 성능의 정밀 평가는 향후 실차 시험을 통해 지속 검증 예정)
+
+---
+
+## 4. Costmap(코스트맵) 레이어 및 파라미터 구성
+
+Nav2는 충돌 회피와 주행 가능 공간을 판단하기 위해 전역(Global)과 지역(Local)의 2단계 2D Costmap을 유지합니다.
+
+### 4.1 Global Costmap 실제 설정
+- **프레임:** `global_frame: map`, `robot_base_frame: base_link`
+- **해상도 및 반경:** `resolution: 0.05`, `robot_radius: 0.19`
+- **레이어 구성:** `plugins: ["static_layer", "obstacle_layer", "inflation_layer"]`
+  - `static_layer`: `map_server`에서 수신한 정적 점유격자지도 반영 (`map_subscribe_transient_local: True`).
+  - `obstacle_layer`: 라이다 `/scan` 관측 데이터를 기반으로 장애물 등록(`marking: True`) 및 클리어링(`clearing: True`, `raytrace_max_range: 3.0`, `obstacle_max_range: 2.5`).
+  - `track_unknown_space: true`: 미지의 영역을 장애물과 구분하여 탐색/경로 생성에 활용.
+
+### 4.2 Local Costmap 실제 설정
+- **프레임:** `global_frame: odom`, `robot_base_frame: base_link`
+- **형태:** `rolling_window: true`, 크기 $3.0\,\text{m} \times 3.0\,\text{m}$, 해상도 $0.05\,\text{m}$
+- **레이어 구성:** `plugins: ["voxel_layer", "inflation_layer"]`
+  - `inflation_layer`: `cost_scaling_factor: 7.0`, `inflation_radius: 0.30` (LIMO Pro 차체 폭에 맞춘 슬림한 안전 마진 적용)
+  - `voxel_layer`: 라이다 `/scan` 데이터를 3D Voxel 그리드(16 voxels, 높이 2.0m)로 누적하여 장애물 판단.
+
+---
+
+## 5. 경로 계획(Planner) 및 경로 추종 제어기(Controller)
+
+### 5.1 Global Planner
+- **기본 플러그인:** `nav2_navfn_planner/NavfnPlanner` (현재 `use_astar: false`, Dijkstra 설정)
+- **역할:** 정적 지도와 전역 코스트맵 상에서 현재 로봇 위치부터 2D Goal Pose까지의 최단 기하학적 경로를 생성.
+
+### 5.2 Local Controller (실제 파일: `DWBLocalPlanner`)
+- **실제 파라미터 ([`nav2_explore_params.yaml`](../capstone_ws/src/limo_capstone/config/nav2_explore_params.yaml)):**
+  - 플러그인: `dwb_core::DWBLocalPlanner`
+  - 속도 제한: `max_vel_x: 0.26 m/s`, `max_speed_xy: 0.26 m/s`, `max_vel_theta: 1.0 rad/s`
+  - 도달 오차 허용치: `xy_goal_tolerance: 0.25 m` (현재 YAML 설정), `yaw_goal_tolerance: 0.25 rad`
+  - 평가지표(Critics): `RotateToGoal`, `Oscillation`, `BaseObstacle`, `GoalAlign`, `PathAlign`, `PathDist`, `GoalDist`
+- **시뮬레이션 전용 설정:**
+  - Ackermann 조향 기구학을 반영하기 위해 시뮬레이션 환경에서는 `nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController`를 적용한 별도 설정([`nav2_sim_params.yaml`](../capstone_ws/src/limo_capstone/config/nav2_sim_params.yaml))을 분리 운용.
+
+---
+
+## 6. 실행 가이드 및 단계별 운용 절차
+
+실제 LIMO Pro 로봇에서 정적 지도 기반 자율주행을 수행하는 표준 절차입니다.
+
+### 1단계: 패키지 빌드 및 환경 로드
+```bash
+cd ~/school/2026-2/Capstone1_limo/capstone_ws
+colcon build --symlink-install --packages-select limo_capstone
+source install/setup.bash
+```
+
+### 2단계: LIMO 하드웨어 드라이버 구동
+```bash
+# 터미널 1: LIMO Base 드라이버 (시리얼 포트 명시)
+ros2 launch limo_base limo_base.launch.py port_name:=ttyUSB1
+
+# 터미널 2: YDLiDAR T-mini Plus 드라이버
+ros2 launch ydlidar_ros2_driver ydlidar.launch.py
+```
+
+### 3단계: Nav2 스택 실행 (원하는 지도 지정)
+```bash
+# 터미널 3: Nav2 실행 (원하는 지도 파일 지정)
+ros2 launch limo_capstone limo_nav2.launch.py \
+  map:=$(ros2 pkg prefix limo_capstone)/share/limo_capstone/maps/demo_map.yaml \
+  use_sim_time:=false
+```
+
+### 4단계: Lifecycle 노드 점검 및 활성화 (필요 시)
+만약 RViz에서 `No map received`가 표시될 경우 수동 활성화:
+```bash
+ros2 lifecycle set /map_server configure && ros2 lifecycle set /map_server activate
+ros2 lifecycle set /amcl configure && ros2 lifecycle set /amcl activate
+```
+
+### 5단계: RViz2 시각화 및 목표점 주행
+1. 호스트 PC 또는 온보드 PC에서 `rviz2` 실행.
+2. 상단 툴바의 **`2D Pose Estimate`**를 클릭하고 지도의 특징점에 맞추어 실제 로봇의 위치와 방향을 설정 $\rightarrow$ AMCL 파티클들이 로봇 주변에 수렴함을 확인.
+3. 상단 툴바의 **`2D Goal Pose`**를 클릭하여 원하는 목적지 클릭 $\rightarrow$ 전역 경로 생성 및 LIMO 실차 주행 개시.
+
+---
+
+## 7. 주행 검증 결과 및 한계점
+
+### 7.1 검증 완료된 항목 (Verified)
+- **패키지 빌드 및 리소스 자동 설치:** `colcon build --symlink-install --packages-select limo_capstone explore_lite` 빌드 성공 (에러 0건) 및 신규 지도 배포 확인.
+- **정적 지도 기반 주행:** MC관 3층 목표 지정 주행 영상과 보고서에 경로 생성·추종 기록이 있다. `demo_map`은 MC관 2층 테라스 수동 지도이며, 3층 자동 지도와 구분한다. 반복 도착 오차·성공률은 아직 제시하지 않는다.
+- **TF 단일 트리 무결성:** 10월 21일 온보드 PC 실측 데이터([`docs/assets/frames_2026-10-21_15.11.43.gv`](assets/frames_2026-10-21_15.11.43.gv))를 통해 전체 10개 프레임의 고주파수(50Hz 오도메트리, 10Hz AMCL, 정적 좌표 연결) 결합 확인.
+- **QoS 및 Lifecycle 전이:** Map Server 및 AMCL 수명주기 활성화 및 `Transient Local` QoS 토픽 수신 안정화.
+
+### 7.2 시뮬레이션 및 실차 파라미터 분리 기준
+- **탐색 파라미터 (`explore.yaml`):**
+  - **실차 최적화 (현재 기본값):** `progress_timeout: 25.0` (저속 회피 타임아웃 방지), `potential_scale: 3.0` (인접 프론티어 우선), `min_frontier_size: 0.20` (작은 방 출입문 및 틈새 탐색).
+  - **대형 시뮬레이션 복도용:** 넓은 복도를 장거리 횡단할 때는 `potential_scale: 0.1` 및 `min_frontier_size: 0.75`를 파라미터 인자(`explore_params_file:=...`)로 지정하여 원거리 대형 프론티어를 우선할 수 있음.
+
+### 7.3 한계점 및 향후 보완 과제 (Limitations & Next Steps)
+1. **실제 로봇 런타임 주행 재검증:** 파라미터 통합(`update_min: 0.10`, `xy_goal_tolerance: 0.25`)과 패키지 빌드는 완료되었으나, 본 개발 환경 외 실물 LIMO 로봇에 패키지를 탑재하여 복도 자율 순찰을 완주하는 현장 평가는 지속 검증 필요.
+2. **수동 초기 위치 의존성:** 현재는 주행 전 사용자가 RViz에서 `2D Pose Estimate`를 수동으로 입력해야 함 $\rightarrow$ 고정 위치 초기화 로직 개발 필요.
+3. **동적 장애물 회피 실차 튜닝:** 정적 장애물 회피는 Local Costmap을 통해 작동하나, 보행자 출현 시 즉각 정지 및 우회 제어기는 추가 파라미터 최적화 필요.
+4. **배터리 관리:** USB 단절 후 설정한 운용 수칙에 따라 배터리 3칸 이상에서만 주행 시험을 지속해야 함.

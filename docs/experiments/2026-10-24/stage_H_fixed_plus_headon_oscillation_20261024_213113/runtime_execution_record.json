@@ -1,0 +1,317 @@
+{
+  "scenario": "fixed_plus_headon_oscillation",
+  "stage_id": "H",
+  "domain_id": "183",
+  "world": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/oscillating_env/stage_H.sdf",
+  "map": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/complex_indoor_env/complex_indoor_map.yaml",
+  "initial_pose": [
+    -6.2,
+    -2.0,
+    0.0
+  ],
+  "goal_pose": [
+    6.2,
+    2.25,
+    0.0
+  ],
+  "applied_behavior_tree": {
+    "goal_behavior_tree_field": "/home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/limo_capstone/config/navigate_to_pose_ackermann_backup30.xml",
+    "bt_xml_sha256": "db173a863e8d74a3dbeb28c1a4a9224bb147e2babe777bda047b010e21cb563a",
+    "binding_verified": true
+  },
+  "action_execution": {
+    "timed_out": false,
+    "cancel_requested": false,
+    "cancel_accepted": null,
+    "action_result_received": true,
+    "final_action_status_code": 4,
+    "final_action_status_str": "STATUS_SUCCEEDED"
+  },
+  "phase_timestamps": {
+    "nav_start_sim": 41.872,
+    "nav_end_sim": 99.252
+  },
+  "milestone_events": {
+    "stage_id": "H",
+    "stage_name": "fixed_plus_headon_oscillation",
+    "nav_start_sim_time": 41.872,
+    "initial_plan_sim_time": 4.648,
+    "obstacle_detections": {
+      "unmapped_obs_1": {
+        "sim_time": 50.613,
+        "hit_rays": 3,
+        "robot_pose": [
+          -4.323,
+          -1.061
+        ]
+      },
+      "moving_obs_1": {
+        "sim_time": 85.508,
+        "hit_rays": 7,
+        "robot_pose": [
+          3.366,
+          1.832
+        ],
+        "obstacle_pose": [
+          5.794,
+          2.25
+        ]
+      }
+    },
+    "costmap_reflections": {
+      "unmapped_obs_1": {
+        "sim_time": 51.002,
+        "lethal_cells": 47
+      },
+      "moving_obs_1": {
+        "sim_time": 85.508,
+        "lethal_cells": 99
+      }
+    },
+    "path_replans": [
+      {
+        "plan_id": 1,
+        "sim_time": 42.964,
+        "waypoint_count": 534,
+        "mid_y": 1.651
+      },
+      {
+        "plan_id": 2,
+        "sim_time": 44.996,
+        "waypoint_count": 515,
+        "mid_y": 1.463
+      },
+      {
+        "plan_id": 3,
+        "sim_time": 47.037,
+        "waypoint_count": 499,
+        "mid_y": 1.659
+      },
+      {
+        "plan_id": 4,
+        "sim_time": 48.059,
+        "waypoint_count": 484,
+        "mid_y": 1.657
+      },
+      {
+        "plan_id": 5,
+        "sim_time": 50.089,
+        "waypoint_count": 464,
+        "mid_y": 1.663
+      },
+      {
+        "plan_id": 6,
+        "sim_time": 52.134,
+        "waypoint_count": 449,
+        "mid_y": 1.673
+      },
+      {
+        "plan_id": 7,
+        "sim_time": 53.146,
+        "waypoint_count": 435,
+        "mid_y": 1.665
+      },
+      {
+        "plan_id": 8,
+        "sim_time": 54.172,
+        "waypoint_count": 424,
+        "mid_y": 1.669
+      },
+      {
+        "plan_id": 9,
+        "sim_time": 55.188,
+        "waypoint_count": 413,
+        "mid_y": 1.685
+      },
+      {
+        "plan_id": 10,
+        "sim_time": 56.213,
+        "waypoint_count": 403,
+        "mid_y": 1.672
+      },
+      {
+        "plan_id": 11,
+        "sim_time": 57.232,
+        "waypoint_count": 393,
+        "mid_y": 1.695
+      },
+      {
+        "plan_id": 12,
+        "sim_time": 58.256,
+        "waypoint_count": 383,
+        "mid_y": 1.675
+      },
+      {
+        "plan_id": 13,
+        "sim_time": 59.28,
+        "waypoint_count": 373,
+        "mid_y": 1.682
+      },
+      {
+        "plan_id": 14,
+        "sim_time": 61.321,
+        "waypoint_count": 354,
+        "mid_y": 1.695
+      },
+      {
+        "plan_id": 15,
+        "sim_time": 62.35,
+        "waypoint_count": 342,
+        "mid_y": 1.696
+      },
+      {
+        "plan_id": 16,
+        "sim_time": 63.373,
+        "waypoint_count": 331,
+        "mid_y": 1.676
+      },
+      {
+        "plan_id": 17,
+        "sim_time": 64.381,
+        "waypoint_count": 320,
+        "mid_y": 1.528
+      },
+      {
+        "plan_id": 18,
+        "sim_time": 65.411,
+        "waypoint_count": 310,
+        "mid_y": 1.568
+      },
+      {
+        "plan_id": 19,
+        "sim_time": 67.447,
+        "waypoint_count": 295,
+        "mid_y": 1.533
+      },
+      {
+        "plan_id": 20,
+        "sim_time": 69.497,
+        "waypoint_count": 280,
+        "mid_y": 1.401
+      },
+      {
+        "plan_id": 21,
+        "sim_time": 71.562,
+        "waypoint_count": 264,
+        "mid_y": 1.407
+      },
+      {
+        "plan_id": 22,
+        "sim_time": 72.561,
+        "waypoint_count": 251,
+        "mid_y": 1.504
+      },
+      {
+        "plan_id": 23,
+        "sim_time": 73.586,
+        "waypoint_count": 236,
+        "mid_y": 1.665
+      },
+      {
+        "plan_id": 24,
+        "sim_time": 74.599,
+        "waypoint_count": 223,
+        "mid_y": 1.736
+      },
+      {
+        "plan_id": 25,
+        "sim_time": 75.622,
+        "waypoint_count": 213,
+        "mid_y": 1.83
+      },
+      {
+        "plan_id": 26,
+        "sim_time": 76.65,
+        "waypoint_count": 202,
+        "mid_y": 1.9
+      },
+      {
+        "plan_id": 27,
+        "sim_time": 77.66,
+        "waypoint_count": 187,
+        "mid_y": 1.936
+      },
+      {
+        "plan_id": 28,
+        "sim_time": 79.705,
+        "waypoint_count": 165,
+        "mid_y": 2.004
+      },
+      {
+        "plan_id": 29,
+        "sim_time": 80.762,
+        "waypoint_count": 155,
+        "mid_y": 2.096
+      },
+      {
+        "plan_id": 30,
+        "sim_time": 85.508,
+        "waypoint_count": 139,
+        "mid_y": 2.124
+      },
+      {
+        "plan_id": 31,
+        "sim_time": 92.156,
+        "waypoint_count": 131,
+        "mid_y": 1.714
+      },
+      {
+        "plan_id": 32,
+        "sim_time": 95.675,
+        "waypoint_count": 78,
+        "mid_y": 1.747
+      },
+      {
+        "plan_id": 33,
+        "sim_time": 101.741,
+        "waypoint_count": 108,
+        "mid_y": 2.639
+      },
+      {
+        "plan_id": 34,
+        "sim_time": 101.79,
+        "waypoint_count": 61,
+        "mid_y": 2.098
+      },
+      {
+        "plan_id": 35,
+        "sim_time": 101.801,
+        "waypoint_count": 51,
+        "mid_y": 1.994
+      },
+      {
+        "plan_id": 36,
+        "sim_time": 101.822,
+        "waypoint_count": 37,
+        "mid_y": 2.085
+      },
+      {
+        "plan_id": 37,
+        "sim_time": 101.831,
+        "waypoint_count": 27,
+        "mid_y": 2.086
+      },
+      {
+        "plan_id": 38,
+        "sim_time": 101.843,
+        "waypoint_count": 13,
+        "mid_y": 2.149
+      }
+    ],
+    "decelerate_or_wait_events": [
+      {
+        "start_sim_time": 88.997,
+        "robot_pose": [
+          4.2168,
+          2.0271
+        ]
+      }
+    ],
+    "motion_resumed_sim_time": null,
+    "action_end_sim_time": 99.252,
+    "final_action_status": "STATUS_SUCCEEDED"
+  },
+  "simulation_duration_seconds": 57.38,
+  "host_duration_seconds": 68.07,
+  "evaluation_source": "AUTOMATIC_RUNTIME_RECORD"
+}

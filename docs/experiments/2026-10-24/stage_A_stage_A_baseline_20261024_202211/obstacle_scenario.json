@@ -1,0 +1,11 @@
+{
+  "stage_id": "A",
+  "stage_name": "stage_A_baseline",
+  "title": "Stage A: 추가 장애물 없는 기본 목표점 주행 (Baseline)",
+  "random_seed": 20261024,
+  "deterministic": true,
+  "gt_obstacle_fed_to_nav2": false,
+  "nav2_perception_source": "LiDAR /scan only (sensor-based costmap update & replanning; no future trajectory prediction)",
+  "unmapped_static_obstacles": [],
+  "moving_obstacles": []
+}

@@ -1,0 +1,108 @@
+{
+  "stage_id": "D",
+  "stage_name": "stage_D_multi_moving_cross",
+  "title": "Stage D: 서로 다른 시점에 이동 장애물 3개가 순차 횡단",
+  "random_seed": 20261024,
+  "deterministic": true,
+  "gt_obstacle_fed_to_nav2": false,
+  "nav2_perception_source": "LiDAR /scan only (sensor-based costmap update & replanning; no future trajectory prediction)",
+  "unmapped_static_obstacles": [],
+  "moving_obstacles": [
+    {
+      "name": "moving_obs_1",
+      "size": [
+        0.42,
+        0.42,
+        0.7
+      ],
+      "initial_pose": [
+        -3.0,
+        -0.35,
+        0.35
+      ],
+      "start_pose": [
+        -3.0,
+        -0.55,
+        0.35
+      ],
+      "end_pose": [
+        -3.0,
+        -4.35,
+        0.35
+      ],
+      "speed_mps": 0.4,
+      "trigger_type": "robot_x_ge",
+      "trigger_value": -4.8,
+      "clears_corridor": true,
+      "corridor_y_range": [
+        -2.8,
+        -1.1
+      ],
+      "description": "1차 횡단: 로봇 x>=-4.8m 도달 시 서측 교차로(x=-3.0)를 북→남으로 횡단 후 y=-4.35로 이탈"
+    },
+    {
+      "name": "moving_obs_2",
+      "size": [
+        0.42,
+        0.42,
+        0.7
+      ],
+      "initial_pose": [
+        2.9,
+        0.4,
+        0.35
+      ],
+      "start_pose": [
+        2.9,
+        0.2,
+        0.35
+      ],
+      "end_pose": [
+        2.9,
+        -2.65,
+        0.35
+      ],
+      "speed_mps": 0.4,
+      "trigger_type": "robot_x_ge",
+      "trigger_value": 1.0,
+      "clears_corridor": true,
+      "corridor_y_range": [
+        -2.5,
+        -0.8
+      ],
+      "description": "2차 횡단: 로봇 x>=+1.0m 도달 시 동측 광장 진입부(x=+2.9)를 북→남으로 횡단 후 y=-2.65로 이탈"
+    },
+    {
+      "name": "moving_obs_3",
+      "size": [
+        0.42,
+        0.42,
+        0.7
+      ],
+      "initial_pose": [
+        5.0,
+        3.1,
+        0.35
+      ],
+      "start_pose": [
+        5.0,
+        2.85,
+        0.35
+      ],
+      "end_pose": [
+        5.0,
+        -0.4,
+        0.35
+      ],
+      "speed_mps": 0.42,
+      "trigger_type": "robot_x_ge",
+      "trigger_value": 3.3,
+      "clears_corridor": true,
+      "corridor_y_range": [
+        0.4,
+        2.2
+      ],
+      "description": "3차 횡단: 로봇 x>=+3.3m 도달 시 목적지 G 전면(x=+5.0)을 북→남으로 횡단 후 y=-0.40으로 이탈"
+    }
+  ]
+}

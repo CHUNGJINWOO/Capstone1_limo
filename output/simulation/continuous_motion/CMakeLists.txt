@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.16)
+project(limo_smooth_obstacle)
+find_package(ignition-gazebo6 REQUIRED)
+find_package(ignition-plugin1 REQUIRED COMPONENTS register)
+add_library(limo_smooth_obstacle SHARED smooth_motion.cc)
+target_link_libraries(limo_smooth_obstacle PRIVATE ignition-gazebo6::ignition-gazebo6 ignition-plugin1::register)
