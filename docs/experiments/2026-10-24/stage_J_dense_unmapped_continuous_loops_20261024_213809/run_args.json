@@ -1,0 +1,33 @@
+{
+  "stage_id": "J",
+  "stage_name": "dense_unmapped_continuous_loops",
+  "domain_id": 184,
+  "run_dir": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809",
+  "world": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/continuous_motion/env/world.sdf",
+  "map": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/continuous_motion/env/map.yaml",
+  "params_file": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/continuous_motion/env/nav2_complex_indoor_ackermann_params.yaml",
+  "bt_xml": "/home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/limo_capstone/config/navigate_to_pose_ackermann_backup30.xml",
+  "model_file": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/2026-10-24/inputs/limo_contact_check.sdf",
+  "rviz_config": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/continuous_motion/env/complex_indoor_nav2.rviz",
+  "spawn_pose": [
+    -6.2,
+    -2.0,
+    0.0
+  ],
+  "goal_pose": [
+    5.8,
+    1.4,
+    0.0
+  ],
+  "timeout_sim": 130.0,
+  "sha256_hashes": {
+    "map.yaml": "a145b6a0354f86cb3b0c8e4c9a8b72791a1ad71610e2f96a2bb2a6d9857fa75c",
+    "complex_indoor_map.pgm": "efb5f16ff2062066ddbb9d8b624b5583b1ce284342ae08978d60da2bea233415",
+    "world.sdf": "0938e5b62aaf9e8a8da8c7f69f18f0bfa64c6a0ddf7c6cce030e11762ce0a233",
+    "robot_model.sdf": "00e3fbd2469db6241052918d86518a1a0bd1b55b27f10aad8783c17fdbe2534b",
+    "nav2_params.yaml": "e12baa3392e88af8494114a472a5b95aabdd6388b588a444da89528c0371619a",
+    "behavior_tree.xml": "db173a863e8d74a3dbeb28c1a4a9224bb147e2babe777bda047b010e21cb563a",
+    "rviz_config.rviz": "f99df87c88a4bdfedd5513250f83c18c7cd796ea3d24f4bbb59d94ab86e3a464"
+  },
+  "created_at_iso": "2026-10-24T21:38:09+0900"
+}

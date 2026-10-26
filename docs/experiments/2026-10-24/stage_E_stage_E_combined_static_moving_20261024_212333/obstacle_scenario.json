@@ -1,0 +1,91 @@
+{
+  "stage_id": "E",
+  "stage_name": "stage_E_combined_static_moving",
+  "title": "Stage E: 미등록 고정 장애물과 이동 장애물이 함께 있는 복합 환경",
+  "random_seed": 20261024,
+  "deterministic": true,
+  "gt_obstacle_fed_to_nav2": false,
+  "nav2_perception_source": "LiDAR /scan only (sensor-based costmap update & replanning; no future trajectory prediction)",
+  "unmapped_static_obstacles": [
+    {
+      "name": "unmapped_obs_1",
+      "pose": [
+        -1.55,
+        -1.95,
+        0.35
+      ],
+      "size": [
+        0.45,
+        1.55,
+        0.7
+      ],
+      "role": "남측 주 통로(Route 1, y=-1.95) 차단 → 북측 방향 우회 경로(x=-3.0 → Route 2 y=+1.40) 재계획 유도"
+    }
+  ],
+  "moving_obstacles": [
+    {
+      "name": "moving_obs_1",
+      "size": [
+        0.42,
+        0.42,
+        0.7
+      ],
+      "initial_pose": [
+        2.9,
+        2.85,
+        0.35
+      ],
+      "start_pose": [
+        2.9,
+        2.65,
+        0.35
+      ],
+      "end_pose": [
+        2.9,
+        -0.35,
+        0.35
+      ],
+      "speed_mps": 0.4,
+      "trigger_type": "robot_x_ge",
+      "trigger_value": 0.8,
+      "clears_corridor": true,
+      "corridor_y_range": [
+        0.6,
+        2.2
+      ],
+      "description": "1차 이동 장애물: 로봇이 우회 복도(Route 2)를 통과해 x>=+0.8m에 도달할 때 복도 출구(x=+2.9)를 북→남으로 횡단 후 y=-0.35로 완전 이탈"
+    },
+    {
+      "name": "moving_obs_2",
+      "size": [
+        0.42,
+        0.42,
+        0.7
+      ],
+      "initial_pose": [
+        5.0,
+        3.1,
+        0.35
+      ],
+      "start_pose": [
+        5.0,
+        2.85,
+        0.35
+      ],
+      "end_pose": [
+        5.0,
+        -0.4,
+        0.35
+      ],
+      "speed_mps": 0.42,
+      "trigger_type": "robot_x_ge",
+      "trigger_value": 3.2,
+      "clears_corridor": true,
+      "corridor_y_range": [
+        0.4,
+        2.2
+      ],
+      "description": "2차 이동 장애물: 로봇이 동측 광장에 진입해 x>=+3.2m에 도달할 때 목적지 G 전면(x=+5.0)을 북→남으로 횡단 후 y=-0.40으로 완전 이탈"
+    }
+  ]
+}

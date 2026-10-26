@@ -1,0 +1,70 @@
+{
+  "stage_id": "F",
+  "stage_name": "stage_F_blocked_corridor",
+  "title": "Stage F: 장애물이 통로에 남는 완전 차단 및 안전 정지 상황",
+  "random_seed": 20261024,
+  "deterministic": true,
+  "gt_obstacle_fed_to_nav2": false,
+  "nav2_perception_source": "LiDAR /scan only (sensor-based costmap update & replanning; no future trajectory prediction)",
+  "unmapped_static_obstacles": [
+    {
+      "name": "blocking_obs_north_seal",
+      "pose": [
+        -3.0,
+        -0.55,
+        0.35
+      ],
+      "size": [
+        1.85,
+        0.45,
+        0.7
+      ],
+      "role": "서측 북상 교차로(x=-3.0, y=-0.55) 봉쇄"
+    },
+    {
+      "name": "blocking_obs_south_seal",
+      "pose": [
+        -3.0,
+        -3.1,
+        0.35
+      ],
+      "size": [
+        1.85,
+        0.45,
+        0.7
+      ],
+      "role": "서측 남하 통로 봉쇄"
+    }
+  ],
+  "moving_obstacles": [
+    {
+      "name": "blocking_obs_main",
+      "size": [
+        0.5,
+        1.95,
+        0.7
+      ],
+      "initial_pose": [
+        -1.2,
+        -1.95,
+        0.35
+      ],
+      "start_pose": [
+        -1.2,
+        -1.95,
+        0.35
+      ],
+      "end_pose": [
+        -1.2,
+        -1.95,
+        0.35
+      ],
+      "speed_mps": 0.0,
+      "trigger_type": "always",
+      "trigger_value": 0.0,
+      "clears_corridor": false,
+      "remains_in_corridor": true,
+      "description": "남측 주 통로(x=-1.2, y=-1.95) 전체 폭을 완전히 가로막고 통로에 잔류하는 차단 장애물"
+    }
+  ]
+}

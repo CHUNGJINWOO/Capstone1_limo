@@ -1,0 +1,247 @@
+{
+  "scenario": "stage_F_blocked_corridor",
+  "domain_id": "172",
+  "world": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/complex_indoor_env/complex_indoor_stageF.sdf",
+  "map": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/complex_indoor_env/complex_indoor_map.yaml",
+  "initial_pose": [
+    -6.2,
+    -2.0,
+    0.0
+  ],
+  "goal_pose": [
+    1.5,
+    -1.95,
+    0.0
+  ],
+  "evaluation_source": "AUTOMATIC_RUNTIME_RECORD",
+  "applied_behavior_tree": {
+    "goal_behavior_tree_field": "/home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/limo_capstone/config/navigate_to_pose_ackermann_backup30.xml",
+    "bt_xml_sha256": "db173a863e8d74a3dbeb28c1a4a9224bb147e2babe777bda047b010e21cb563a",
+    "binding_verified": true
+  },
+  "criteria": {
+    "goal_tolerance_strict": 0.15,
+    "goal_tolerance_relaxed": 0.4,
+    "collision_clearance_threshold": 0.005,
+    "safe_stop_speed_threshold": 0.015,
+    "safe_stop_duration_threshold": 3.0,
+    "safe_stop_clearance_threshold": 0.1
+  },
+  "measurements": {
+    "action_execution": {
+      "timed_out": true,
+      "cancel_requested": true,
+      "cancel_accepted": true,
+      "action_result_received": true,
+      "final_action_status_code": 5,
+      "final_action_status_str": "STATUS_CANCELED"
+    },
+    "final_ground_truth_pose": [
+      -3.5489,
+      -1.079
+    ],
+    "final_ground_truth_error": 5.1235,
+    "minimum_moving_obstacle_clearance_meters": 0.1118,
+    "minimum_moving_obstacle_info": {
+      "sim_time": 63.688,
+      "object": "blocking_obs_north_seal::collision",
+      "robot_pose": [
+        -3.5489,
+        -1.079,
+        2.3149
+      ],
+      "obstacle_pose": [
+        -3.0,
+        -0.55
+      ],
+      "clearance": 0.1118
+    },
+    "minimum_static_wall_clearance_meters": 0.8613,
+    "minimum_static_wall_info": {
+      "sim_time": 54.733,
+      "object": "complex_indoor_walls::wall_south_divider",
+      "robot_pose": [
+        -3.9594,
+        -2.0288,
+        0.0007
+      ],
+      "clearance": 0.8613
+    },
+    "minimum_all_objects_clearance_meters": 0.1118,
+    "minimum_obstacle_clearance_meters": 0.1118,
+    "clearance_type": "SAMPLED_2D_OBB_AABB_GEOMETRIC_NON_INTERSECTION",
+    "collision_detected": false,
+    "collision_object": null,
+    "phase_timestamps": {
+      "nav_start_sim": 45.984,
+      "nav_end_sim": 86.0
+    },
+    "standstill_analysis": {
+      "navigating_max_continuous_stop_sec": 22.281,
+      "navigating_post_obstacle_stop_sec": 0.0,
+      "initial_wait_stop_sec": 0.0,
+      "post_result_stop_sec": 0.0,
+      "post_cancel_stop_sec": 1.717,
+      "telemetry_quality": "HIGH",
+      "telemetry_source": "RECV_SIM_TIME_APPROXIMATION",
+      "gt_header_stamp_valid": false,
+      "data_quality_notes": "Ignition Gazebo Pose_V bridge header stamp is 0.0. Timestamps and velocities are approximated using ROS reception simulation clock time (recv_sim_time).",
+      "large_gaps_count": 0,
+      "samples_count": 776
+    },
+    "simulation_duration_seconds": 40.02,
+    "host_duration_seconds": 50.76,
+    "total_recorded_frames": 776,
+    "dynamic_events": [],
+    "costmap_clearing_verification": {
+      "roi_monitoring_enabled": false,
+      "total_roi_cells": 0,
+      "pre_removal_front_max_cost": null,
+      "pre_removal_interior_max_cost": null,
+      "pre_removal_lethal_cells_detected": false,
+      "physical_removal_confirmed": false,
+      "post_removal_all_valid_cells_zero": false,
+      "post_removal_unknown_cells_detected": false,
+      "clearing_hold_duration_seconds": 0.0,
+      "clearing_hold_verified": false,
+      "clearing_latency_seconds_raw": null,
+      "clearing_latency_display": null,
+      "clearing_verified": false
+    },
+    "exploration_metrics": {
+      "initial_free_cells": null,
+      "final_free_cells": null,
+      "free_cells_increase": null,
+      "trajectory_length_meters": null
+    }
+  },
+  "verdict": {
+    "goal_reached_strict": "NOT_PASSED",
+    "goal_reached_relaxed": "NOT_PASSED",
+    "collision_free_verified": "PASSED",
+    "safe_stop_verified": "PASSED",
+    "clearing_verified": "NOT_MEASURED",
+    "exploration_completed": "NOT_PASSED",
+    "primary_status": "SAFE_STOP_PASSED",
+    "rationale": "Corridor blocked. Robot safely stopped during NAVIGATING phase (moving clearance: 0.112m, all clearance: 0.112m >= 0.10m), standstill for 22.3s."
+  },
+  "milestone_events": {
+    "stage_id": "F",
+    "stage_name": "stage_F_blocked_corridor",
+    "nav_start_sim_time": 45.984,
+    "initial_plan_sim_time": 4.989,
+    "obstacle_detections": {
+      "blocking_obs_south_seal": {
+        "sim_time": 46.012,
+        "hit_rays": 9,
+        "robot_pose": [
+          -6.2,
+          -2.0
+        ]
+      },
+      "blocking_obs_north_seal": {
+        "sim_time": 46.3,
+        "hit_rays": 2,
+        "robot_pose": [
+          -6.152,
+          -2.0
+        ]
+      },
+      "blocking_obs_main": {
+        "sim_time": 54.5,
+        "hit_rays": 8,
+        "robot_pose": [
+          -4.025,
+          -2.029
+        ],
+        "obstacle_pose": [
+          -1.2,
+          -1.95
+        ]
+      }
+    },
+    "costmap_reflections": {
+      "blocking_obs_north_seal": {
+        "sim_time": 47.055,
+        "lethal_cells": 134
+      },
+      "blocking_obs_south_seal": {
+        "sim_time": 47.055,
+        "lethal_cells": 455
+      },
+      "blocking_obs_main": {
+        "sim_time": 47.055,
+        "lethal_cells": 120
+      }
+    },
+    "path_replans": [
+      {
+        "plan_id": 1,
+        "sim_time": 47.671,
+        "waypoint_count": 291,
+        "mid_y": -2.0
+      },
+      {
+        "plan_id": 2,
+        "sim_time": 49.15,
+        "waypoint_count": 277,
+        "mid_y": -2.0
+      },
+      {
+        "plan_id": 3,
+        "sim_time": 50.797,
+        "waypoint_count": 261,
+        "mid_y": -2.0
+      },
+      {
+        "plan_id": 4,
+        "sim_time": 52.311,
+        "waypoint_count": 246,
+        "mid_y": -2.011
+      },
+      {
+        "plan_id": 5,
+        "sim_time": 53.9,
+        "waypoint_count": 230,
+        "mid_y": -2.011
+      },
+      {
+        "plan_id": 6,
+        "sim_time": 54.6,
+        "waypoint_count": 227,
+        "mid_y": -1.605
+      },
+      {
+        "plan_id": 7,
+        "sim_time": 55.302,
+        "waypoint_count": 514,
+        "mid_y": 1.04
+      },
+      {
+        "plan_id": 8,
+        "sim_time": 64.104,
+        "waypoint_count": 224,
+        "mid_y": -2.659
+      }
+    ],
+    "decelerate_or_wait_events": [
+      {
+        "start_sim_time": 63.581,
+        "robot_pose": [
+          -3.5429,
+          -1.0847
+        ]
+      }
+    ],
+    "motion_resumed_sim_time": null,
+    "action_end_sim_time": 86.0,
+    "final_action_status": "STATUS_CANCELED"
+  },
+  "motion_resumed_evaluation": {
+    "applicable": false,
+    "motion_resumed_verified": false,
+    "motion_resumed_sim_time": null,
+    "final_goal_reached_verified": "NOT_PASSED"
+  },
+  "live_gui_recording_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/live_gui_stageF_recording.mp4"
+}

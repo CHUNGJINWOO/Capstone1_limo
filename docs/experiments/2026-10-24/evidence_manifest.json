@@ -1,0 +1,811 @@
+{
+  "recorded_date": "2026-10-25",
+  "summary_copies_byte_identical": true,
+  "raw_records_in_git": false,
+  "runs": [
+    {
+      "run": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/summary.json",
+          "sha256": "f4f7b5105649b0f72ecbb427abfda17d0f7d8a2d67367f0a10db964c537a5496",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/run_args.json",
+          "sha256": "11d7d97af3d2210c88470480d871eab27a15993160b7f09368b9964aa0d983a4",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/runtime_execution_record.json",
+          "sha256": "d2e7d75127d262408cc7006b22dea8c03da702acd6e0e220a2f975cebcddc2c7",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/obstacle_scenario.json",
+          "sha256": "8d15ebd63097fc6bbe88e50a4c7f8aa4d0c2fb3a11ca1ffa451a77744991815b",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/cmd_history.jsonl",
+          "bytes": 117393,
+          "sha256": "dca9215b7c5a642bd3c792522cc134e5dcdb502dce9ac15cb57fc81060ae466d",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/costmap_roi_history.jsonl",
+          "bytes": 3725,
+          "sha256": "f7f4d653d8896c033b700ccc7651f923d7cc9b810060f70c02af457be1234a3f",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/gt_pose_history.jsonl",
+          "bytes": 289566,
+          "sha256": "c0c7f04fcbb2ef3f3f5c4d758ba8b89e3cffc6f13ccf0af02c7aae478899d117",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/obstacle_pose_history.jsonl",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/plan_history.jsonl",
+          "bytes": 270365,
+          "sha256": "6980f50d49f7ce6a32486a5fb10c73c508e68e8c419320e6f5b378283ed580cc",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/scan_history.jsonl",
+          "bytes": 504484,
+          "sha256": "28e036f141bbed0b011dc837fdb33203bd1aa729fdd69cb9da7cc332301aaaaf",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202211/telemetry.jsonl",
+          "bytes": 51186,
+          "sha256": "9b045f2606a73aba4143ade0100ad9ca4e8565e06ae594c3f08bda8570faaf57",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/summary.json",
+          "sha256": "202b8a591c7a9e8021238ea2039bddf56a27ab35b9415f105a8c9d2a754f2709",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/run_args.json",
+          "sha256": "9bf552a16c720eb9fd8f02f0f851a7834e2cac5d59d69562bd6e9c43931b14fb",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/runtime_execution_record.json",
+          "sha256": "810fc21b4f2a74737d1e21b536902cff8438ca4306388c5a23f02f0895d19943",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/obstacle_scenario.json",
+          "sha256": "8d15ebd63097fc6bbe88e50a4c7f8aa4d0c2fb3a11ca1ffa451a77744991815b",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/cmd_history.jsonl",
+          "bytes": 92300,
+          "sha256": "0143b6fa2b979ad1f71eb137e554f91296afebc6f138456b12b31343afad2f74",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/costmap_roi_history.jsonl",
+          "bytes": 2599,
+          "sha256": "9f82d4b8dcc6959d6dac50ac687a5a9ada904af6028404e2fb4228313c49277e",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/gt_pose_history.jsonl",
+          "bytes": 201998,
+          "sha256": "ca64e6ba829bee7ca639de3faeedc067ec3e097967d71bae2ae3ebe0d7068c0b",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/obstacle_pose_history.jsonl",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/plan_history.jsonl",
+          "bytes": 271072,
+          "sha256": "62c3debff1bf42dd1146c4fcc40ea0a4ae6c3013cb4612e8b73546fa9ca46201",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/scan_history.jsonl",
+          "bytes": 364399,
+          "sha256": "6dc6de75996b3d66e38ce66a0e4f1c4097c55f0104a64e06a26a155fa7abb33b",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_A_stage_A_baseline_20261024_202649/telemetry.jsonl",
+          "bytes": 36562,
+          "sha256": "e07151618da45f549d91767c4bcc61fb363b3a11df3998595d7c276dc21664cf",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/summary.json",
+          "sha256": "1f6aaf6160e8fba3210326ced23d4a80e88182f6279b60b062ce38421ca0de02",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/run_args.json",
+          "sha256": "52fb9485e3189f4a3fcee63e9d284d32fc28dc81ecb790ccd785e1dc75a19938",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/runtime_execution_record.json",
+          "sha256": "786ae030841b909251d97cb22ade57165a5da9b445612086660e56aab374e0c4",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/obstacle_scenario.json",
+          "sha256": "f7d011c15807553b96eb072093d26f01f5f550e0e59979026166008c9fe33adc",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/cmd_history.jsonl",
+          "bytes": 84552,
+          "sha256": "95b972e4367de948a673ca9a8fa9401756c66ad056f2c2355c7afe431b68aa68",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/costmap_roi_history.jsonl",
+          "bytes": 5617,
+          "sha256": "d4b4d836b9e92ea6fb05b4812da306f6c6a7058c5e01caeeca8b4267b4c7fc22",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/gt_pose_history.jsonl",
+          "bytes": 258635,
+          "sha256": "3451cf25cb041851159c8347d8272b9657a7b69dca18b5999f9e37cfa5908e06",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/obstacle_pose_history.jsonl",
+          "bytes": 572150,
+          "sha256": "cffc4de48cd44baee31e86715864d094e14b5512e6bc26f1dfe74dd5885695a7",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/plan_history.jsonl",
+          "bytes": 265714,
+          "sha256": "195f283478eabce79886faa38088f918c369b48c80e0fc4837a2206c138366d1",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/scan_history.jsonl",
+          "bytes": 441136,
+          "sha256": "014de50d30ed4d4895d1ae10b4027206a51f107e001c7241a054fe51409c4fe9",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_203657/telemetry.jsonl",
+          "bytes": 47061,
+          "sha256": "d43ac194e7ae8597e3b77e17015dbaa42100f813daa673660dfe557d1fa47457",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/summary.json",
+          "sha256": "3695819e34cc04f35e5299f9d3610dae077b02db6adeb45bab1e453a80d111ee",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/run_args.json",
+          "sha256": "0c278f9ce16f49bd6975153e7a1bed884d4b912676eda655be2af12bc5a16782",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/runtime_execution_record.json",
+          "sha256": "efde0facd5eea0c3d27a3eb697a9fd3907ea7923271ec58a75554d1380c2c7cf",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/obstacle_scenario.json",
+          "sha256": "bc11a40b2aad2c392cca93cc5e701d2bd83f9ee480e2e52d94a4e7611614941a",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/cmd_history.jsonl",
+          "bytes": 128672,
+          "sha256": "77e4a19b6c17ece5016c3253939a64cfac1cf78feac542e21ee05647758668e5",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/costmap_roi_history.jsonl",
+          "bytes": 6194,
+          "sha256": "c08f8f15baff3facfb25c01a3c4ca0b77ea763a75096836baeff0ef009002151",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/gt_pose_history.jsonl",
+          "bytes": 279742,
+          "sha256": "165ee44430f315a76238daeada2b64cd58254474dd956fec6788029b0dc86c4e",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/obstacle_pose_history.jsonl",
+          "bytes": 619917,
+          "sha256": "1b5557ee9faaf630614a9aaf408f67df336a5ead32fedc09cfad4c9f9a3a0889",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/plan_history.jsonl",
+          "bytes": 380706,
+          "sha256": "af10b3076ba2e783c3c02e412f4d596a10faedea4655f53e968fdbf4c0b0df20",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/scan_history.jsonl",
+          "bytes": 469827,
+          "sha256": "21f3859eb00df7647cb8b5b0ea009b525df47ffd3da15c0015eb74c9bfefbff1",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_B_stage_B_multi_unmapped_20261024_204257/telemetry.jsonl",
+          "bytes": 49919,
+          "sha256": "b2ff39ab70738d2ffa1025864e237bef8b756c863d62d497134ac83d5e484f6d",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/summary.json",
+          "sha256": "cd66711799e5c161f89ef765f67e9ff07bebdf74095380505f10407c0924aa4e",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/run_args.json",
+          "sha256": "7709838e8a45e3d4d571ad31159c5593ed27bc40c45d6249c7613cedf6da156f",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/runtime_execution_record.json",
+          "sha256": "76eea345f678394a1c4b51b0a3c87f3fc7a25ad7a84ab567e79588e841794359",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/obstacle_scenario.json",
+          "sha256": "aaa2916d50f71cc2e3281687d29c316a728cf63d82c11251b0d75a86599bd517",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/cmd_history.jsonl",
+          "bytes": 82885,
+          "sha256": "6f94c144124b513ecf6432d857960c5cd954e698a0428253e38227d6a7a9a610",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/costmap_roi_history.jsonl",
+          "bytes": 3083,
+          "sha256": "f4fba9ee264cd6b6b84791f54527cff31a75c237d4b93e9509ce2d8d13c7acdc",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/gt_pose_history.jsonl",
+          "bytes": 179168,
+          "sha256": "3d690396d3a72747ea4f2d1c113a6a12c5eec02b4b4c00ae99ad437362a32afe",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/obstacle_pose_history.jsonl",
+          "bytes": 131448,
+          "sha256": "55eb2ea54d22ba0066a3d2bae2532430fead2f0850b9a5b4cdffee4db37cb29a",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/plan_history.jsonl",
+          "bytes": 239494,
+          "sha256": "e347b14aa893b1711407f773f73328e3b1c783627530073ef7d3279011b2603d",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/scan_history.jsonl",
+          "bytes": 317840,
+          "sha256": "c46f7d5021495764998e6ed4b19d4c1703e136dc7fa047398c568e31d0f7a9db",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_C_stage_C_single_moving_cross_20261024_204541/telemetry.jsonl",
+          "bytes": 30477,
+          "sha256": "ff76f6817f7f0601e17edf6fd03c2b62f5fa8f4850ccc3bc3e85c2311b8363a7",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/summary.json",
+          "sha256": "dfd60ec8eca108fad7b5a15612460c27f0ac2629b98fe8eaa1184a61942acaaf",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/run_args.json",
+          "sha256": "0d167aa95c72c5ff830a2a63e72088d06bb38753566deb9ca9d181ea51aa2a96",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/runtime_execution_record.json",
+          "sha256": "035907f89e5740cacf34a09ba2d298b14118383a16f8005f16d38bc9dc8e0d93",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/obstacle_scenario.json",
+          "sha256": "a4173fe55542c98bf829535807774deaf1a1cfed6b04fce7df84e9de5aff7fe4",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/cmd_history.jsonl",
+          "bytes": 56666,
+          "sha256": "2a18604545c2bcfab4f669edf9935406f550b1d0d84ff899cd83227fe1b16cff",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/costmap_roi_history.jsonl",
+          "bytes": 3733,
+          "sha256": "01f83aa7c2a37a02e0ff91cfa6276b1b8936fce167ea9014b423699f48ea54de",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/gt_pose_history.jsonl",
+          "bytes": 123223,
+          "sha256": "0edd5ee6f21b913a7c505083f9145c7a481c9bba790ca2eac9b6a0c951932184",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/obstacle_pose_history.jsonl",
+          "bytes": 268667,
+          "sha256": "dca38e0cb2dcb60182e6106295aa8f229e687edf1590312882d41d6a1d47874e",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/plan_history.jsonl",
+          "bytes": 245545,
+          "sha256": "5ebe846ae3c6780acf8b23c51a5a4c3a1c92bf40dbbcf94bfdaa576a4b03db04",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/scan_history.jsonl",
+          "bytes": 241939,
+          "sha256": "f16d337d2030710f22a206ee28600a80ab31336a8d273b8b33036d432e97b23c",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_D_stage_D_multi_moving_cross_20261024_204750/telemetry.jsonl",
+          "bytes": 25203,
+          "sha256": "d4041a5f4e7193da98dc478434d7669030c05254b8aa2f7f3bb29afccf3a2040",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/summary.json",
+          "sha256": "b5794bd5b8a1c7fd210896fb9e3124ebe55a509a2d80e4165eecf2f27afb2eed",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/run_args.json",
+          "sha256": "20442e4ecd96e7853710072c2477749088625c8838a652d1275fddeab944a05a",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/runtime_execution_record.json",
+          "sha256": "61151211593ab6c2aca4fff1022950c20380355f4be498a1e055e5c1e02a1055",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/obstacle_scenario.json",
+          "sha256": "56cf3cdc3bcbd2dd2bb2158c7585ea2074052b9ea8b3d137e028a420581ac396",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/cmd_history.jsonl",
+          "bytes": 73689,
+          "sha256": "4f0d0e5b08bf18a76c2aa267f341e4ca166eb224f916899decf364c839c3838f",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/costmap_roi_history.jsonl",
+          "bytes": 3912,
+          "sha256": "af69c469e8200f5ce29d62128b570118d0570012abdbe163efb1e8577c2056e3",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/gt_pose_history.jsonl",
+          "bytes": 154829,
+          "sha256": "371af302b19bc27dd0a7a54cbc7290c9381ae74a2e6d1a6c094ddad811d118ad",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/obstacle_pose_history.jsonl",
+          "bytes": 339745,
+          "sha256": "7e06f499346f525dabc5cd615601573ded284b965b9d8ab1291509b4428094cb",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/plan_history.jsonl",
+          "bytes": 287933,
+          "sha256": "297335db5e00e9e04cf60c2a2b5906b5e0b8f54e19ab1161cf0111c67d154580",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/scan_history.jsonl",
+          "bytes": 284113,
+          "sha256": "d8b95c28bcf81a37c2e798011a08eac9e9e0870e575ce58c77b9e355eebcd4ed",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_205021/telemetry.jsonl",
+          "bytes": 32029,
+          "sha256": "f88fe608554f40f2534ec3fcf4708a867a3f2295df2daa2e05d315469a6d6d68",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/summary.json",
+          "sha256": "307d60b95e15b8d148315a350f4cb032341da8b6c83b0f2f6574ed64d25c716c",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/run_args.json",
+          "sha256": "03890af63bd356b6bd6fda2d57f11a5ed810af067fedc85365eaef1e3fd67243",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/runtime_execution_record.json",
+          "sha256": "c270d6d851091a38bf859fa3edc292d01f2b5e9d48636c2dbe61ba10748c5ccd",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/obstacle_scenario.json",
+          "sha256": "56cf3cdc3bcbd2dd2bb2158c7585ea2074052b9ea8b3d137e028a420581ac396",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/cmd_history.jsonl",
+          "bytes": 72962,
+          "sha256": "dfbb441e5e7b0a8ec95a25b703836c6d74bf192a0b74fb46bc0671132f8a475f",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/costmap_roi_history.jsonl",
+          "bytes": 4057,
+          "sha256": "ebf3910fc3d0bcedc4601313f74799f17e8e96fa9e4f4eb83a0988e77aa1ca6c",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/gt_pose_history.jsonl",
+          "bytes": 158581,
+          "sha256": "9b14ca92fc01873274553906958a3ad6653ba8aa59f78cde48d659dbe4d2b549",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/obstacle_pose_history.jsonl",
+          "bytes": 347899,
+          "sha256": "7aba534c6de864d304ac1faba60f0553e1679f69fcebd1b704cd7bb0d8e50003",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/plan_history.jsonl",
+          "bytes": 286617,
+          "sha256": "0de44581351e35033a6eff9591c2894564a35c199a4ac4e877de47114500fbf9",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/scan_history.jsonl",
+          "bytes": 300413,
+          "sha256": "c4646029c83aa24a789fade66c283798aebb99cd70a36d513cf9bf752db4ee83",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_E_stage_E_combined_static_moving_20261024_212333/telemetry.jsonl",
+          "bytes": 30463,
+          "sha256": "9f095c3072e46b756a510ab174c87ca682507311f51de580c5a870107684960c",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/summary.json",
+          "sha256": "4fba8f8c8061921f4abbcb16b6d6a78cf630fe3218d40095e771b7fa64c4d670",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/run_args.json",
+          "sha256": "ba392aa811b8d247d86232a6387ba911f7f64486e605a0a18d70efdb23cba581",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/runtime_execution_record.json",
+          "sha256": "d3720dd04ff0a970b5f8c692437ec3782da77ecba599db0f571e17233e175c38",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/obstacle_scenario.json",
+          "sha256": "bd0d3b199f1e8327b7c26a869712b97734c753cfff903f1cbc7eee278af4765f",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/cmd_history.jsonl",
+          "bytes": 78119,
+          "sha256": "672a2a7c01a28742e5e2be46307b1d61fea16d91abb40b90d36bf3545655f09f",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/costmap_roi_history.jsonl",
+          "bytes": 4645,
+          "sha256": "d5c7830cddb62964873413e40c56acb9968bfaf46465157d46ee8ca3c6f20776",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/gt_pose_history.jsonl",
+          "bytes": 168531,
+          "sha256": "f3da99a9c862c5eaef395e6fcae91842aac33c1c062b38107ecfdf2112d45024",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/obstacle_pose_history.jsonl",
+          "bytes": 389396,
+          "sha256": "16eda245355b22bd31bfb261327e07c29ebf7df1ea183664c24a5e0c7f304c9e",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/plan_history.jsonl",
+          "bytes": 58687,
+          "sha256": "e820dee437c09d0594c3a51d6932f536cfa647f3effc45532efca33705b0d90d",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/scan_history.jsonl",
+          "bytes": 287552,
+          "sha256": "97a28936f7d37ee74d998768ec0d95bdfef8917d41f813a994114a2762243fdb",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_complex_indoor_runs/stage_F_stage_F_blocked_corridor_20261024_205307/telemetry.jsonl",
+          "bytes": 28311,
+          "sha256": "6a550da4487b3c268a999670cff5f0fed7e657301340b363dffdbc3b35e28083",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/summary.json",
+          "sha256": "ae8f0aa100fa4ed9b3ebeb898cbf02871828c4b4e055ba6549f76860bceaa683",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/run_args.json",
+          "sha256": "0a5623e1c2b54eeec411eea2bdad5249ef21bcf16babd30ec9d973cad8b270df",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/runtime_execution_record.json",
+          "sha256": "bcdfae60e55935ee912efbc8d9bcc732aa152bccd41fbd4daf7d0a9a7828a0ed",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/obstacle_scenario.json",
+          "sha256": "276ca7496646f8c806d4d77b296411b81fef14171db47560742aa2a9756d17d8",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/cmd_history.jsonl",
+          "bytes": 68273,
+          "sha256": "f03c932a232a4730979af74d8b822096d1a307edc896cfb8221aec6d1659a032",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/costmap_roi_history.jsonl",
+          "bytes": 3532,
+          "sha256": "e7f209191fb7377a634f18941f0fcbed9fa621d80efe6d53a62f463178db1aa8",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/gt_pose_history.jsonl",
+          "bytes": 150687,
+          "sha256": "066f69506ebb2118ea1d452f8b238a89322811baac4c00d75e107ed1d52fdf68",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/obstacle_pose_history.jsonl",
+          "bytes": 221664,
+          "sha256": "999237c61b2b0d56ca8e61bc66e953299d239e5e91999d42da85997faa44bf37",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/plan_history.jsonl",
+          "bytes": 218125,
+          "sha256": "923766f8a73648a14273bdc15da6c5f44dccd51cb869bd1f35069a1e32e3ad37",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/scan_history.jsonl",
+          "bytes": 275116,
+          "sha256": "be9d0c3a8b4bf2734763fe9685efc72cce6a71b0294096b8bc9d5d48f1134493",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/telemetry.jsonl",
+          "bytes": 30572,
+          "sha256": "e9b47377f108f5d16af7e04ce8430b225c945344b7f32c643a84a9f451563f39",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/summary.json",
+          "sha256": "3ebfb5b39f41a1178224e138354822742d6c864c3a8210faf00e8fdb7e223708",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/run_args.json",
+          "sha256": "e16eb4f9c31a82bd25b0aeddc12b81bbc675abc35b2a77b4d288c904a7b59df7",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/runtime_execution_record.json",
+          "sha256": "afe77af8c9ec97b3bbb33904a65ece9a5e575a6a7add1dbcea1ca19e121f01b3",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/obstacle_scenario.json",
+          "sha256": "6d8a34fae9baa010abb0f2c935d326fe9ecf23881aa7fbe5676a4a9a04de72a5",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/cmd_history.jsonl",
+          "bytes": 67487,
+          "sha256": "670e52dd816f71277a76b8cda7d180385d24e1b3e90f528be760d7ec35f1600c",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/costmap_roi_history.jsonl",
+          "bytes": 3265,
+          "sha256": "4b23a870530966838eed7bbf09facc897a28636ebf76860d7262296cfde8a9fc",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/gt_pose_history.jsonl",
+          "bytes": 148485,
+          "sha256": "04eb6b9a23cb8705d0fafdb2ee85bf26c8eaad52e3160f9fd3a77ce11951db9c",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/obstacle_pose_history.jsonl",
+          "bytes": 218921,
+          "sha256": "f8c4ad2782ad687a7ce35cdf338f572d6f44b3494895d0044d20b5c0cebf5bf9",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/plan_history.jsonl",
+          "bytes": 260996,
+          "sha256": "198e18c3e0e3085be4c1635dc966c919c8ba6b9d1e323c4fcb9084ebc7a97bb6",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/scan_history.jsonl",
+          "bytes": 287403,
+          "sha256": "dc27913a5f3b00c33a766f2c81a4fa813e9d2e30b97c1eff59c7c1b746a44c0c",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_oscillating_runs/stage_H_fixed_plus_headon_oscillation_20261024_213113/telemetry.jsonl",
+          "bytes": 29633,
+          "sha256": "d82afab92f2f90359ec7d2f3e516fb847296a42c3633659ba59719333b4b2464",
+          "copied_to_git": false
+        }
+      ]
+    },
+    {
+      "run": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809",
+      "files": [
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/summary.json",
+          "sha256": "306816b6e51ae9095fcac80ba602e395bda61a648278df35173e0d346f5ceda7",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/run_args.json",
+          "sha256": "b313ccd4551d2a7808cbd8fe744696f5844412383ae986b2dc922963a510df36",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/runtime_execution_record.json",
+          "sha256": "210a5b9b4f76b2dc26b669b6351955930d5ed9d31ec68de1950604d95d4e5712",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/obstacle_scenario.json",
+          "sha256": "8b67e9fbdb26d16d1c9ae5c17ed29e957d80d70edbdadb1a5e8b3b04b4fa35b2",
+          "copied_to_git": true
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/cmd_history.jsonl",
+          "bytes": 97816,
+          "sha256": "6e62dd364f6f2838cdab042837d77ecc82c7b23972da9e3baed49ae30abd9a0d",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/costmap_roi_history.jsonl",
+          "bytes": 8763,
+          "sha256": "79a751ee85b3cc5521cb51e7b1420bf633a5c95b8479065871321b1c0ee7fb29",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/gt_pose_history.jsonl",
+          "bytes": 210341,
+          "sha256": "135840237b745b4caa14a3ea68407ea091428769a557675e87fcbe6133bcd238",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/obstacle_pose_history.jsonl",
+          "bytes": 630158,
+          "sha256": "79911b6f1edb11bdd6ddc9b56d8fbfac5617a149cd7ae60841c01d09038adf22",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/plan_history.jsonl",
+          "bytes": 274239,
+          "sha256": "a6de9bef9b1de851217f033e2424bc7d4f33c3a9f329febad610aaf0517fcab2",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/scan_history.jsonl",
+          "bytes": 401061,
+          "sha256": "96e50bbb7106d609535f1d27c7b02f5dce47f5f72fcea0e041082dda0d3b6d93",
+          "copied_to_git": false
+        },
+        {
+          "path": "output/simulation/2026-10-24_continuous_runs/stage_J_dense_unmapped_continuous_loops_20261024_213809/telemetry.jsonl",
+          "bytes": 39596,
+          "sha256": "c1654768964fe61b204066908016a03d778da36a5c5c0e330fe5089a364300fb",
+          "copied_to_git": false
+        }
+      ]
+    }
+  ]
+}
