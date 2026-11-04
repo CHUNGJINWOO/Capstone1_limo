@@ -2,7 +2,7 @@
 """
 run_phase_separated_scenarios.py:
 Runs scenarios 4, 5, 6, 7 in a dedicated output directory:
-  /home/cjinw/school/2026-2/Capstone1_limo/output/simulation/2026-10-24_phase_separated
+  ${PROJECT_ROOT}/output/simulation/2026-10-24_phase_separated
 Preserves previous results in 2026-10-24_rigorous intact.
 """
 

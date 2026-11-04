@@ -4,7 +4,7 @@
 
 - 로봇: AgileX LIMO
 - 작업 컴퓨터: LIMO onboard PC
-- 계정: `pcu`
+- 계정: `<robot-user>`
 - OS: Ubuntu 22.04.5
 - ROS 2: Humble
 - Workspace: `~/agilex_ws`
@@ -461,7 +461,7 @@ rviz2
 
 - 로봇: AgileX LIMO
 - 작업 컴퓨터: LIMO onboard PC
-- 계정: `pcu`
+- 계정: `<robot-user>`
 - Workspace: `~/agilex_ws`
 
 09/30에 확인한 LIMO Base와 YDLiDAR T-mini Plus를 동시 구동하여 센서 파이프라인(Base/LiDAR → TF → `/scan` → RViz → SLAM)이 정상 동작하는지 점검하였다.
@@ -1242,7 +1242,7 @@ ros2 run nav2_map_server map_saver_cli -f map
 2. **분리 경로(`/tmp`) 단일 패키지 클린 빌드 검증:**
    ```bash
    source /opt/ros/humble/setup.bash
-   cd /home/cjinw/school/2026-2/Capstone1_limo/capstone_ws
+   cd ${PROJECT_ROOT}/capstone_ws
 
    colcon --log-base /tmp/capstone1_limo_limo_capstone_log build \
      --build-base /tmp/capstone1_limo_limo_capstone_build \
@@ -1435,20 +1435,20 @@ ros2 run nav2_map_server map_saver_cli -f map
 
 ## 1. Phase 12-L: `explore.cpp` 블랙리스트 판정 좌표 기준 통일 및 빌드
 
-- **수정 내용:** [`capstone_ws/src/m-explore-ros2/explore/src/explore.cpp`](file:///home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp)에서 블랙리스트 조회(`goalOnBlacklist`) 좌표를 `frontier.centroid`에서 `frontier.middle`로 통일함.
+- **수정 내용:** [`capstone_ws/src/m-explore-ros2/explore/src/explore.cpp`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp)에서 블랙리스트 조회(`goalOnBlacklist`) 좌표를 `frontier.centroid`에서 `frontier.middle`로 통일함.
 - **수정 위치 (총 2곳):**
-  1. `visualizeFrontiers()` ([`explore.cpp:196`](file:///home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L196)):
+  1. `visualizeFrontiers()` ([`explore.cpp:196`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L196)):
      ```diff
      - m.color = goalOnBlacklist(frontier.centroid) ? red : blue;
      + m.color = goalOnBlacklist(frontier.middle) ? red : blue;
      ```
-  2. `makePlan()` 후보 필터링 람다 ([`explore.cpp:258`](file:///home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L258)):
+  2. `makePlan()` 후보 필터링 람다 ([`explore.cpp:258`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L258)):
      ```diff
      - return !goalOnBlacklist(f.centroid);
      + return !goalOnBlacklist(f.middle);
      ```
 - **수정 목적:**
-  - `makePlan()`의 목표 전송(`target_position = frontier->middle`, [`explore.cpp:268`](file:///home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268)) 및 블랙리스트 저장(`frontier_blacklist_.push_back(target_position)`, [`explore.cpp:284`](file:///home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L284), [`explore.cpp:392`](file:///home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L392))은 `frontier->middle` 좌표를 사용하는 반면, 기존 조회부는 `frontier.centroid`를 비교하여 발생하던 좌표 기준 불일치 가능성을 제거함.
+  - `makePlan()`의 목표 전송(`target_position = frontier->middle`, [`explore.cpp:268`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268)) 및 블랙리스트 저장(`frontier_blacklist_.push_back(target_position)`, [`explore.cpp:284`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L284), [`explore.cpp:392`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L392))은 `frontier->middle` 좌표를 사용하는 반면, 기존 조회부는 `frontier.centroid`를 비교하여 발생하던 좌표 기준 불일치 가능성을 제거함.
 - **빌드 검증:** `colcon build --packages-select explore_lite` 실행 결과 `explore_lite` 패키지 빌드 성공 및 설치 경로(`capstone_ws/install/explore_lite/lib/explore_lite/explore`) 반영 확인.
 
 ## 2. Phase 12-N: RPP + `frontier.middle` 정상 주행 시뮬레이션 검증
@@ -1481,7 +1481,7 @@ ros2 run nav2_map_server map_saver_cli -f map
   - 블랙리스트 등록 직후 `/explore/frontiers`의 동일 프론티어 마커 색상이 `BLUE` (`seq=5`, `r=0, b=1`)에서 **`RED` (`seq=6`, `sim_t = 13.013 s`, `r=1, b=0`)**로 즉시 전환되었으며, `goalOnBlacklist(f.middle)` 필터에 의해 재선택되지 않고 `All frontiers traversed/tried out, stopping.` $\rightarrow$ `Exploration stopped.`로 정상 종료됨.
 - **한계 및 산출물 보관 위치:**
   - `/cmd_vel_nav` (82 샘플)에서는 RPP 주행 명령(`linear_x = 0.191822 m/s`, `angular_z = -0.577778 rad/s`)이 생성되었으나, `velocity_smoother` 제한으로 최종 `/cmd_vel` (101 샘플)은 전 구간 `0.000000`, `/odom` (258 샘플) 이동 거리는 `0.000000 m`였음. 따라서 **Phase 12-O는 블랙리스트 타임아웃 분기·마커 색상 전환·후보 필터링을 검증한 테스트이며 실제 주행은 검증하지 않았음**.
-  - Phase 12-N 및 Phase 12-O의 임시 테스트 설정, 런타임 로그, CSV 파일(`phase12n_*`, `phase12o_*`)은 Antigravity `scratch` 디렉토리(`/home/cjinw/.gemini/antigravity/brain/0e39003d-5210-4560-840d-5c8e6dd6055f/scratch/`)에 보관되어 있으며 Git 저장소에는 포함하지 않음.
+  - Phase 12-N 및 Phase 12-O의 임시 테스트 설정, 런타임 로그, CSV 파일(`phase12n_*`, `phase12o_*`)은 Antigravity `scratch` 디렉토리(`${SCRATCH_DIR}/`)에 보관되어 있으며 Git 저장소에는 포함하지 않음.
 
 ## 4. Phase 12-P1: scratch 다중 Frontier 초기 검출 검증
 
@@ -1528,7 +1528,7 @@ ros2 run nav2_map_server map_saver_cli -f map
   - 단, `/cmd_vel_nav`는 `velocity_smoother` 이전의 Nav2 컨트롤러 출력이므로 실제 로봇 구동 증거가 아니며, 최종 구동 토픽인 `/cmd_vel`은 `0`이었고 실제 이동 거리도 `0.000000 m`였음.
   - 또한 `All frontiers traversed/tried out, stopping.`은 모든 후보 프론티어가 블랙리스트 등으로 소진되어 중단됨을 뜻하며, 맵 전체 탐색 완료(`No frontiers found, stopping.`)와는 구별됨.
   - 실제 주행 상태에서 목표 B로 이동하는 동작, 개별 목표의 `SUCCEEDED` 도달, 그리고 `reachedGoal()`의 `ResultCode::ABORTED` 콜백에 의한 블랙리스트 분기는 이번 테스트에서 검증하지 않았음.
-  - 관련 임시 파일 및 로그(`phase12p_*`, `phase12p2_*`)는 모두 Antigravity `scratch` 디렉토리(`/home/cjinw/.gemini/antigravity/brain/0e39003d-5210-4560-840d-5c8e6dd6055f/scratch/`)에 보관되어 있으며 Git 저장소에는 포함하지 않음.
+  - 관련 임시 파일 및 로그(`phase12p_*`, `phase12p2_*`)는 모두 Antigravity `scratch` 디렉토리(`${SCRATCH_DIR}/`)에 보관되어 있으며 Git 저장소에는 포함하지 않음.
 
 ## 6. 후속 작업 우선순위 (진도 보고서 및 중간 발표 대비)
 

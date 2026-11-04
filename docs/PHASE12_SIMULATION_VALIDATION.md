@@ -13,7 +13,7 @@
 
 ## 2. 실험 환경 및 격리 조건
 
-- **저장소 위치:** `/home/cjinw/school/2026-2/Capstone1_limo`
+- **저장소 위치:** `${PROJECT_ROOT}`
 - **기준 커밋:** `54699d05a7dcb918cc2b5644dc4bf647df0dcd18`
 - **OS / ROS 2:** Ubuntu 22.04.5 LTS / ROS 2 Humble
 - **시뮬레이터:** Ignition Gazebo Fortress 6.16.0 (`enclosed_room_fortress.sdf`, 5m × 5m 방)
@@ -23,7 +23,7 @@
   - `ROS_LOCALHOST_ONLY=1`
   - `FASTRTPS_DEFAULT_PROFILES_FILE`에 `fastdds_udp_only.xml` 강제 적용 (UDPv4 단독 루프백, 공유 메모리 충돌 차단)
 - **산출물 보관 경로:**
-  `/home/cjinw/.gemini/antigravity/brain/0e39003d-5210-4560-840d-5c8e6dd6055f/scratch/`
+  `${SCRATCH_DIR}/`
 
 ---
 

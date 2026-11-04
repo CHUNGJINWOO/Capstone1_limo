@@ -1,8 +1,8 @@
 {
   "scenario": "fixed_plus_vertical_oscillation",
   "domain_id": "182",
-  "world": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/oscillating_env/stage_G.sdf",
-  "map": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/complex_indoor_env/complex_indoor_map.yaml",
+  "world": "${PROJECT_ROOT}/output/simulation/oscillating_env/stage_G.sdf",
+  "map": "${PROJECT_ROOT}/output/simulation/complex_indoor_env/complex_indoor_map.yaml",
   "initial_pose": [
     -6.2,
     -2.0,
@@ -15,7 +15,7 @@
   ],
   "evaluation_source": "AUTOMATIC_RUNTIME_RECORD",
   "applied_behavior_tree": {
-    "goal_behavior_tree_field": "/home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/limo_capstone/config/navigate_to_pose_ackermann_backup30.xml",
+    "goal_behavior_tree_field": "${PROJECT_ROOT}/capstone_ws/src/limo_capstone/config/navigate_to_pose_ackermann_backup30.xml",
     "bt_xml_sha256": "db173a863e8d74a3dbeb28c1a4a9224bb147e2babe777bda047b010e21cb563a",
     "binding_verified": true
   },
@@ -349,5 +349,5 @@
     "motion_resumed_sim_time": null,
     "final_goal_reached_verified": "PASSED"
   },
-  "live_gui_recording_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/live_gui_stageG_recording.mp4"
+  "live_gui_recording_mp4": "${PROJECT_ROOT}/output/simulation/2026-10-24_oscillating_runs/stage_G_fixed_plus_vertical_oscillation_20261024_212851/live_gui_stageG_recording.mp4"
 }

@@ -10,7 +10,7 @@ def generate_launch_description():
     pkg_nav2_bringup = get_package_share_directory('nav2_bringup')
 
     # Fortress 가상 환경(5m x 5m 방) 전용 지도 및 파라미터 기본값 지정
-    default_map_path = '/home/cjinw/simulator-research/limo_sim_ws/experiments/fortress/maps/limo_fortress_map.yaml'
+    default_map_path = '${SIM_WS}/experiments/fortress/maps/limo_fortress_map.yaml'
     default_params_file = os.path.join(pkg_limo_capstone, 'config', 'nav2_sim_params.yaml')
 
     map_arg = DeclareLaunchArgument(

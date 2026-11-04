@@ -131,7 +131,7 @@
       <visual name="fl_wheel_visual">
         <geometry>
           <mesh>
-            <uri>file:///home/cjinw/simulator-research/limo_sim_ws/install/limo_description/share/limo_description/meshes/limo_wheel.dae</uri>
+            <uri>file://${SIM_WS}/install/limo_description/share/limo_description/meshes/limo_wheel.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -204,7 +204,7 @@
         <pose>0 0 0 3.14159 0 0</pose>
         <geometry>
           <mesh>
-            <uri>file:///home/cjinw/simulator-research/limo_sim_ws/install/limo_description/share/limo_description/meshes/limo_wheel.dae</uri>
+            <uri>file://${SIM_WS}/install/limo_description/share/limo_description/meshes/limo_wheel.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -244,7 +244,7 @@
       <visual name="rl_wheel_visual">
         <geometry>
           <mesh>
-            <uri>file:///home/cjinw/simulator-research/limo_sim_ws/install/limo_description/share/limo_description/meshes/limo_wheel.dae</uri>
+            <uri>file://${SIM_WS}/install/limo_description/share/limo_description/meshes/limo_wheel.dae</uri>
           </mesh>
         </geometry>
       </visual>
@@ -285,7 +285,7 @@
         <pose>0 0 0 3.14159 0 0</pose>
         <geometry>
           <mesh>
-            <uri>file:///home/cjinw/simulator-research/limo_sim_ws/install/limo_description/share/limo_description/meshes/limo_wheel.dae</uri>
+            <uri>file://${SIM_WS}/install/limo_description/share/limo_description/meshes/limo_wheel.dae</uri>
           </mesh>
         </geometry>
       </visual>

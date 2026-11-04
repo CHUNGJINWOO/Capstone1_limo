@@ -8,13 +8,13 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_limo_capstone = get_package_share_directory('limo_capstone')
-    sim_research_dir = '/home/cjinw/simulator-research/limo_sim_ws/experiments/fortress'
+    sim_research_dir = '${SIM_WS}/experiments/fortress'
 
     default_world = os.path.join(pkg_limo_capstone, 'worlds', 'mc3f_10_15.sdf')
     default_sdf = os.path.join(sim_research_dir, 'limo_ackermann_fortress.sdf')
     default_urdf = os.path.join(sim_research_dir, 'limo_ackermann_fortress.urdf')
     default_rviz_config = os.path.join(sim_research_dir, 'limo_slam_fortress.rviz')
-    mesh_dir = '/home/cjinw/simulator-research/limo_sim_ws/install/limo_description/share'
+    mesh_dir = '${SIM_WS}/install/limo_description/share'
 
     # Launch Arguments
     declare_world_cmd = DeclareLaunchArgument(

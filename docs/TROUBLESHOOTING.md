@@ -20,7 +20,7 @@
   6. `explore.cpp`의 `reachedGoal()`은 `SUCCEEDED` 시 목표를 블랙리스트에 넣지 않고 20ms 만에 즉시 `makePlan()`을 동기 재호출하므로, 로봇이 서 있는 동일 가상 무게중심에 대해 초고속 무한 성공 루프가 발생함.
 
 ### 3. 해결 조치
-- **코드 수정:** [`capstone_ws/src/m-explore-ros2/explore/src/explore.cpp` 268행](file:///home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268) 단 1줄 수정:
+- **코드 수정:** [`capstone_ws/src/m-explore-ros2/explore/src/explore.cpp` 268행](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268) 단 1줄 수정:
   ```diff
   - geometry_msgs::msg::Point target_position = frontier->centroid;
   + geometry_msgs::msg::Point target_position = frontier->middle;
@@ -119,11 +119,11 @@
 - 5m × 5m 사각 방 시뮬레이터와 38m 미래관 3층 지도 간의 물리적 공간 불일치(사례 3)를 극복하기 위해, 지도 점유 격자(`MC_3F_10_15.yaml/.pgm`)로부터 1:1 좌표계가 완벽히 일치하는 Gazebo Fortress 전용 월드(`mc3f_10_15.sdf`)를 자동 생성하고 시뮬레이션 정합을 재검증함.
 
 ### 2. 구현 및 조치 사항
-1. **월드 자동 생성기 구현 ([`map_to_world.py`](file:///home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/limo_capstone/scripts/map_to_world.py)):**
+1. **월드 자동 생성기 구현 ([`map_to_world.py`](file://${PROJECT_ROOT}/capstone_ws/src/limo_capstone/scripts/map_to_world.py)):**
    - 2D 점유 픽셀(10,272개)을 수평 우선 탐욕 병합(greedy merging) 알고리즘으로 3,732개의 충돌 박스로 압축 생성.
    - 지도 좌표계의 원점 `[-13.7, -30.8]` 및 해상도 0.05m를 그대로 반영하여 Gazebo world 좌표계와 ROS 2 `map` 프레임이 1:1로 정확히 일치하도록 구성.
    - 동일 입력에 대해 100% 비트 단위 동일한 재현성 확인.
-2. **전용 런치 파일 구축 ([`limo_mc3f_sim.launch.py`](file:///home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/src/limo_capstone/launch/limo_mc3f_sim.launch.py)):**
+2. **전용 런치 파일 구축 ([`limo_mc3f_sim.launch.py`](file://${PROJECT_ROOT}/capstone_ws/src/limo_capstone/launch/limo_mc3f_sim.launch.py)):**
    - 복도 내 안전 스폰 위치 `(-1.07, -0.68)`, 복도 방향 헤딩 `yaw = 2.23 rad` (128°) 지정.
    - 로봇 모델 및 브리지 파라미터 연동.
 3. **`free_thresh` 임계치 영향 규명 및 시뮬레이션 사본 적용:**
