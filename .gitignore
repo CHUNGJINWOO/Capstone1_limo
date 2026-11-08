@@ -98,3 +98,34 @@ capstone_ws_10_21/
 *진도보고서*.pdf
 *팀별계획서*.pdf
 *발표*.pdf
+
+# Large sensor recordings, videos, and SLAM binaries
+*.db3
+*.db3-wal
+*.db3-shm
+*.mcap
+*.mp4
+*.avi
+*.mkv
+*.posegraph
+*.pbstream
+
+# Notebook large telemetry, build, and temporary artifacts (preserve code, markdown, and configs)
+notebook/**/build/
+notebook/**/install/
+notebook/**/log/
+notebook/**/telemetry.jsonl
+notebook/**/__pycache__/
+
+# Nested experiment build/install/log artifacts
+experiments/**/build/
+experiments/**/install/
+experiments/**/log/
+experiments/**/ws/build/
+experiments/**/ws/install/
+experiments/**/ws/log/
+experiments/**/bin/
+
+# rosbag2 data directories
+**/rosbag2/
+**/bag_regression_*/
