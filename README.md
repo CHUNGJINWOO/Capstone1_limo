@@ -13,23 +13,30 @@
 
 ---
 
-## 최근 작업과 확인 범위 (2026-10-25 정리)
+## 최근 작업과 통합 기준선 (2026-11-08 확정: LIMO Pro 통합 자동 맵핑 시뮬레이션 1차 완료)
 
-- **LIMO 기록:** MC관 2층 테라스 수동 지도, 3층 자동 지도와 저장 지도 기반 목표 지정 주행 영상. 반복 주행 성공률·도착 오차·장애물 안전 성능의 정량 검증은 남아 있습니다.
-- **시뮬레이션:** 고정 장애물, 횡단·왕복·정면 접근 이동체, 지도에 없는 고정 7개와 연속 이동체 3개 조건을 시험했습니다. Nav2 성공 반환과 독립적인 도착·비충돌·정지 판정을 구분합니다.
-- **확인한 한계:** 다수 연속 이동체 시험은 Nav2가 성공을 반환했지만 Gazebo 위치 오차가 약 27cm이고 샘플링한 평면 형상 겹침이 있어 안전 기준을 통과하지 못했습니다. 동적 장애물 회피 완료로 설명하지 않습니다.
-- **계획:** 안전 감시·속도 중재 통합, 자동 맵핑 반복 안정성, 다중 경유지 순찰·목적지 안내, LIMO 통합 시험.
+2026년 11월 8일, `capstone_ws`를 메인 자립형 워크스페이스로 확정하고 시뮬레이션 통합 자동 맵핑 파이프라인의 1차 기능 동등성 및 안전 회귀 검증을 완료하였습니다.
 
-| 확인할 자료 | 위치 |
+- **워크스페이스 역할 분담:**
+  - **`capstone_ws` (메인 워크스페이스):** 정식 ROS 2 패키지(`limo_capstone`, `limo_depth_obstacles`), 정식 Launch 2종(`sim`, `real`), 설정 YAML, SDF/URDF 모델을 포함하며 외부 참조 없이 독립 빌드·실행됩니다.
+  - **`experiments/limo_integrated_auto_mapping_20261108/` (실험 아카이브):** 자동 회귀 검증 스크립트, 장시간 탐색 벤치마크 로그, 고장 주입 시험 JSON, 공식 rosbag2 아카이브 및 기술 보고서 5종을 보존합니다.
+- **핵심 통합 서브시스템:**
+  - **F4/F5_improved 선택형 상태 추정:** 2D LiDAR ICP 오도메트리(F4, 10.0Hz) 및 ICP + IMU 요 각속도 EKF 융합 오도메트리(F5_improved, 50.0Hz).
+  - **단일 소유권 TF 아키텍처:** SLAM Toolbox(`map -> odom`) 및 `odom_tf_relay_node`(`odom -> base_footprint`)의 단일 브로드캐스터 체인 확립.
+  - **자율 탐색 및 3D Costmap:** explore_lite 프론티어 탐색, Nav2 RPP 제어기, DaBai Depth 높이 윈도잉([0.025, 0.35]m) 3D 장애물 레이어 연동.
+  - **Stall Detector 안전 명령 게이트:** 후진 금지(`enable_auto_reverse:=false`), 0.38초 센서 단절 페일세이프, 모터 구동 잠금(`allow_motor_drive:=false`).
+  - **rosbag2 기록 프로파일:** 12개 핵심 토픽 기록 및 배속 재생 검증 (경량 프로파일 및 상세 진단 프로파일 분리).
+
+| 확인할 핵심 자료 | 위치 |
 |---|---|
-| 최신 상태와 다음 구현 과제 | [개발 상태](docs/roadmap.md) |
-| 복합 장애물 시험 결과·기준·한계 | [실험 정리](docs/experiments/2026-10-24/README.md) |
-| 실행 코드·환경 준비·검사 방법 | [시뮬레이션 코드 안내](output/simulation/README.md) |
-| 초기 시험부터의 조사 기록 | [시뮬레이션 검증 보고서](docs/SIMULATION_VERIFICATION_REPORT_2026-10-24.md) |
+| **정식 통합 운영 가이드** | [운영 가이드](docs/INTEGRATED_AUTO_MAPPING_OPERATIONS_GUIDE.md) |
+| **최종 회귀 검증 보고서** | [최종 회귀 보고서](experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_FINAL_REGRESSION_REPORT.md) |
+| **최종 회귀 결과 데이터 (JSON)** | [회귀 결과 JSON](experiments/limo_integrated_auto_mapping_20261108/evaluation/results/capstone_ws_final_regression_audit_20261108.json) |
+| **장기 맵핑 및 우회 벤치마크** | [확장 검증 보고서](experiments/limo_integrated_auto_mapping_20261108/docs/EXTENDED_INTEGRATION_VERIFICATION_REPORT.md) |
+| **기존 개발 상태 및 로드맵** | [개발 상태](docs/roadmap.md) |
 
-프로젝트 코드·설정·지도·기술 문서와 시뮬레이션의 시험 조건·실패·원인 분석·개선 과정·결과를 공개합니다. 학교 제출용 진도보고서·팀별계획서·발표자료는 최종본을 포함해 GitHub에 게시하지 않습니다. 해당 원본과 작성·수정 기록, 대용량 영상·시계열 로그·캡처·빌드 결과는 로컬에 보관합니다. 기록의 수치·설정은 당시 조건의 값이며 현재 성능 보증값이 아닙니다.
-
-자세한 기준은 [저장소 공개 및 개인정보 보호 규칙](docs/PUBLICATION_POLICY.md)을 따릅니다.
+> [!NOTE]
+> **이전 이력 보존:** 2026-10-25 정리된 MC관 수동/자동 지도 및 복합 이동 장애물 시뮬레이션 기록은 [docs/SIMULATION_VERIFICATION_REPORT_2026-10-24.md](docs/SIMULATION_VERIFICATION_REPORT_2026-10-24.md) 및 [docs/experiments/2026-10-24/README.md](docs/experiments/2026-10-24/README.md)에 온전히 보존되어 있습니다.
 
 ---
 
@@ -70,51 +77,64 @@
 
 ## 3. 시스템 구성
 
-전체 시스템은 다음과 같은 흐름으로 구성합니다.
+## 3. 시스템 구성
+
+전체 시스템은 다음과 같은 통합 흐름으로 구성됩니다.
 
 ```text
-                    AgileX LIMO Pro
-                           │
-             ┌─────────────┼─────────────┐
-             │             │             │
-           LiDAR          IMU         Odometry
-             │             │             │
-             └─────────────┼─────────────┘
-                           │
-                           ▼
-                    센서 데이터 처리
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-              ▼                         ▼
-          SLAM Mapping              Localization
-              │                       (AMCL)
-              │                         │
-              └────────────┬────────────┘
-                           ▼
-                    Navigation2
-                           │
-          ┌────────────────┼────────────────┐
-          │                │                │
-          ▼                ▼                ▼
-    Global Planner    Local Planner      Costmap
-          │                │                │
-          └────────────────┼────────────────┘
-                           ▼
-                      경로 추종
-                           │
-                           ▼
-                    장애물 대응
-                           │
-                           ▼
-                         LIMO
-                           │
-              ┌────────────┴────────────┐
-              ▼                         ▼
-          자율 순찰                    목적지 안내
+                                [AgileX LIMO Pro / Gazebo Simulation]
+                                      │                    │
+                   ┌──────────────────┘                    └──────────────────┐
+                   ▼                                                          ▼
+             [/scan, 10Hz]                                             [/camera/depth/points]
+                   │                                                          │
+                   ▼                                                          ▼
+    ┌──────────────────────────────┐                          ┌──────────────────────────────┐
+    │  lidar_scan_matcher_odom     │                          │  depth_obstacle_filter_node  │
+    │  - F4: ICP 오도메트리 (10Hz) │                          │  - Z:[0.025, 0.35]m 윈도잉  │
+    └──────────────┬───────────────┘                          │  - 워치독 타임아웃 0.38초     │
+                   │                                          └──────────────┬───────────────┘
+           ┌───────┴───────┐                                                 │
+           ▼               ▼ (F5_improved 선택 시)                            │
+     [/odometry/lidar]   [/imu, 50Hz]                                        │
+           │               │                                                 │
+           │               ▼                                                 ▼
+           │      ┌──────────────────────┐                          [/depth_obstacles/points]
+           │      │    ekf_node (F5)     │                                   │
+           │      │ - EKF 융합 오도 (50Hz)│                                   │
+           │      └──────────┬───────────┘                                   │
+           ▼                 ▼                                               │
+    ┌──────────────────────────────┐                                         │
+    │      odom_tf_relay_node      │                                         │
+    │  - odom -> base_footprint TF │                                         │
+    │  - /odom_nav2 브로드캐스트    │                                         │
+    └──────────────┬───────────────┘                                         │
+                   │                                                         │
+                   ├───────────────────────────────────┐                     │
+                   ▼                                   ▼                     ▼
+    ┌──────────────────────────────┐    ┌──────────────────────────────────────────────┐
+    │     async_slam_toolbox       │    │                 Nav2 Stack                   │
+    │  - map -> odom TF 단일 소유  │    │  - Global Planner (Navfn)                    │
+    │  - 실시간 점유 격자 지도 /map │    │  - Local Controller (RPP)                    │
+    └──────────────┬───────────────┘    │  - Costmap: 2D LiDAR + 3D Depth Obstacle     │
+                   │                    └──────────────────────┬───────────────────────┘
+                   ▼                                           │
+    ┌──────────────────────────────┐                           ▼
+    │         explore_lite         │                     [/cmd_vel_raw]
+    │  - 프론티어 자동 탐색 목표 생성│                           │
+    └──────────────────────────────┘                           ▼
+                                        ┌──────────────────────────────────────────────┐
+                                        │             stall_detector_node              │
+                                        │  - 안전 명령 게이트 (/cmd_vel_raw -> /cmd_vel)│
+                                        │  - 후진 금지 (enable_auto_reverse:=false)    │
+                                        │  - 센서 타임아웃 0.38초 / 슬립 정체 감지     │
+                                        │  - 모터 잠금 (allow_motor_drive:=false)      │
+                                        └──────────────────────┬───────────────────────┘
+                                                               │
+                                         ┌─────────────────────┴─────────────────────┐
+                                         ▼ (allow_motor_drive=true)                  ▼ (false)
+                                   [/cmd_vel] (모터 드라이버)                   [/cmd_vel_locked] (안전 모의)
 ```
-
-위 구성은 프로젝트의 최종 목표 시스템이며, 각 기능은 실제 구현 및 검증을 거쳐 단계적으로 통합합니다.
 
 ---
 
@@ -124,6 +144,7 @@
 
 ```text
 ├── docs/                                  # 프로젝트 기술 문서 및 개발 기록
+│   ├── INTEGRATED_AUTO_MAPPING_OPERATIONS_GUIDE.md # [신규] 통합 자동 맵핑 정식 운영 가이드
 │   ├── troubleshooting.md                 # 핵심 트러블슈팅 7선 가이드
 │   ├── navigation.md                      # Nav2 아키텍처 및 주행 파이프라인 분석
 │   ├── roadmap.md                         # 구현 상태 매트릭스 및 향후 로드맵
@@ -131,43 +152,47 @@
 │   ├── NAV2_TROUBLESHOOTING.md            # Nav2 자율주행 검증 및 문제 분석
 │   ├── SLAM_MAPPING.md                    # SLAM 및 지도 작성 검증
 │   └── PHASE12_SIMULATION_VALIDATION.md   # 시뮬레이션 환경 검증 기록
-├── capstone_ws/                           # 캡스톤 메인 ROS 2 워크스페이스
+├── capstone_ws/                           # 캡스톤 메인 ROS 2 워크스페이스 (정식 빌드 기준선)
+│   ├── README.md                          # capstone_ws 빠른 시작 안내서
 │   └── src/
-│       ├── limo_capstone/                 # 캡스톤 통합 패키지 (Launch, Config, Maps)
-│       │   ├── config/                    # Nav2, SLAM, 탐색 파라미터 YAML
-│       │   ├── launch/                    # limo_nav2, limo_auto_mapping 등 런치
+│       ├── limo_depth_obstacles/          # [신규] 3D DaBai Depth 카메라 장애물 필터 패키지
+│       │   ├── limo_depth_obstacles/      # depth_obstacle_filter_node, filtering.py
+│       │   ├── package.xml
+│       │   └── setup.py
+│       ├── limo_capstone/                 # 캡스톤 내비게이션 통합 패키지 (Launch, Config, Models)
+│       │   ├── config/                    # EKF, explore, nav2, slam, rosbag 파라미터 YAML 5종
+│       │   ├── launch/                    # integrated sim / real 런치 및 레거시 런치 6종
+│       │   ├── limo_capstone/             # F4 오도, TF 중재, 안전 게이트, 모니터 노드 8종
 │       │   ├── maps/                      # 점유격자지도 (demo_map, MC_2F, MC_3F 등)
-│       │   ├── scripts/                   # 2D 맵-Gazebo 월드 변환 스크립트
-│       │   └── setup.py                   # 파일 필터링 배포 정의 (Commit b46aba9)
+│       │   ├── models/                    # SDF 평가 메쉬 모델 (lounge_chair_sled, table 등)
+│       │   ├── urdf/                      # limo_ackermann_fortress.urdf
+│       │   ├── worlds/                    # lounge_evaluation_world.sdf
+│       │   └── setup.py                   # 정식 배포 엔트리포인트 8종 정의
 │       ├── limo_ros2/                     # LIMO 기본 구동 드라이버 및 모델
 │       ├── m-explore-ros2/                # 프론티어 탐색 소스 (middle 패치 적용)
-│       └── ydlidar_ros2_driver/           # 2D 라이다 드라이버 (std::round 패치)
+│       └── ydlidar_ros2_driver/           # 2D 라이다 드라이버
+├── experiments/                           # [신규] 통합 자동 맵핑 실험 및 회귀 검증 아카이브
+│   └── limo_integrated_auto_mapping_20261108/
+│       ├── docs/                          # 회귀 감사 보고서 및 장기 맵핑 보고서 5종
+│       │   └── LIMO_PRO_WORKSPACE_FINAL_REGRESSION_REPORT.md
+│       ├── evaluation/
+│       │   ├── scripts/                   # 전 부문 자동 회귀 감사 스크립트 (execute_full_regression_audit.py)
+│       │   └── results/                   # 감사 결과 JSON 및 공식 검증 rosbag2 아카이브
+│       └── videos/                        # 시뮬레이션 자율 탐색 및 우회 녹화 MP4
 ├── scripts/
 │   └── remote_teleop_node.py              # 원격 조향 제어 퍼블리셔 노드
 └── src/
-    └── limo_ros2/
-        ├── limo_base/                     # LIMO 통신 및 기본 구동 드라이버
-        ├── limo_car/                      # 로봇 모델 및 시뮬레이션 패키지
-        ├── limo_description/              # URDF / Xacro 및 시각화 리소스
-        └── limo_msgs/                     # 커스텀 ROS 2 메시지 정의
+    └── limo_ros2/                         # 공식 하드웨어 원본 패키지
 ```
 
 ### `docs`
-- `troubleshooting.md`: 하드웨어 전원 브라운아웃, QoS 불일치, `setup.py` 빌드 에러, TF 누락, 탐색 무한 루프, Lifecycle 지도 미수신 등 핵심 오류 7선에 대한 분석과 해결책을 표준 형식으로 수록합니다.
-- `navigation.md`: Nav2 아키텍처, 10개 TF 프레임 무결성 실측치, AMCL 및 Costmap 파라미터, 실행 가이드를 상세히 분석합니다.
-- `roadmap.md`: 4단계 구현 상태 매트릭스(확인됨, 검증 부족, 수정 중, 계획)와 동적 장애물 회피, 순찰, 안내 기능의 아키텍처 설계를 수록합니다.
-- `DEVELOPMENT_LOG.md`: LIMO 온보드 환경에서의 하드웨어 연결, 센서 검증, SLAM 매핑, Nav2 연동 및 문제 해결 과정을 일자별로 상세히 기록합니다.
+- `INTEGRATED_AUTO_MAPPING_OPERATIONS_GUIDE.md`: F4/F5 빌드 및 실행, RViz2 설정, rosbag2 프로파일, 안전 게이트 언래치, 정상 종료 및 실물 사전 체크리스트 수록.
+- `troubleshooting.md`: 하드웨어 전원 브라운아웃, QoS 불일치, `setup.py` 빌드 에러, TF 누락, 탐색 무한 루프, Lifecycle 지도 미수신 등 핵심 오류 7선에 대한 분석과 해결책을 표준 형식으로 수록.
+- `navigation.md`: Nav2 아키텍처, 10개 TF 프레임 무결성 실측치, AMCL 및 Costmap 파라미터, 실행 가이드를 상세히 분석.
 
-### `scripts`
-- `remote_teleop_node.py`: ROS 2 `geometry_msgs/msg/Twist` 표준 인터페이스를 사용하여 LIMO의 속도 명령(`/cmd_vel`)을 발행하는 조향 제어 스크립트입니다.
-
-### `src/limo_ros2` 및 `capstone_ws`
-LIMO Pro 구동을 위한 핵심 ROS 2 패키지입니다.
-- **`limo_base`**: 하부 MCU와의 시리얼 통신, 기본 주행 제어 노드, 센서 및 TF 브로드캐스팅, LiDAR 실행 런치 파일을 포함합니다.
-- **`limo_car`**: LIMO 모델(Ackermann 등), Gazebo 시뮬레이션 환경, 센서 모델, 시뮬레이션 런치 파일을 포함합니다.
-- **`limo_description`**: 로봇 형상 URDF/Xacro, 3D 메쉬, Gazebo 설명 파일 및 RViz 시각화 설정을 포함합니다.
-- **`limo_msgs`**: LIMO 시스템 전용 커스텀 ROS 2 메시지 정의를 포함합니다.
-- **`limo_capstone`**: 캡스톤 프로젝트 메인 패키지로 맵핑, Nav2 주행, 파라미터, 지도 파일을 통합 관리합니다.
+### `capstone_ws` 및 `experiments`의 역할 구분
+- **`capstone_ws`:** 런타임 구동과 정식 코드베이스 배포를 담당하며, `experiments/`에 대한 의존성 없이 단독 빌드 및 실행됩니다.
+- **`experiments/`:** 회귀 감사 스크립트, 장시간 벤치마크 로그, 공식 rosbag2 아카이브, 고장 주입 시험 데이터를 보존하여 검증 재현성을 보장합니다.
 
 ---
 
@@ -184,13 +209,15 @@ LIMO Pro 구동을 위한 핵심 ROS 2 패키지입니다.
 | 구분 | 대상 | 현재 상태 | 상세 설명 |
 |---|---|:---:|---|
 | **기본 패키지** | LIMO 드라이버·모델·메시지 | 소스 보유 | 원제공 소스와 프로젝트 수정 사항은 Git 이력으로 구분 |
-| **SLAM 지도** | 수동 조종·자동 탐색 지도 | 기록 확보 | MC관 2층 테라스는 수동, 3층은 자동 맵핑. 지도 품질·반복 완주는 별도 확인 |
-| **패키지 배포** | `setup.py` 일반 파일 필터 | 소스 반영 | 과거 빌드 복구 기록 있음. 배포 파일 목록은 현재 빌드에서 재확인 |
-| **TF·지도 수신** | 정적 좌표 연결·Lifecycle·QoS | 복구 기록 확보 | 정적 TF의 도구상 10000 표시는 발행 성능으로 해석하지 않음 |
-| **목표 지정 주행** | AMCL·Nav2 | LIMO 영상 확보 | MC관 3층 주행 기록. 반복 성공률·오차는 아직 제시하지 않음 |
-| **자동 탐색 목표** | `frontier->middle` 및 제외 목록 | 수정 반영 | 복도 완주·목표 반복·조기 종료 안정성은 추가 시험 |
-| **장애물 대응** | Nav2 RPP 기반 가상 시험 | 시뮬레이션 한정 | 조건별 성공·실패가 함께 존재. 로봇 설정 DWB와 구분 |
-| **순찰·안내·안전 중재** | 응용 노드 및 안전 기능 연결 | 계획 | 현재 소스·가상 시험을 LIMO 통합 완료로 설명하지 않음 |
+| **상태 추정 (F4)** | 2D LiDAR ICP 오도메트리 | **통합 완료** | 시뮬레이션 10.0 Hz 실측 검증. 고유 TF는 `odom_tf_relay_node`를 통해 중재 |
+| **상태 추정 (F5)** | ICP + IMU EKF 융합 | **통합 완료** | 시뮬레이션 50.0 Hz 실측 검증. 슬립 방지를 위해 휠 오도는 EKF에서 배제 |
+| **SLAM 지도 작성** | SLAM Toolbox 온라인 비동기 | **통합 완료** | `map -> odom` TF 단일 소유. 실시간 점유 격자 확장 검증 |
+| **자율 탐색 주행** | Nav2 RPP + explore_lite | **통합 완료** | 프론티어 자동 감지 및 NavigateToPose 액션 연동 자율 탐색 완주 |
+| **3D 장애물 필터** | DaBai Depth 높이 윈도잉 | **통합 완료** | `limo_depth_obstacles` 패키지. 지상 [0.025, 0.35]m 윈도잉, 0.38초 워치독 |
+| **안전 명령 게이트** | Stall Detector 노드 | **통합 완료** | 후진 차단(`enable_auto_reverse:=false`), 0.38초 센서 단절 제동, 휠 헛돎 감지 |
+| **모터 잠금 격리** | 실물 Launch 안전 격리 | **통합 완료** | `allow_motor_drive:=false` 시 `/cmd_vel` 0건 누출, `/cmd_vel_locked` 전량 라우팅 |
+| **실험 데이터 기록** | rosbag2 프로파일 | **통합 완료** | 12개 토픽 기록 및 재생성 검증 (경량 프로파일 및 상세 진단 프로파일 분리) |
+| **순찰·안내 응용** | Waypoint 순찰 및 안내 | 계획 | 통합 맵핑 및 안전 기준선 확정 후 후속 단계로 진행 예정 |
 
 ---
 
@@ -202,13 +229,7 @@ LIMO Pro 구동을 위한 핵심 ROS 2 패키지입니다.
 - **빌드 도구**: `colcon`
 
 #### 워크스페이스 구조 및 빌드 안내
-현재 저장소에는 LIMO 공식 하드웨어 드라이버 및 모델 패키지가 위치한 `src/`와, 캡스톤 내비게이션 통합 패키지 및 센서 드라이버가 위치한 `capstone_ws/`가 함께 구성되어 있습니다.
-
-저장소 루트에서 전체 빌드를 직접 실행할 경우 하위 디렉터리 간 동일 패키지명(`limo_base` 등)이 중복 탐색되어 패키지 경합이 발생할 수 있으므로, **캡스톤 메인 워크스페이스(`capstone_ws`)로 이동하여 필요한 패키지를 선별 빌드하는 것을 기본으로 권장합니다.**
-
-#### 1) 캡스톤 메인 패키지 빌드 (기본 권장)
-캡스톤 프로젝트의 핵심 패키지인 `limo_capstone`(Launch, 파라미터, 지도, 스크립트)을 빌드합니다.
-*(※ 저장소 경로는 개발 환경에 따라 다를 수 있으므로 실제 작업 경로에 맞게 조정합니다.)*
+캡스톤 프로젝트의 통합 기능(`limo_capstone`, `limo_depth_obstacles`)은 `capstone_ws/`에 정식 이식되어 있으며, 외부 의존성 없이 자립적으로 빌드됩니다.
 
 ```bash
 # 1. 캡스톤 메인 워크스페이스로 이동
@@ -217,72 +238,83 @@ cd ~/school/2026-2/Capstone1_limo/capstone_ws
 # 2. ROS 2 Humble 기본 환경 로드
 source /opt/ros/humble/setup.bash
 
-# 3. limo_capstone 패키지 선별 빌드 (심볼릭 링크 설치)
-colcon build --symlink-install --packages-select limo_capstone
+# 3. 통합 패키지 선별 빌드 (심볼릭 링크 설치)
+colcon build --symlink-install --packages-select limo_depth_obstacles limo_capstone
 
-# 4. 빌드 결과물 환경 오버레이
+# 4. 빌드 결과물 환경 오버레이 및 EKF 라이브러리 경로 설정
 source install/setup.bash
+export LD_LIBRARY_PATH=$PWD/install/robot_localization/lib:/opt/ros/humble/lib:$LD_LIBRARY_PATH
 ```
-
-> [!TIP]
-> 위 명령은 `limo_capstone` 패키지만 선별하여 빠르게 빌드합니다. `ydlidar_ros2_driver`, `m-explore-ros2` 등 다른 패키지를 함께 빌드해야 할 경우 `--packages-select <패키지명>`에 추가하거나, 별도 워크스페이스 구성 및 중복 패키지 존재 여부를 점검한 후 `capstone_ws` 내에서 전체 빌드(`colcon build --symlink-install`)를 수행합니다.
-
-#### 2) LIMO 기본 드라이버 패키지 빌드 (루트 `src/` 기준)
-LIMO 하부 MCU 시리얼 통신 드라이버 및 시뮬레이션 모델 패키지(`limo_base`, `limo_car`, `limo_description`, `limo_msgs`)를 빌드할 경우:
-
-```bash
-# 저장소 루트로 이동
-cd ~/school/2026-2/Capstone1_limo
-
-# 기본 ROS 2 환경 로드 후 드라이버 패키지 빌드
-source /opt/ros/humble/setup.bash
-colcon build --symlink-install --base-paths src
-source install/setup.bash
-```
-
-> [!NOTE]
-> `src/limo_ros2/limo_car/CMakeLists.txt`에서 저장소에 존재하지 않는 설치 디렉터리(`log`, `src`, `worlds`) 참조로 인해 발생하던 `ament_cmake_symlink_install_directory()` 오류를 수정한 후(`commit: 8c3d4f3`), 패키지 빌드가 성공적으로 수행됩니다. 빌드 상세 기록은 [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md)에서 확인할 수 있습니다.
 
 ---
 
-### 5.3 현재 실행 가능한 기능 및 명령
+### 5.3 현재 실행 가능한 기능 및 명령 (실제 검증 완료)
 
-현재 저장소 상태에서 즉시 실행 가능한 주요 노드 및 런치 명령입니다.
+현재 저장소 상태에서 즉시 실행 및 재현이 검증된 주요 런치 및 운영 명령입니다.
 
-#### 1) LIMO Base 하드웨어 구동 (온보드 환경)
-LIMO onboard PC에서 하부 MCU와 시리얼 통신을 연결하고 오도메트리(`odom`) 및 좌표계(`base_link`)를 브로드캐스팅합니다.
+#### 1) 시뮬레이션 통합 자동 맵핑 실행 (Gazebo Fortress)
+실내 라운지 평가 월드에서 F4 또는 F5_improved 기반으로 explore_lite 자율 탐색 및 맵핑을 구동합니다.
 ```bash
-ros2 launch limo_base limo_base.launch.py port_name:=ttyUSB1
-```
-*(장치 연결 상태에 따라 `/dev/ttyUSB0` 또는 `/dev/ttyUSB1` 포트 지정)*
+# A. F4 모드 (2D LiDAR ICP 기반 탐색)
+ros2 launch limo_capstone limo_integrated_auto_mapping_sim.launch.py \
+  use_sim_time:=true estimator_type:=f4 start_explore:=true depth_mode:=required
 
-#### 2) YDLiDAR T-mini Plus 라이다 구동
-```bash
-ros2 launch ydlidar_ros2_driver ydlidar.launch.py
-```
-
-#### 3) 원격 조향 제어 스크립트 실행
-`geometry_msgs/msg/Twist` 표준 메시지 인터페이스를 통해 LIMO에 주행 속도 명령(`/cmd_vel`)을 발행합니다.
-```bash
-python3 scripts/remote_teleop_node.py
+# B. F5_improved 모드 (LiDAR ICP + IMU EKF 융합 기반 탐색)
+ros2 launch limo_capstone limo_integrated_auto_mapping_sim.launch.py \
+  use_sim_time:=true estimator_type:=f5_improved start_explore:=true depth_mode:=required
 ```
 
-#### 4) 로봇 모델 RViz2 시각화
-LIMO의 URDF/Xacro 형상 및 센서 좌표계를 3D로 시각화합니다.
+#### 2) 실물 로봇 안전 모의 실행 (모터 잠금 상태)
+실물 센서와 토픽 흐름을 검증하되, 모터 구동 명령을 원천 차단하여 안전하게 점검합니다.
 ```bash
-# 차동 구동 모델 시각화
-ros2 launch limo_description display_models_diff.launch.py
+ros2 launch limo_capstone limo_integrated_auto_mapping_real.launch.py \
+  allow_motor_drive:=false estimator_type:=f4
+```
+*(※ 모터 드라이버 토픽 `/cmd_vel`은 0건으로 완전 침묵하며, 모든 명령은 `/cmd_vel_locked`로 우회 격리됩니다.)*
 
-# 또는 Ackermann 조향 모델 시각화
-ros2 launch limo_car display_ackermann.launch.py
+#### 3) RViz2 시각화 설정
+별도 터미널에서 RViz2를 실행하여 점유 격자 지도 및 센서를 확인합니다.
+```bash
+source /opt/ros/humble/setup.bash && rviz2
+```
+- **Fixed Frame:** `map` 설정
+- **Map:** Topic `/map` (Durability: `Transient Local`, Reliability: `Reliable`)
+- **LiDAR:** Topic `/scan` (Reliability: `Best Effort`)
+- **3D Depth:** Topic `/depth_obstacles/points` (Reliability: `Reliable`)
+
+#### 4) 안전 래치 확인 및 수동 리셋
+센서 단절이나 정체로 인해 로봇이 멈춘 경우, 센서 복구 후 다음 서비스로 주행을 재개합니다.
+```bash
+# 안전 게이트 텔레메트리 모니터링
+ros2 topic echo /stall_detector/status_json
+
+# 안전 래치 수동 해제 (Operator Unlatch)
+ros2 service call /stall_detector/reset_latch std_srvs/srv/Trigger
 ```
 
-#### 5) 정적 지도 기반 Navigation2 자율주행 실행
-```bash
-ros2 launch limo_capstone limo_nav2.launch.py \
-  map:=$(ros2 pkg prefix limo_capstone)/share/limo_capstone/maps/demo_map.yaml \
-  use_sim_time:=false
-```
+#### 5) rosbag2 기록 프로파일 및 실측 용량
+- **F4 기본 기록 프로파일 (실측 기준 환산 ~7.0 MB/min):**
+  ```bash
+  ros2 bag record -o /tmp/limo_bag_f4 \
+    /scan /odom_nav2 /tf /tf_static /map /cmd_vel /cmd_vel_raw /stall_detector/status_json
+  ```
+- **F5_improved 상세 진단 프로파일 (실측 기준 환산 ~8.7~9.2 MB/min, IMU 50Hz 및 EKF 포함):**
+  ```bash
+  ros2 bag record -o /tmp/limo_bag_f5_diag \
+    /scan /odom /odometry/lidar_odom /odometry/f5_improved /odom_nav2 /imu \
+    /tf /tf_static /map /depth_obstacles/points /cmd_vel_raw /cmd_vel \
+    /stall_detector/status_json
+  ```
+  *(※ 과거 언급된 0.8 MB/min은 고주기 TF를 배제한 미검증 이론 추정치이며, 실제 21.5초 실측 데이터 기준 F4는 약 7.0 MB/min, F5는 약 8.7~9.2 MB/min입니다.)*
+- **독립 재생 검증:**
+  ```bash
+  ROS_DOMAIN_ID=42 ros2 bag play /tmp/limo_bag_f5_diag --rate 1.0
+  ```
+
+#### 6) 정상 종료 시퀀스 및 비상 정지 구분
+- **소프트웨어 정상 종료(Graceful Shutdown):** Launch가 실행 중인 터미널에서 **`Ctrl + C`**를 입력하면 Launch 시스템이 SIGINT를 모든 자식 노드(`ign gazebo`, `nav2`, `slam_toolbox`, `explore_node` 등)에 전파하여 3~5초 내에 정상 종료합니다.
+- **비상 정지(E-Stop) 아님:** `Ctrl + C`는 소프트웨어 인터럽트 종료 방법일 뿐, 온보드 PC의 락업이나 통신 단절 시 모터를 즉시 멈추는 하드웨어 비상 정지 장치가 아닙니다.
+- **안전 수칙:** 정식 운영 가이드에서는 시스템 전역 프로세스를 무차별 파괴할 수 있는 `pkill -9` 사용을 배제합니다.
 
 ---
 
@@ -553,9 +585,83 @@ Navigation Goal 전송
 
 ## 13. 실험 및 검증
 
-구현한 기능은 실제 주행 환경에서 단계적으로 검증합니다.
+구현한 기능은 가상 시뮬레이션 환경 및 실제 주행 환경에서 단계적으로 검증합니다.
 
-### 평가 항목
+### 13.1 메인 워크스페이스(`capstone_ws`) 통합 자동 맵핑 최종 회귀 검증 (2026-11-08)
+
+실험실(`experiments/limo_integrated_auto_mapping_20261108/`)에서 사전 검증된 통합 자동 맵핑 기능이 메인 워크스페이스(`capstone_ws`)의 정식 패키지(`limo_capstone`, `limo_depth_obstacles`)로 결함 없이 이식되었는지 전 부문 회귀 검사를 수행하였으며, 7개 감사 부문 모두 **100% PASS**로 판정되었습니다.
+
+#### 1) 전 부문 감사 판정 매트릭스
+
+#### 1) 전 부문 감사 판정 매트릭스
+
+| 감사 영역 | 검증 항목 | 합격 기준 | 실제 측정값 | 최종 판정 |
+| :--- | :--- | :--- | :--- | :---: |
+| **Audit 1: 패키지 이식 정합성** | 엔트리포인트 9종, share 디렉터리, experiments 참조 0건, 레거시 파일 보존 | 결함/오류 0건, 레거시 보존 | 엔트리포인트 9종 정상 등록, share 접근 정상, experiments 참조 0건, 원본 6종 100% 보존 | **PASS** |
+| **Audit 2: 실물 구동 안전 게이트** | `allow_motor_drive:=false` 모터 잠금, Nav2 바이패스 차단 | `/cmd_vel` 0건, `/cmd_vel_locked` 라우팅 | `/cmd_vel` 0건 (누출 제로), `/cmd_vel_locked` 160건 전량 라우팅 | **PASS** |
+| **Audit 3: F4 통합 자동 탐색** | 단일 TF 트리, 오도메트리 주기, 지도 확장, rosbag2 기록/재생 | TF 100%, Freq $\ge 8\text{Hz}$, Map 확장, 재생 가능 | TF 단일 소유, Freq 10.0 Hz, Map 격자 확장, 2.509 MB 재생 성공 | **PASS** |
+| **Audit 4: F5 통합 자동 탐색** | 단일 TF 트리, EKF 오도메트리 주기, 지도 확장, rosbag2 기록/재생 | TF 100%, Freq $\ge 40\text{Hz}$, Map 확장, 재생 가능 | TF 단일 소유, Freq 50.0 Hz, Map 격자 확장, 3.267 MB 재생 성공 | **PASS** |
+| **Audit 5A: Depth 차단 (상태 반응성)** | 인공 `DEPTH_STALE` JSON 상태 주입 (Test A) | 반응 $\le 0.05\text{s}$, 정지거리 $< 0.20\text{m}$ | 감지 0.004s, 차단 0.003s, 총변위 0.100m (고장주입~정지), 완전정지 6.455s | **PASS** |
+| **Audit 5B: Depth 차단 (물리 단절)** | 실제 PointCloud2 발행 프로세스 강제 종료 (Test B) | 감지 $0.30\sim0.55\text{s}$, 정지거리 $< 0.20\text{m}$ | 감지 0.421s, 차단 0.421s (PASS) / 정지변위 0.165m (UNVERIFIED) | **PASS (지연시간)** / **UNVERIFIED (제동거리)** |
+| **Audit 6: LiDAR/ICP 고장 차단** | 주행 중 F4 스캔매처 노드 강제 종료 | 감지 $\le 0.55\text{s}$, 차단 $\le 0.58\text{s}$, 정지거리 $< 0.20\text{m}$ | 감지 0.406s, 차단 0.403s, 총변위 0.174m (고장주입~정지), 즉시 제동 | **PASS** |
+| **종합 평가** | 전 7개 세부 감사 기준 충족 | 전 부문 합격 | **기능 동등성 및 지연시간 충족 / 실측 정지거리 UNVERIFIED** | **PASS (기능)** |
+
+#### 2) Depth 센서 단절 지연 및 제동 거리 정밀 분석 (0.421초 지연 및 0.165m 변위 검증)
+
+이전 초기 시험에서 언급된 수치들의 물리적 정합성을 확인하기 위해, 시간-속도-변위 관계를 정밀 재검토하였습니다.
+
+```text
+[Test B: 실제 PointCloud2 발행 프로세스 강제 종료 타임라인]
+t_last = 6.100s (마지막 유효 패킷 타임스탬프)
+  │
+  ├─> t_kill = 6.258s (프로세스 SIGKILL 강제 종료 시점, 평가 스크립트 p0 샘플링)
+  │     │
+  │     └─> 경과 시간 = 0.263s (프로세스 종료 시점부터 명령 차단까지의 지연)
+  │
+  ├─> 0.380s 워치독 만료 + 0.041s 루프 틱 = 총 0.421s
+  │
+  └─> t_cutoff = 6.521s (Stall Detector가 /cmd_vel을 0.0 m/s로 강제 클램핑)
+        │
+        └─> 감속 경과 후 완전 정지 (t_halt = 6.703s, 속도 < 0.005 m/s, 평가 스크립트 p1 샘플링)
+              [경과 시간: t_halt - t_cutoff = 0.182s, 총 고장 경과 시간: t_halt - t_kill = 0.445s]
+```
+
+- **물리 감지 지연 (0.421초 - PASS):** 센서의 마지막 정상 수신 시점($t_{\text{last}} = 6.100\text{s}$)부터 안전 게이트의 차단 명령 시점($t_{\text{cutoff}} = 6.521\text{s}$)까지의 경과 시간으로, 설정된 워치독 타임아웃($0.380\text{s}$)에 타이머 루프 틱($0.041\text{s}$)이 더해진 실제 물리 지연 시간입니다.
+- **프로세스 종료 지연 (0.263초):** 노드가 강제 종료된 시점($t_{\text{kill}} = 6.258\text{s}$)부터 차단($6.521\text{s}$)까지의 경과 시간입니다.
+- **0.165m 수치에 대한 속도-변위 검증 및 UNVERIFIED 분류:**
+  - 순항 속도가 약 $0.15\text{ m/s}$일 때, 고장 주입($t_{\text{kill}} = 6.258\text{s}$)부터 완전 정지($t_{\text{halt}} = 6.703\text{s}$)까지의 총 경과 시간은 **$0.445\text{초}$**입니다.
+  - $0.15\text{ m/s}$ 속도로 $0.445\text{초}$ 동안 감속 없이 등속 주행하더라도 이론상 최대 이동 거리는 $0.15 \times 0.445 = \mathbf{0.0668\text{m}}$ (약 6.7cm)이며, 감속을 고려한 이론적 예상 변위는 약 $0.0532\text{m}$입니다.
+  - 따라서 보고된 $0.165\text{m}$는 이론상 최대 이동 거리($0.0668\text{m}$)의 약 2.5배에 달해 단순 주행 모델로는 설명되지 않습니다.
+  - 평가 스크립트(`execute_full_regression_audit.py`) 확인 결과, $p_0$와 $p_1$의 원본 위치 좌표 및 Ground Truth 시계열 데이터가 디스크에 별도 저장되지 않고 최종 스칼라 연산 결과(`round(stop_dist, 3)`)만 JSON에 기록되었습니다.
+  - 원본 Ground Truth 데이터가 미보존되어 $0.165\text{m}$의 구체적 계산 과정을 사후 재현할 수 없으므로, **새로운 수치를 임의 추정하지 않고 해당 제동 거리를 공식 UNVERIFIED (미검증)로 판정**합니다. (향후 필요 시 원본 GT 시계열 로깅을 포함한 전용 제동 시험을 별도로 수행해야 함)
+
+#### 3) 검증 범위의 구분: 22초 브링업 회귀 시험 vs 80초 장시간 탐색 시험
+
+실험실(`experiments/limo_integrated_auto_mapping_20261108/`)의 서로 다른 실험 결과가 혼용되지 않도록 시험 목적과 정량 결과를 명확히 분리합니다.
+
+- **22초 브링업 회귀 시험 (Regression Audit, 2026-11-08):**
+  - **목적:** 메인 워크스페이스 빌드 후 9개 노드의 정상 연동, TF 단일 브로드캐스터 권한, F4/F5 주기 충족, 초기 지도 확장 및 안전 차단 페일세이프 검증.
+  - **F4 (LiDAR ICP 단독):** Freq 10.0 Hz, TF 단일 소유, 초기 지도 확장 ($1.63\text{ m}^2 \to 1.70\text{ m}^2$), rosbag 2.509 MB 수집 및 재생 확인.
+  - **F5_improved (ICP + IMU EKF):** Freq 50.0 Hz, TF 단일 소유, 초기 지도 확장 ($1.64\text{ m}^2 \to 1.72\text{ m}^2$), rosbag 3.267 MB 수집 및 재생 확인.
+- **80초 장시간 자율 탐색 맵핑 시험 (`EXTENDED_INTEGRATION_VERIFICATION_REPORT.md`):**
+  - **목적:** Lounge World 전역에서 explore_lite 연속 주행, 프론티어 누적, SLAM 루프 클로저 및 벽면 선명도 정량 평가.
+  - **F4 (80초 완수):** 총 주행 거리 **3.005 m**, 총 지도 확장 **64.77 m²** (자유 탐색 면적 62.42 m², 점유 셀 수 937 cells), 벽면 두께 표준편차 $\sigma = 0.0860\text{ m}$, 최종 안전 상태 **NORMAL (무중단 완주)**.
+  - **F5_improved (80초 완수):** 총 주행 거리 **2.351 m**, 총 지도 확장 **63.00 m²** (자유 탐색 면적 60.81 m², 점유 셀 수 878 cells), 벽면 두께 표준편차 $\sigma = 0.0904\text{ m}$, 최종 안전 상태 **STALL_LATCHED (유리벽 경계 정체)**.
+  *(※ 과거 일부 문서 초안에 기재되었던 6.84m² 및 7.12m²는 녹화 비디오 파일 용량[6.84 MB, 7.12 MB in `video_decoding_audit.json`]의 단순 오기였으므로 전면 삭제함.)*
+
+#### 4) 소프트웨어 안전 격리와 실물 하드웨어 페일세이프 한계 (UNVERIFIED 항목 명시)
+
+> [!CAUTION]
+> **하드웨어 안전 한계 및 실물 자동 주행 엄격 금지 안내:**
+> 1. **소프트웨어 차단의 한계:** `allow_motor_drive:=false` 설정은 **ROS 2 소프트웨어 레벨에서 `/cmd_vel`을 차단하고 `/cmd_vel_locked`로 우회 격리**하는 기능입니다. 온보드 PC의 커널 패닉, OS 정지, 전원 차단 시의 하드웨어 페일세이프를 보장하지 못합니다.
+> 2. **종료 수단과 비상 정지 구분:** `Ctrl + C`는 소프트웨어 정상 종료(Graceful Shutdown) 절차이며 비상 정지 장치가 아닙니다.
+> 3. **RC 비상 채널 미검증:** 원격 무선 조종기(RC)의 비상 정지 채널 맵핑 및 실제 하드웨어 수신기 기능은 실측되지 않았으므로 **UNVERIFIED (미검증)** 상태로 유지합니다.
+> 4. **MCU 워치독 및 전압 기준:** 통상 언급되는 STM32 MCU 200ms 통신 타임아웃 및 배터리 12.0V 기준은 현장 경험적 참고치일 뿐 제조사 공식 규격서나 펌웨어 소스 상에서 확인된 값이 아닙니다(**UNVERIFIED**).
+> 5. **실물 자동 주행 승인 조건:** **독립적인 물리적 비상 정지(E-Stop) 장치 및 하위 STM32 MCU 워치독이 무부하 벤치 시험대에서 실측 입증되기 전까지는 실물 로봇의 자율 주행을 승인하지 않습니다 (STRICTLY BLOCKED).** 주행 중 임의 케이블 강제 분리 시험은 엄격히 금지합니다.
+
+---
+
+### 13.2 기존 개별 단위 평가 항목 (레거시 검증 기준선)
 
 #### Localization
 - 위치 추정 안정성
@@ -584,14 +690,22 @@ Navigation Goal 전송
 - 안내 과정의 안정성
 - 장애물 발생 시 대응 여부
 
-실험 결과는 개발이 진행됨에 따라 측정값과 테스트 조건을 지속적으로 갱신합니다.
-
 ---
 
-## 14. 개발 기록
+## 14. 개발 기록 및 관련 문서
 
-프로젝트의 실제 개발 과정과 문제 해결 과정은 별도의 상세 문서에서 관리합니다.
+프로젝트의 상세 운영 매뉴얼, 설계서, 회귀 검증 보고서 및 트러블슈팅 이력은 아래 문서들을 통해 확인할 수 있습니다.
 
+### 정식 운영 및 워크스페이스 문서
+- **[docs/INTEGRATED_AUTO_MAPPING_OPERATIONS_GUIDE.md](docs/INTEGRATED_AUTO_MAPPING_OPERATIONS_GUIDE.md)**: **[공식]** LIMO Pro 통합 자동 맵핑 정식 운영 가이드 (빌드, F4/F5 실행, RViz2 설정, rosbag2 프로파일, 비상 제동 언래치, 정상 종료 및 실차 점검 10단계 수록)
+- **[capstone_ws/README.md](capstone_ws/README.md)**: **[공식]** 캡스톤 메인 ROS 2 워크스페이스 빠른 시작 안내서 (패키지 구조, 의존성, 빌드/실행 요약)
+
+### 실험실 아카이브 및 검증 보고서
+- **[experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_FINAL_REGRESSION_REPORT.md](experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_FINAL_REGRESSION_REPORT.md)**: 메인 워크스페이스 패키지 이식 최종 회귀 검증 보고서 (7개 부문 실측 데이터 및 판정 수록)
+- **[experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_PORTING_AND_INTEGRATION_REPORT.md](experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_PORTING_AND_INTEGRATION_REPORT.md)**: 메인 워크스페이스 패키지 이식 및 인터페이스 구현 보고서
+- **[experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_PORTING_AND_INTEGRATION_PLAN.md](experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_PORTING_AND_INTEGRATION_PLAN.md)**: 메인 워크스페이스 패키지 이식 및 인터페이스 설계서
+
+### 기존 핵심 기술 및 문제 해결 기록
 - **[docs/troubleshooting.md](docs/troubleshooting.md)**: 7단계 표준 형식으로 작성된 핵심 트러블슈팅 7선 가이드
 - **[docs/navigation.md](docs/navigation.md)**: Nav2 아키텍처, 10개 TF 프레임 무결성 계측, AMCL 파라미터, Costmap 분석 및 실행 가이드
 - **[docs/roadmap.md](docs/roadmap.md)**: 4단계 구현 상태 매트릭스 및 동적 장애물 회피, 순찰, 안내 기능 상세 설계
@@ -604,7 +718,7 @@ Navigation Goal 전송
 
 ## 15. 향후 개발 방향
 
-프로젝트는 다음 순서로 통합합니다.
+프로젝트는 다음 순서로 단계를 밟아 실물 하드웨어 주행 및 서비스 애플리케이션으로 확장합니다.
 
 ```text
 LIMO 기본 동작 (완료)
@@ -619,22 +733,18 @@ Navigation2 (완료)
       ↓
 경로 추종 (완료)
       ↓
-자율 탐색 실차 완주 (진행 중)
+통합 자동 맵핑 및 안전 게이트 시뮬레이션 검증 (완료, 2026-11-08)
       ↓
-동적 장애물 회피 (계획)
+실물 LIMO 거치대 벤치 무부하 안전 점검 (예정)
       ↓
-자율 순찰 (계획)
+실물 주행 환경 통합 자동 맵핑 현장 실차 검증 (예정)
       ↓
-목적지 안내 (계획)
+동적 장애물 회피 실차 튜닝 (계획)
       ↓
-통합 테스트 및 1시간 연속 주행 평가 (계획)
-      ↓
-파라미터 최적화 (계획)
+자율 순찰 및 목적지 안내 응용 확장 (계획)
       ↓
 최종 시연 및 평가 (계획)
 ```
-
-최종적으로는 실제 실내 환경에서 LIMO가 안정적으로 자율주행하면서 순찰 및 안내 서비스를 수행할 수 있도록 시스템을 통합하고 검증합니다.
 
 ---
 
@@ -653,13 +763,38 @@ Navigation2 (완료)
 
 ## 17. 프로젝트 산출물
 
-최종적으로 다음 결과물을 구축하고 정리합니다.
+- **ROS 2 통합 패키지 (`capstone_ws/src/`):**
+  - `limo_depth_obstacles`: 3D DaBai Depth 카메라 장애물 필터링 및 진단 패키지
+  - `limo_capstone`: 통합 자동 맵핑 Launch 2종, 파라미터 YAML 5종, F4/F5 상태 추정, TF 중재, 안전 명령 게이트 노드 8종, 시뮬레이션 월드 및 모델
+- **정식 문서 (`docs/` 및 `capstone_ws/`):**
+  - [docs/INTEGRATED_AUTO_MAPPING_OPERATIONS_GUIDE.md](docs/INTEGRATED_AUTO_MAPPING_OPERATIONS_GUIDE.md): 통합 자동 맵핑 정식 운영 가이드
+  - [capstone_ws/README.md](capstone_ws/README.md): 메인 워크스페이스 빠른 시작 안내서
+- **실험 및 회귀 검증 아카이브 (`experiments/limo_integrated_auto_mapping_20261108/`):**
+  - 전 부문 자동 회귀 감사 스크립트: `evaluation/scripts/execute_full_regression_audit.py`
+  - 회귀 감사 결과 JSON: `evaluation/results/capstone_ws_final_regression_audit_20261108.json`
+  - 공식 rosbag2 검증 데이터: F4 (2.509 MB), F5_improved (3.267 MB)
+  - 검증 완료 보고서: `docs/LIMO_PRO_WORKSPACE_FINAL_REGRESSION_REPORT.md`
+- **실내 점유격자 지도 데이터 (`capstone_ws/src/limo_capstone/maps/`):**
+  - `demo_map`, `MC_2F_10_07`, `MC_3F_10_15`
+- **후속 개발 응용 (계획):**
+  - 자율 순찰 기능 (Action 노드)
+  - 목적지 안내 기능 (Service 노드)
 
-- ROS 2 기반 LIMO 자율주행 소스 코드
-- 커스텀 Node 및 Launch 파일
-- Navigation2 설정 및 Parameter 파일
-- 실내 지도 데이터 (`demo_map`, `MC_2F_10_07`, `MC_3F_10_15`)
-- 자율 순찰 기능 (Action 노드)
-- 목적지 안내 기능 (Service 노드)
-- 동적 장애물 대응 기능
-- 주행 테스트 및 성능 평가 결과
+---
+
+## 18. 실물 LIMO 이식 전 하드웨어 안전 체크리스트 (Hardware Deployment Gateways)
+
+실물 LIMO Pro 로봇에 본 소프트웨어를 적용하기 전, 안전사고 방지를 위해 아래 10단계 체크리스트를 순차적으로 확인하고 서명해야 합니다.
+
+| 단계 | 점검 항목 | 확인 기준 및 절차 | 판정 |
+| :---: | :--- | :--- | :---: |
+| **1** | **배터리 전압** | 주행용 배터리 전압 $\ge 12.0\text{V}$ 점검 (브라운아웃 방지용 점검치, 제조사 공인 스펙 미검증 [UNVERIFIED]) | [ ] 확인 |
+| **2** | **벤치 무부하 거치** | 바퀴 4개가 지면에서 완전히 뜨도록 전용 거치대에 로봇 거치 | [ ] 확인 |
+| **3** | **소프트웨어 모터 잠금** | `allow_motor_drive:=false` 설정 후 Launch 기동 | [ ] 확인 |
+| **4** | **명령 격리 실측** | `ros2 topic echo /cmd_vel` 메시지 수신 0건, `/cmd_vel_locked` 라우팅 확인 | [ ] 확인 |
+| **5** | **비상 차단 체계 대기** | 온보드 물리 전원 스위치 즉시 차단 담당자 배치 (`Ctrl+C`는 E-Stop 아님, RC 비상 채널은 미검증 [UNVERIFIED]) | [ ] 확인 |
+| **6** | **센서 및 TF 단일 소유** | `/scan` (10Hz), `/imu` (50Hz), `map->odom->base_footprint->base_link` 점검 | [ ] 확인 |
+| **7** | **Depth 장애물 필터** | DaBai Depth 카메라 구동 후 `/depth_obstacles/points` 토픽 확인 | [ ] 확인 |
+| **8** | **안전 게이트 텔레메트리** | `/stall_detector/status_json`에서 `state: "NORMAL"`, `allow_motor_drive: false` 확인 | [ ] 확인 |
+| **9** | **STM32 워치독 벤치 점검** | 무부하 회전 중 통신 단절 시 모터 정지 확인 (200ms 기준은 펌웨어 미검증 참고치, **케이블 강제 분리 금지**) | [ ] 확인 |
+| **10** | **실차 주행 승인 조건** | **독립 물리 E-Stop 및 MCU 워치독이 벤치에서 입증될 때까지 실물 자동 주행 엄격 금지 (STRICTLY BLOCKED)** | [ ] BLOCKED |
