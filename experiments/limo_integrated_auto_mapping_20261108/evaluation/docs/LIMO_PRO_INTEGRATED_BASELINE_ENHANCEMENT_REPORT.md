@@ -182,9 +182,9 @@ python3 -s experiments/limo_integrated_auto_mapping_20261108/scripts/run_recorde
 | [`nodes/depth_obstacle_filter_node.py`](../../nodes/depth_obstacle_filter_node.py) | 수정 | 외부 패키지 `limo_depth_obstacles` 부재 시에도 자체 구동 가능한 순수 NumPy 기반 Fallback 함수 내장 |
 | [`nodes/integrated_auto_mapping_recorder_node.py`](../../nodes/integrated_auto_mapping_recorder_node.py) | 수정 | 비디오 프레임별 정확한 시뮬레이션/벽시계 시간 및 상태 메타데이터(`_frame_sync.jsonl`) 생성 로직 추가 |
 | [`scripts/run_recorded_experiment.py`](../../scripts/run_recorded_experiment.py) | 수정 | `capstone_ws` 자동 환경 임포트, rosbag2 topic parsing 버그(`Topic information:` 접두어) 수정, frame_sync 검증 연동 |
-| [`evaluation/scripts/run_recorded_experiment.py`](../../evaluation/scripts/run_recorded_experiment.py) | 수정 | `scripts/run_recorded_experiment.py`와 동일한 환경 임포트 및 파서 수정 동기화 |
-| [`evaluation/scripts/run_safety_fault_injection_evaluation.py`](../../evaluation/scripts/run_safety_fault_injection_evaluation.py) | 수정 | Batch 3 (Scenario 2A Depth Required) 추가, 합격 판정 기준 $\le 0.55\text{s}$ 적용, Scenario 4 판정을 UNVERIFIED로 갱신 |
-| [`evaluation/results/safety_fault_injection_summary_retest_20261108.json`](../../evaluation/results/safety_fault_injection_summary_retest_20261108.json) | 생성 | 기준선 보완 후 재검증된 고장 주입 시험 종합 결과 JSON |
+| [`evaluation/scripts/run_recorded_experiment.py`](../scripts/run_recorded_experiment.py) | 수정 | `scripts/run_recorded_experiment.py`와 동일한 환경 임포트 및 파서 수정 동기화 |
+| [`evaluation/scripts/run_safety_fault_injection_evaluation.py`](../scripts/run_safety_fault_injection_evaluation.py) | 수정 | Batch 3 (Scenario 2A Depth Required) 추가, 합격 판정 기준 $\le 0.55\text{s}$ 적용, Scenario 4 판정을 UNVERIFIED로 갱신 |
+| [`evaluation/results/safety_fault_injection_summary_retest_20261108.json`](../results/safety_fault_injection_summary_retest_20261108.json) | 생성 | 기준선 보완 후 재검증된 고장 주입 시험 종합 결과 JSON |
 
 ---
 

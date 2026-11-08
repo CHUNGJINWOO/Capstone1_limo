@@ -83,7 +83,7 @@ Nav2가 지도 위에서 목표점으로 이동하는 과정을 센서 입력, T
   6. `explore.cpp`의 `reachedGoal()`은 `SUCCEEDED` 시 목표를 블랙리스트에 넣지 않고 20ms 만에 즉시 `makePlan()`을 동기 재호출하므로, 로봇이 서 있는 동일 가상 무게중심에 대해 초고속 무한 성공 루프가 발생함.
 
 ### 해결 조치
-- **코드 수정:** [`capstone_ws/src/m-explore-ros2/explore/src/explore.cpp` 268행](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268) 단 1줄 수정:
+- **코드 수정:** [`capstone_ws/src/m-explore-ros2/explore/src/explore.cpp` 268행](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268) 단 1줄 수정:
   ```diff
   - geometry_msgs::msg::Point target_position = frontier->centroid;
   + geometry_msgs::msg::Point target_position = frontier->middle;
@@ -115,15 +115,15 @@ Nav2가 지도 위에서 목표점으로 이동하는 과정을 센서 입력, T
 
 ### 문제
 - Fortress Ackermann 시뮬레이터에서 기존 DWB(`dwb_core::DWBLocalPlanner`) 사용 시 제자리 회전 명령(`linear.x = 0.0, angular.z != 0.0`)이 발행되어 최소 회전 반경 제약이 있는 Ackermann 조향 모델이 전진하지 못하고 `Failed to make progress` 및 `BackUp`/`Spin` 복구 루프에 빠지는 현상이 있었음.
-- 또한 [`explore.cpp`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp)에서 목표 전송(`target_position = frontier->middle`, [`explore.cpp:268`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268)) 및 블랙리스트 저장([`explore.cpp:284`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L284), [`explore.cpp:392`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L392))은 `frontier.middle`을 사용하는 반면, 블랙리스트 조회(`visualizeFrontiers()` [`explore.cpp:196`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L196), `makePlan()` [`explore.cpp:258`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L258))는 `frontier.centroid`를 참조하고 있어 타임아웃 시 블랙리스트에 등록된 프론티어가 필터링되지 않고 재선택될 위험이 있었음.
+- 또한 [`explore.cpp`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp)에서 목표 전송(`target_position = frontier->middle`, [`explore.cpp:268`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268)) 및 블랙리스트 저장([`explore.cpp:284`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L284), [`explore.cpp:392`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L392))은 `frontier.middle`을 사용하는 반면, 블랙리스트 조회(`visualizeFrontiers()` [`explore.cpp:196`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L196), `makePlan()` [`explore.cpp:258`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L258))는 `frontier.centroid`를 참조하고 있어 타임아웃 시 블랙리스트에 등록된 프론티어가 필터링되지 않고 재선택될 위험이 있었음.
 
 ### 원인 분석
 1. **조향 기구학 불일치:** DWB 설정(`min_speed_xy: 0.0`)이 제자리 회전을 허용하여 Ackermann 조향 기구학과 충돌함.
 2. **블랙리스트 좌표 기준 불일치:** 큰 프론티어(`n=823` 셀 등)에서는 가장 가까운 점인 `frontier.middle`(예: `(-0.409, -0.457)`)과 전체 평균점인 `frontier.centroid`(예: `(0.272, 0.028)`) 사이의 좌표 차이가 `goalOnBlacklist()`의 허용 오차(`tolerance = 5 * costmap_resolution = 0.25 m`)를 초과($|\Delta x| = 0.681\,\text{m}$, $|\Delta y| = 0.485\,\text{m}$)하므로, `middle`을 블랙리스트에 저장하고 `centroid`로 조회하면 동일 프론티어를 블랙리스트로 인식하지 못함.
 
 ### 해결 조치
-1. **시뮬레이션 전용 RPP 설정 분리:** 실차용 설정(`nav2_params.yaml`, `nav2_explore_params.yaml`)을 보존한 채 시뮬레이션 전용 [`nav2_sim_params.yaml`](file://${PROJECT_ROOT}/capstone_ws/src/limo_capstone/config/nav2_sim_params.yaml), [`limo_nav2_sim.launch.py`](file://${PROJECT_ROOT}/capstone_ws/src/limo_capstone/launch/limo_nav2_sim.launch.py), [`limo_auto_mapping_sim.launch.py`](file://${PROJECT_ROOT}/capstone_ws/src/limo_capstone/launch/limo_auto_mapping_sim.launch.py)를 구성하고 `nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController`(`use_rotate_to_heading: false`, `allow_reversing: false`)를 적용함.
-2. **블랙리스트 조회 좌표 통일 (Phase 12-L):** [`explore.cpp`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp)의 [`visualizeFrontiers()` (196행)](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L196)와 [`makePlan()` (258행)](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L258)에서 `goalOnBlacklist` 인자를 `frontier.middle` / `f.middle`로 통일하고 `explore_lite`를 재빌드함.
+1. **시뮬레이션 전용 RPP 설정 분리:** 실차용 설정(`nav2_params.yaml`, `nav2_explore_params.yaml`)을 보존한 채 시뮬레이션 전용 [`nav2_sim_params.yaml`](../capstone_ws/src/limo_capstone/config/nav2_sim_params.yaml), [`limo_nav2_sim.launch.py`](../capstone_ws/src/limo_capstone/launch/limo_nav2_sim.launch.py), [`limo_auto_mapping_sim.launch.py`](../capstone_ws/src/limo_capstone/launch/limo_auto_mapping_sim.launch.py)를 구성하고 `nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController`(`use_rotate_to_heading: false`, `allow_reversing: false`)를 적용함.
+2. **블랙리스트 조회 좌표 통일 (Phase 12-L):** [`explore.cpp`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp)의 [`visualizeFrontiers()` (196행)](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L196)와 [`makePlan()` (258행)](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L258)에서 `goalOnBlacklist` 인자를 `frontier.middle` / `f.middle`로 통일하고 `explore_lite`를 재빌드함.
 
 ### 검증
 1. **정상 주행 검증 (Phase 12-N):**
@@ -143,7 +143,7 @@ Nav2가 지도 위에서 목표점으로 이동하는 과정을 센서 입력, T
 ### 한계 및 다음 작업
 - **개별 목표 도달 성공 (미검증):** 로그에서 개별 목표의 `SUCCEEDED`는 확인되지 않았고 선점된 목표들의 최종 액션 `ResultCode`도 기록되지 않았음. 따라서 Phase 12-N은 탐색 중 주행과 정상적인 탐색 종료를 검증한 것이며 개별 목표 도달 성공을 검증한 것은 아님.
 - **`makePlan()` 타임아웃 분기 및 A $\rightarrow$ B 전환 알고리즘만 검증됨 (실제 주행 전환은 미검증):** Phase 12-O와 Phase 12-P1/P2를 통해 `makePlan()` 내부의 `progress_timeout` 블랙리스트 등록, `goalOnBlacklist(f.middle)` 필터링, 그리고 다중 프론티어 환경에서 차순위 프론티어(A $\rightarrow$ B)로 목표를 전환하는 알고리즘 흐름은 검증되었으나, 속도 제한을 해제한 상태에서 목표 B로 실제 이동 및 도달(`SUCCEEDED`)하는 통합 주행은 아직 검증되지 않았음.
-- **Nav2 `ABORTED` 콜백 블랙리스트 분기 (미검증):** `reachedGoal()` 콜백 내 `ResultCode::ABORTED` 수신에 의한 블랙리스트 등록 경로([`explore.cpp:392`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L392))는 이번 런타임 테스트에서 발생하지 않아 미검증 상태임.
+- **Nav2 `ABORTED` 콜백 블랙리스트 분기 (미검증):** `reachedGoal()` 콜백 내 `ResultCode::ABORTED` 수신에 의한 블랙리스트 등록 경로([`explore.cpp:392`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L392))는 이번 런타임 테스트에서 발생하지 않아 미검증 상태임.
 - **실물 LIMO 로봇 (미검증):** 이번 검증은 모두 Fortress 시뮬레이터에서 수행되었으며 실물 LIMO 하드웨어에서는 검증되지 않았음.
 - **탐색 종료 시 `bt_navigator` halt 로그 관측 (원인 별도 미검증):** Phase 12-N, 12-O, 12-P2에서 탐색 종료(`stop(true)`)로 활성 목표를 취소할 때 `bt_navigator`에서 `[ERROR] [bt_navigator]: Failed to get result for follow_path in node halt!`가 1회 출력된 직후 `[INFO] [bt_navigator]: Goal canceled`로 종료되는 현상이 관측됨. 종료 절차 자체는 정상 완료되었으나, 해당 에러 로그의 내부 원인은 별도로 검증하지 않았으므로 무조건 무해하다고 단정하지 않고 관측 사실로 기록함.
 - **후속 우선순위 과제:** (1) 맵 파일 로딩/저장 경로 및 포맷 검증, (2) 정지·종료 원인 진단 로그 및 확인 절차 정리, (3) 빌드/런타임 반영 여부 사전 점검 절차 정리, (4) 속도 제한 해제 상태에서 A $\rightarrow$ B 전환 후 실제 주행 테스트, (5) 진도 보고서 및 중간 발표 PPT용 결과·근거 표 정리.

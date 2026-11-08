@@ -1435,20 +1435,20 @@ ros2 run nav2_map_server map_saver_cli -f map
 
 ## 1. Phase 12-L: `explore.cpp` 블랙리스트 판정 좌표 기준 통일 및 빌드
 
-- **수정 내용:** [`capstone_ws/src/m-explore-ros2/explore/src/explore.cpp`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp)에서 블랙리스트 조회(`goalOnBlacklist`) 좌표를 `frontier.centroid`에서 `frontier.middle`로 통일함.
+- **수정 내용:** [`capstone_ws/src/m-explore-ros2/explore/src/explore.cpp`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp)에서 블랙리스트 조회(`goalOnBlacklist`) 좌표를 `frontier.centroid`에서 `frontier.middle`로 통일함.
 - **수정 위치 (총 2곳):**
-  1. `visualizeFrontiers()` ([`explore.cpp:196`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L196)):
+  1. `visualizeFrontiers()` ([`explore.cpp:196`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L196)):
      ```diff
      - m.color = goalOnBlacklist(frontier.centroid) ? red : blue;
      + m.color = goalOnBlacklist(frontier.middle) ? red : blue;
      ```
-  2. `makePlan()` 후보 필터링 람다 ([`explore.cpp:258`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L258)):
+  2. `makePlan()` 후보 필터링 람다 ([`explore.cpp:258`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L258)):
      ```diff
      - return !goalOnBlacklist(f.centroid);
      + return !goalOnBlacklist(f.middle);
      ```
 - **수정 목적:**
-  - `makePlan()`의 목표 전송(`target_position = frontier->middle`, [`explore.cpp:268`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268)) 및 블랙리스트 저장(`frontier_blacklist_.push_back(target_position)`, [`explore.cpp:284`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L284), [`explore.cpp:392`](file://${PROJECT_ROOT}/capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L392))은 `frontier->middle` 좌표를 사용하는 반면, 기존 조회부는 `frontier.centroid`를 비교하여 발생하던 좌표 기준 불일치 가능성을 제거함.
+  - `makePlan()`의 목표 전송(`target_position = frontier->middle`, [`explore.cpp:268`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L268)) 및 블랙리스트 저장(`frontier_blacklist_.push_back(target_position)`, [`explore.cpp:284`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L284), [`explore.cpp:392`](../capstone_ws/src/m-explore-ros2/explore/src/explore.cpp#L392))은 `frontier->middle` 좌표를 사용하는 반면, 기존 조회부는 `frontier.centroid`를 비교하여 발생하던 좌표 기준 불일치 가능성을 제거함.
 - **빌드 검증:** `colcon build --packages-select explore_lite` 실행 결과 `explore_lite` 패키지 빌드 성공 및 설치 경로(`capstone_ws/install/explore_lite/lib/explore_lite/explore`) 반영 확인.
 
 ## 2. Phase 12-N: RPP + `frontier.middle` 정상 주행 시뮬레이션 검증
@@ -1719,4 +1719,4 @@ ros2 run nav2_map_server map_saver_cli -f map
 
 ### 미확인과 다음 작업
 
-새 Nav2 주행·전체 GUI·LIMO 주행은 재실행하지 않았다. 저장소 밖 Fortress 자산 및 기존 런치·일부 시험 설정의 당시 경로가 남아 있어 새 복제본에서 무설정 실행을 보장하지 않는다. [실행 준비와 의존성](../output/simulation/README.md)을 먼저 확인한다. 이동체와의 형상 겹침, 판정 시각의 TF·Gazebo 위치 정합, LIMO 반복 시험과 안전 중재 통합은 남은 개발 과제다.
+새 Nav2 주행·전체 GUI·LIMO 주행은 재실행하지 않았다. 저장소 밖 Fortress 자산 및 기존 런치·일부 시험 설정의 당시 경로가 남아 있어 새 복제본에서 무설정 실행을 보장하지 않는다. [실행 준비와 의존성](../experiments/simulation_benchmarks_20261024/README.md)을 먼저 확인한다. 이동체와의 형상 겹침, 판정 시각의 TF·Gazebo 위치 정합, LIMO 반복 시험과 안전 중재 통합은 남은 개발 과제다.

@@ -159,8 +159,7 @@ LIMO Pro 자동 맵핑 시스템의 실물 적용을 위한 단계별 기능 통
 
 ## 6. 녹화 영상 (MP4) 무결성 및 HUD 검증
 
-- **비디오 파일 경로:**
-  [limo_integrated_auto_mapping_master.mp4](../videos/limo_integrated_auto_mapping_master.mp4)
+- **비디오 파일 경로:** `limo_integrated_auto_mapping_master.mp4` *(로컬 생성 비디오 원본 - 대용량 미추적)*
 - **인코딩 포맷:** MPEG-4 Video (mp4v), OpenCV 호환
 - **해상도:** **1920 x 960** (Dual-Panel 동시 렌더링)
 - **프레임 레이트:** **15.0 FPS**

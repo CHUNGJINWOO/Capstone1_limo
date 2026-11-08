@@ -7,7 +7,7 @@
 ### 1.1 핵심 보완 원칙 준수 내역
 1. **기존 시스템 및 실험 보존**:
    - `capstone_ws` 및 이전 실험 디렉터리의 원본 파일은 일체 수정하지 않고 보존.
-   - 신규 통합 코드는 독립 경로([`experiments/limo_integrated_auto_mapping_20261108/`](../))에서 작성 및 실행.
+   - 신규 통합 코드는 독립 경로([`experiments/limo_integrated_auto_mapping_20261108/`](..))에서 작성 및 실행.
    - Git 커밋 및 푸시 일체 배제.
 2. **TF 및 오도메트리 단일 권한 체계 확립**:
    - `odom -> base_footprint` 변환은 선택된 추정기(F4 또는 F5_improved)의 중계 노드만 유일하게 발행.
