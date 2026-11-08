@@ -1,0 +1,337 @@
+# LIMO 캡스톤 초기 개발부터 자동 맵핑까지 발생한 문제 정리
+
+맞아. 앞선 정리는 Nav2 자율주행 단계에 집중해서, 그보다 앞서 진행했던 Gazebo 환경 구축, ROS 2 통신, LIMO 모델 호환성, LiDAR·TF 연결, SLAM, 자동 탐색, 지도 저장 과정의 문제를 충분히 다루지 못했어.
+
+기존 대화에서 확인되는 기록을 기준으로, 개발 흐름에 따라 다시 정리할게. 특히 초기 문제와 Phase 12\~13에서 발생한 문제를 연결해서 설명하되, 실제로 해결된 문제와 아직 원인이 확정되지 않은 문제는 구분할게.
+
+## 1. 전체 개발 과정에서 문제가 발생한 지점
+
+1단계 — 시뮬레이터 환경 구축
+
+Ubuntu · ROS 2 Humble · Gazebo Classic / Fortress
+
+기존 LIMO 모델의 Gazebo 플러그인과 새 시뮬레이터의 호환성 문제가 핵심이었어.
+
+2단계 — ROS 2와 Gazebo 연결
+
+ros_gz_bridge · DDS · ROS_DOMAIN_ID
+
+Gazebo에 시뮬레이션 데이터가 있어도 ROS 2 그래프에서 노드와 토픽이 보이지 않는 문제가 보고됐어.
+
+3단계 — 로봇 모델·센서·좌표계 연결
+
+/scan · /odom · /tf · /cmd_vel
+
+센서 데이터가 발행되는 것과 SLAM이 올바른 좌표계로 데이터를 이용할 수 있는 것은 별개의 문제야.
+
+4단계 — SLAM 및 자동 탐색
+
+SLAM Toolbox · Explore · Frontier 탐색
+
+탐색이 끝나도 지도가 완성됐다는 뜻은 아니고, 탐색 완료와 지도 저장도 별개의 작업이야.
+
+5단계 — 지도 저장·재로드
+
+Map Saver · Map Server · YAML / PGM
+
+저장된 지도와 재로드된 지도의 unknown 영역 해석이 달라지는 문제가 관찰됐어.
+
+## 2. 초기 시뮬레이터 구축 문제
+
+### 문제 1. 기존 LIMO 모델이 Gazebo Fortress에서 그대로 동작하지 않음
+
+발생 배경
+
+초기에는 기존 LIMO ROS 2 저장소의 Gazebo Classic 기반 모델을 사용했어. 당시 Oracle Cloud ARM64 Ubuntu 22.04.5 환경에는 Gazebo가 설치돼 있지 않았고, 이후 Gazebo Fortress 6.18.0을 별도로 설치했어.
+
+기존 모델은 Gazebo Classic용 플러그인에 의존하고 있었어.
+
+기록에서 확인된 파일과 플러그인은 다음과 같아.
+
+- `src/limo_ros2/limo_car/launch/ackermann_gazebo.launch.py`
+- `src/limo_ros2/limo_car/launch/ackermann.launch.py`
+- `src/limo_ros2/limo_car/gazebo/ackermann_with_sensor.xacro`
+- `src/limo_ros2/limo_car/gazebo/ackermann.xacro`
+- `src/limo_ros2/limo_car/gazebo/sensor.xacro`
+- `libgazebo_ros_imu_sensor.so`
+- `libgazebo_ros_ray_sensor.so`
+- `libgazebo_ros_diff_drive.so`
+- `libgazebo_ros_camera.so`
+
+이 플러그인들은 Gazebo Classic용이기 때문에 Fortress에서 동일하게 사용할 수 있다고 가정하면 안 돼.
+
+원인
+
+시뮬레이터의 버전과 플러그인 인터페이스가 달라서 발생한 호환성 문제야. 단순히 ROS 2 패키지를 설치하는 것만으로 기존 모델이 Fortress용 모델로 바뀌지는 않아.
+
+해결 방향
+
+기존 Classic 모델을 직접 덮어쓰는 대신, Fortress 전용 모델과 실행 환경을 별도로 구성하는 방향을 선택했어.
+
+기록상 이후 Fortress 실험용 파일은 다음 경로에 만들어졌어.
+
+- `<sim-research-ws>/experiments/fortress/enclosed_room_fortress.sdf`
+- `<sim-research-ws>/experiments/fortress/limo_ackermann_fortress.sdf`
+- `<sim-research-ws>/experiments/fortress/limo_ackermann_fortress.urdf`
+- `<sim-research-ws>/experiments/fortress/limo_fortress_sim.launch.py`
+
+Fortress를 headless 모드로 실행한 것은 확인됐어. 다만 GUI는 DISPLAY/XCB 문제로 검증되지 않았다는 기록이 있어.
+
+남은 주의점: Fortress용 모델이 실행되는 것과 기존 LIMO의 모든 센서·구동 동작이 정상 구현됐다는 것은 다른 검증 항목이야.
+
+### 문제 2. Gazebo에서는 `/clock`이 나오는데 ROS 2에서는 bridge 노드와 토픽이 보이지 않음
+
+발생 현상
+
+2026년 9월 26일 Oracle Cloud 환경에서 Gazebo의 `/clock`과 `/world/default/clock`은 존재했지만, `ros_gz_bridge` 실행 로그가 나온 뒤에도 ROS 2 그래프에서 bridge 노드나 `/clock`이 보이지 않는 문제가 보고됐어.
+
+당시 환경은 다음과 같았어.
+
+- Ubuntu 22.04.5, ARM64
+- ROS 2 Humble
+- Gazebo Fortress 6.18.0
+- `ros-humble-ros-gz` / `ros_gz_bridge` 설치
+- `ROS_DOMAIN_ID=30`
+- `ROS_LOCALHOST_ONLY=0`
+- `RMW_IMPLEMENTATION`은 별도 지정 없이 비어 있었음
+
+또 다른 터미널에서 talker가 발행 중인데도 `/talker`, `/chatter`가 보이지 않는 현상도 함께 보고됐어.
+
+원인 분석
+
+이 현상은 Gazebo 센서 문제만으로 설명할 수 없어. 일반적인 ROS 2 통신과 DDS discovery 자체가 정상인지도 확인해야 했기 때문이야.
+
+가능한 원인은 다음과 같아.
+
+1. ROS 2 프로세스가 서로 다른 DDS 도메인에서 실행됨
+2. DDS discovery 또는 네트워크 인터페이스 문제
+3. 서로 다른 RMW 설정이나 환경변수
+4. bridge가 시작됐지만 연결 대상 Gazebo 토픽 또는 메시지 타입 설정이 맞지 않음
+
+다만 당시 자료만으로 어느 하나가 최종 원인이었다고 확정할 수는 없어.
+
+해결 방향
+
+ROS 2 talker/listener가 같은 환경에서 서로 발견되는지 먼저 확인하고, 그다음 Gazebo bridge를 확인하는 순서가 맞아. bridge의 실행 로그만으로 연결 성공을 판단해서는 안 돼.
+
+이후 Fortress 전용 실험 환경에서 `ROS_DOMAIN_ID=48`, `ROS_LOCALHOST_ONLY=1` 및 별도의 Fast DDS 설정 파일을 사용하는 검증 방식이 보고됐어. 이는 초기 `ROS_DOMAIN_ID=30` 환경과 구분된 설정이야. 두 설정이 동일한 문제를 어떻게 해결했는지까지는 현재 기록만으로 확정할 수 없어.
+
+관련 파일:
+
+- `<sim-research-ws>/experiments/fortress/fastdds_udp_only.xml`
+- `<sim-research-ws>/experiments/fortress/limo_fortress_sim.launch.py`
+
+중요: 이후 Phase 13-C에서 ROS 2의 `/clock`, `/scan`, `/odom`, TF를 이용한 AMCL 검증이 성공했다는 보고는 있어. 따라서 Fortress 통신 문제가 모든 후속 단계에서 계속 재현됐다고 볼 수는 없어. 다만 초기 bridge 문제의 정확한 근본 원인과 최종 해결 변경 사항은 별도 확인이 필요해.
+
+## 3. LIMO 구동 모델과 센서 데이터 문제
+
+### 문제 3. 기존 Ackermann 모델과 diff-drive 설정의 혼용 가능성
+
+초기 작업에서는 LIMO의 Ackermann 모델을 조사했고, 이후 Fortress용 모델의 구동 구조도 검토했어. 관련 기록에 남은 기존 diff-drive 설정은 다음과 같아.
+
+| 항목               | 기록된 값                                                                          |
+| ---------------- | ------------------------------------------------------------------------------ |
+| 휠 조인트            | `front_left_wheel`, `front_right_wheel`, `rear_left_wheel`, `rear_right_wheel` |
+| 명령 토픽            | `cmd_vel`                                                                      |
+| odometry         | `odom` 또는 `/odometry`                                                          |
+| TF               | `odom → base_footprint`                                                        |
+| Wheel separation | `0.172m`                                                                       |
+| Wheel diameter   | `0.09m`                                                                        |
+
+여기서 주의해야 하는 것은 Ackermann과 diff-drive가 동일한 구동 모델이 아니라는 점이야.
+
+Ackermann 모델은 조향각과 차량의 회전 기하를 사용하고, diff-drive는 좌우 바퀴의 속도 차이를 사용해 회전해. 기존 모델의 조인트 이름이나 휠 크기를 가져왔다고 해서 구동 플러그인까지 올바르게 대응되는 것은 아니야.
+
+원인으로 확정된 사항: 기존 Classic 모델과 Fortress용 모델은 별도로 관리해야 했어.
+
+아직 확정되지 않은 사항: 초기 자동 매핑이 실패한 원인이 Ackermann/diff-drive 혼용 때문이었다는 직접적인 증거는 없어.
+
+해결 방향
+
+- 실제 실행 중인 모델이 Ackermann인지 diff-drive인지 확인한다.
+- 해당 모델에 맞는 구동 플러그인과 조인트 설정을 사용한다.
+- `/cmd_vel`을 발행했을 때 odometry가 기대한 방향과 속도로 변하는지 확인한다.
+- 기존 모델 파일은 유지하고, Fortress 전용 모델만 별도로 수정한다.
+
+관련 파일:
+
+- 기존 모델: `src/limo_ros2/limo_car/gazebo/ackermann.xacro`
+- 기존 센서: `src/limo_ros2/limo_car/gazebo/sensor.xacro`
+- Fortress 모델: `<sim-research-ws>/experiments/fortress/limo_ackermann_fortress.sdf`
+- Fortress URDF: `<sim-research-ws>/experiments/fortress/limo_ackermann_fortress.urdf`
+
+### 문제 4. LiDAR 토픽은 존재하지만 좌표계가 적절한지 확인해야 함
+
+초기 Gazebo Classic 환경에서 `/scan`은 `sensor_msgs/msg/LaserScan` 타입으로 약 6.7Hz 발행됐어. 그런데 당시 `frame_id`는 `base_link`였고, range 값은 대부분 `.inf`로 기록됐어.
+
+여기서 두 가지를 구분해야 해.
+
+- `frame_id: base_link` 자체가 반드시 잘못된 것은 아니야. 실제 센서가 그 좌표계에 위치하고 있고 TF가 일치한다면 사용할 수 있어.
+- `inf` 값도 LiDAR가 해당 방향에서 유효한 장애물을 검출하지 않았을 때 정상적으로 나올 수 있어.
+
+따라서 당시 기록만으로 LiDAR가 고장 났다고 결론 내릴 수는 없어.
+
+이후 Fortress 검증에서는 `/scan`의 `frame_id`가 `laser_link`이고, 360개 측정값과 0.1\~10m 범위가 보고됐어. TF 연결은 다음과 같이 구성된 것으로 보고됐어.
+
+```
+map
+ └─ odom
+     └─ base_footprint
+         └─ base_link
+             └─ laser_link
+```
+
+해결 방향
+
+센서 토픽의 존재 여부만 보지 말고 다음 사항을 함께 확인해야 해.
+
+1. `/scan` 메시지의 `frame_id`
+2. 해당 좌표계가 실제 TF 트리에 존재하는지
+3. 센서 설치 위치와 URDF/SDF의 위치가 일치하는지
+4. range 값이 유효한지
+5. 벽이나 장애물이 있을 때 기대한 거리값이 나오는지
+
+관련 파일:
+
+- 기존 센서: `src/limo_ros2/limo_car/gazebo/sensor.xacro`
+- Fortress 모델: `limo_ackermann_fortress.sdf`, `limo_ackermann_fortress.urdf`
+- 실행 파일: `limo_fortress_sim.launch.py`
+
+## 4. 자동 매핑·SLAM·탐색 단계에서 발생한 문제
+
+### 문제 5. Explore가 탐색을 완료했지만 frontier가 남지 않음
+
+Phase 12-R 기록에는 Explore가 탐색 완료 상태에 도달했고, 더 이상 frontier를 찾지 못했다는 결과가 있어.
+
+Frontier는 일반적으로 알려진 공간과 아직 알려지지 않은 공간의 경계야. 따라서 frontier가 없다는 것은 탐색 알고리즘이 더 이상 탐색 목표를 찾지 못했다는 뜻이지, 실제 공간 전체가 올바르게 매핑됐다는 뜻은 아니야.
+
+가능한 원인은 다음과 같아.
+
+- 실제로 탐색 가능한 frontier가 남지 않음
+- 지도에서 미관측 영역이 예상보다 적게 남음
+- 미관측 영역이 장애물 또는 costmap의 금지 영역으로 처리됨
+- frontier 탐색 조건이나 최소 크기 조건에 의해 후보가 제외됨
+- LiDAR, TF, 지도 갱신이 기대대로 이루어지지 않음
+
+하지만 Phase 12-R 기록만으로 이 중 어느 것이 원인이었는지 확정할 수는 없어.
+
+관련 파일
+
+- `capstone_ws/src/limo_capstone/config/explore.yaml`
+- `capstone_ws/src/limo_capstone/config/nav2_explore_params.yaml`
+- `capstone_ws/src/m-explore-ros2/explore/src/explore.cpp`
+- `capstone_ws/src/limo_capstone/launch/limo_auto_mapping_sim.launch.py`
+
+해결 방향
+
+탐색 종료 메시지만 보고 설정을 변경하지 말고, 탐색 종료 시점의 지도와 frontier 후보, costmap 상태를 함께 살펴야 해.
+
+특히 `explore.cpp`를 수정하기 전에는 frontier가 실제로 없었던 것인지, 후보가 있었지만 필터링된 것인지, 지도 또는 TF 입력에 문제가 있었는지 구분해야 해.
+
+### 문제 6. 자동 매핑 결과가 실제 공간을 충분히 표현하지 못할 가능성
+
+Phase 12-S에서 저장한 지도는 100×100 픽셀, 해상도 0.05m였어. PGM 픽셀 분포는 다음과 같이 보고됐어.
+
+| 분류       | 픽셀 수  | 비율     |
+| -------- | ----- | ------ |
+| Free     | 9,052 | 90.52% |
+| Occupied | 645   | 6.45%  |
+| Unknown  | 303   | 3.03%  |
+
+이 수치만으로 지도 품질이 좋거나 나쁘다고 판단할 수는 없어. 다만 5m 정도의 공간을 표현하는 지도에서 unknown 영역이 어디에 분포하는지, 벽이 끊기지 않았는지, 실제 공간과 일치하는지 확인할 필요가 있어.
+
+또한 Phase 12-S 분석에서 내부의 일부 unknown 셀과 occupied 셀 사이의 거리가 매우 가까웠다는 결과가 있었어. 이는 벽 주변에 미관측 셀이 남았을 가능성과 일치하지만, 그 자체로 지도 생성 오류를 증명하지는 않아.
+
+해결 방향
+
+- 지도 이미지에서 벽과 통로가 연속적으로 표현되는지 확인한다.
+- unknown 영역을 free로 바꾸어 지도 품질 문제를 감추지 않는다.
+- LiDAR 관측과 TF가 올바르게 연결됐는지 확인한다.
+- Explore 종료 조건과 frontier 필터링은 실제 후보를 확인한 후 조정한다.
+
+### 문제 7. 지도 저장 실패와 지도 재로드 시 의미 변화
+
+이 문제는 앞서 정리한 두 현상을 연결해서 봐야 해.
+
+- Phase 12-R: 탐색은 끝났지만 지도가 저장되지 않음
+- Phase 12-S: 지도 저장은 성공했지만, 재로드 후 unknown 셀이 free로 분류됨
+
+따라서 자동 매핑 절차는 다음처럼 구분되어야 해.
+
+```
+SLAM으로 지도 생성
+      ↓
+Explore로 탐색
+      ↓
+탐색 완료 상태 확인
+      ↓
+Map Saver로 지도 저장
+      ↓
+YAML/PGM 생성 확인
+      ↓
+Map Server로 재로드
+      ↓
+원본과 재로드 결과 비교
+```
+
+관련 파일:
+
+- `capstone_ws/src/limo_capstone/launch/limo_auto_mapping_sim.launch.py`
+- `capstone_ws/src/limo_capstone/config/explore.yaml`
+- `phase12s_map.yaml`
+- `phase12s_map.pgm`
+
+이 절차를 분리해야 탐색 실패, 저장 실패, 재로드 변환 문제를 서로 혼동하지 않을 수 있어.
+
+## 5. 자동 매핑 이전에 발생했던 개발 환경 문제
+
+### 문제 8. Gazebo GUI 실행과 headless 실행의 차이
+
+초기 Oracle Cloud ARM64 환경에서는 Fortress를 headless 모드로 실행하는 데 성공했지만, GUI는 DISPLAY/XCB 문제로 검증되지 않았어.
+
+이것은 SLAM이나 자동 탐색의 오류와는 별개야.
+
+- headless 실행: 시뮬레이터 서버 실행 확인
+- GUI 실행: 디스플레이 서버와 그래픽 환경까지 필요
+
+해결 방향: GUI 문제를 SLAM 문제로 취급하지 말고, 시뮬레이터 프로세스와 그래픽 환경을 따로 진단해야 해. GUI가 안 뜨더라도 ROS 2 토픽과 시뮬레이터 데이터가 정상이라면 headless 환경에서 알고리즘을 분석할 수 있어.
+
+### 문제 9. 실제 LIMO 하드웨어 연결 실패
+
+과거 기록에는 실제 하드웨어의 `/dev/ttylimo` 접근 실패가 있었어. 하지만 이는 시뮬레이션과 별개의 문제라고 당시에도 구분했어.
+
+해결 방향: 실제 장치 연결, 권한, 드라이버 및 시리얼 통신 문제는 실물 검증 단계에서 따로 다뤄야 해. 시뮬레이터가 정상 동작한다고 해서 하드웨어 연결도 정상이라고 볼 수 없어.
+
+관련 코드와 파일은 현재 기록만으로 특정 원인과 수정 내역을 확정하기 어려워.
+
+## 6. 기존 문제를 한눈에 보는 전체 목록
+
+| 번호 | 개발 단계        | 문제                                               | 현재 판단                             |
+| -- | ------------ | ------------------------------------------------ | --------------------------------- |
+| 1  | 환경 구축        | Gazebo Classic 모델을 Fortress에서 그대로 사용하기 어려움       | 호환성 차이 확인, Fortress 전용 모델 구성      |
+| 2  | ROS 2 통신     | Gazebo에 `/clock`이 있지만 ROS 그래프에 bridge 토픽이 보이지 않음 | 초기 원인 미확정, 이후 별도 환경에서 통신 검증 성공 보고 |
+| 3  | 로봇 모델        | Ackermann과 diff-drive 설정의 일치 여부                  | 검토 필요, 직접적인 실패 원인으로 확정되지 않음       |
+| 4  | 센서           | `/scan`의 `frame_id`와 range 값 해석                  | 토픽은 확인됐지만 좌표계·관측 품질을 함께 확인해야 함    |
+| 5  | 자동 탐색        | Explore가 frontier 없이 종료됨                         | 원인 미확정, 지도와 후보 필터링 확인 필요          |
+| 6  | SLAM         | 지도에 unknown 영역이 남음                               | 일부 unknown 셀 관찰, 지도 오류 여부는 미확정    |
+| 7  | 지도 저장        | 탐색 완료 후 지도 저장 누락                                 | 탐색과 저장을 분리해야 함                    |
+| 8  | 지도 재로드       | unknown이 free로 바뀜                                | 임계값과 PGM 픽셀값의 조합이 원인으로 관찰됨        |
+| 9  | Nav2 시작      | AMCL 초기 위치와 TF 준비 전 planner/costmap 초기화 지연       | 시작 순서와 준비 상태 확인 필요                |
+| 10 | 속도 제어        | `/cmd_vel_nav`는 nonzero인데 `/cmd_vel`은 0          | 일부 이전 설정에서 0 속도 제한 확인             |
+| 11 | Localization | AMCL 위치가 odometry를 즉시 반영하지 않는 것처럼 보임             | 원인 미확정, timestamp와 TF 분석 필요       |
+| 12 | 실물 검증        | `/dev/ttylimo` 연결 실패                             | 시뮬레이션과 별도로 진단 필요                  |
+| 13 | GUI          | Fortress GUI가 DISPLAY/XCB 문제로 검증되지 않음            | 시뮬레이션 알고리즘 문제와 분리 필요              |
+
+## 7. 앞으로의 분석 순서
+
+현재는 자율주행을 더 검증하는 대신, 기존 문제의 근본 원인을 확인하는 데 집중하는 게 맞아.
+
+1. 초기 Fortress/ROS 2 통신 문제: 실제 bridge 로그와 환경 설정을 대조해 원인을 확정한다.
+2. 자동 매핑 및 Explore 문제: `explore.cpp`, `explore.yaml`, `nav2_explore_params.yaml`과 Phase 12 로그를 대조해 frontier가 없었던 이유를 찾는다.
+3. 지도 저장·재로드 문제: PGM 픽셀값, YAML 임계값, Map Server의 분류 결과를 연결한다.
+4. 속도 제어 문제: 실제 사용한 launch 파일과 velocity smoother 설정을 확인한다.
+5. AMCL 초기화·갱신 문제: Phase 13-C/D 로그를 통해 초기 위치, TF, 센서 갱신을 분리해서 분석한다.
+
+이 순서대로 진행하면 이후 문제가 생겼을 때도 환경, 센서, SLAM, 탐색, 지도 저장, Nav2를 구분해서 진단할 수 있어.
+
+다만 초기 자동 매핑 단계의 모든 실패 원인과 수정 이력이 현재 대화 기록에 남아 있는 것은 아니야. 위에서 원인이 확정되지 않은 항목은 실제 코드와 로그를 대조하기 전까지 가설로 유지해야 해. 다음 단계에서는 저장소를 변경하지 않고 기존 기록과 파일을 읽기 전용으로 조사해, 확인된 원인과 아직 추정에 머무는 원인을 더 정확히 구분하는 것이 적절해.
