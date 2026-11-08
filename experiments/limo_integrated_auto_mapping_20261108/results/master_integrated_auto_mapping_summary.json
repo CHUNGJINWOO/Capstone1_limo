@@ -1,0 +1,60 @@
+{
+  "test_timestamp": "2026-11-08 17:32:34",
+  "master_launch_file": "launch/limo_integrated_auto_mapping_master.launch.py",
+  "active_estimator": "f4_lidar_scan_matcher",
+  "test_duration_sec": 35.0,
+  "metrics": {
+    "map_occupied_cells_count": 1138,
+    "traveled_distance_m": 5.5,
+    "plans_computed_count": 33,
+    "depth_clouds_processed": 204,
+    "depth_points_total": 464043,
+    "commands_gated_raw_count": 525,
+    "commands_dispatched_out_count": 1458,
+    "uncommanded_stall_events": 0,
+    "terminal_safety_state": "NORMAL"
+  },
+  "criteria": {
+    "c1_map_occupied_cells_ge_150": {
+      "value": 1138,
+      "pass": true
+    },
+    "c2_traveled_distance_ge_0_70m": {
+      "value": 5.5,
+      "pass": true
+    },
+    "c3_depth_clouds_ge_20": {
+      "value": 204,
+      "pass": true
+    },
+    "c4_plans_received_ge_5": {
+      "value": 33,
+      "pass": true
+    },
+    "c5_zero_false_stalls": {
+      "stall_events": 0,
+      "pass": true
+    },
+    "c6_video_playback_valid": {
+      "video_info": {
+        "valid": true,
+        "file_size_bytes": 10294209,
+        "frame_count": 555,
+        "fps": 15.0,
+        "resolution": "1920x960",
+        "duration_sec": 37.0
+      },
+      "pass": true
+    }
+  },
+  "video_audit": {
+    "valid": true,
+    "file_size_bytes": 10294209,
+    "frame_count": 555,
+    "fps": 15.0,
+    "resolution": "1920x960",
+    "duration_sec": 37.0
+  },
+  "video_file_path": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/videos/limo_integrated_auto_mapping_master.mp4",
+  "overall_verdict": "PASS"
+}

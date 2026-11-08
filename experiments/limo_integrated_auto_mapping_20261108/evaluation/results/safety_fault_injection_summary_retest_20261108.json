@@ -1,0 +1,60 @@
+{
+  "test_timestamp": "2026-11-08 21:14:21",
+  "suite": "Safety Gate Fault Injection Suite (Retest with Strict 0.55s Threshold & Depth Required Mode)",
+  "scenarios": {
+    "scenario_2_depth_dropout": {
+      "fault_type": "Depth camera point cloud silence",
+      "system_state": "NORMAL",
+      "no_false_emergency_stall": true,
+      "explanation": "Absence of secondary 3D depth does not crash safety supervisor; system remains in NORMAL under valid 2D LiDAR.",
+      "verdict": "PASS"
+    },
+    "scenario_5_nav2_timeout": {
+      "fault_type": "Upstream Nav2 drive command silence > 0.5s",
+      "zero_clamp_observed": true,
+      "clamp_latency_sec": 0.268,
+      "verdict": "PASS"
+    },
+    "scenario_6_conflicting_commands": {
+      "fault_type": "Rapid opposing command injection (+0.25m/s vs -0.25m/s)",
+      "max_command_dispatched": 0.25,
+      "min_command_dispatched": 0.0,
+      "reverse_motion_inhibited": true,
+      "verdict": "PASS"
+    },
+    "scenario_1_lidar_dropout": {
+      "fault_type": "LiDAR /scan stream loss",
+      "timeout_detected": true,
+      "detection_latency_sec": 0.331,
+      "threshold_sec": 0.55,
+      "cmd_vel_zeroed": true,
+      "verdict": "PASS"
+    },
+    "scenario_3_icp_freeze": {
+      "fault_type": "ICP odometry delay / freeze > 0.38s",
+      "timeout_detected": true,
+      "detection_latency_sec": 0.341,
+      "threshold_sec": 0.55,
+      "cmd_vel_zeroed": true,
+      "verdict": "PASS"
+    },
+    "scenario_4_process_crash": {
+      "fault_type": "stall_detector_node SIGKILL process crash",
+      "cmd_vel_messages_after_crash": 0,
+      "topic_silence_confirmed": true,
+      "hardware_watchdog_requirement": "CRITICAL AUDIT CORRECTION: When the supervisory software node crashes, user-space stops publishing. However, without physical bench testing of the STM32 MCU firmware watchdog (<=200ms) and hardware E-Stop, actual physical vehicle halting CANNOT be claimed as PASS. Status is strictly UNVERIFIED.",
+      "verdict": "UNVERIFIED (MCU Watchdog & Physical E-Stop Required)"
+    },
+    "scenario_2a_depth_required_dropout": {
+      "fault_type": "Depth camera dropout under depth_required mode",
+      "pre_fault_state": "NORMAL",
+      "timeout_detected": true,
+      "detection_latency_sec": 0.021,
+      "threshold_sec": 0.55,
+      "cmd_vel_zeroed": true,
+      "explanation": "In depth_required mode, depth sensor invalidity/dropout immediately engages FAILSAFE_SENSOR_TIMEOUT.",
+      "verdict": "PASS"
+    }
+  },
+  "overall_verdict": "CONDITIONAL_PASS (All software fail-safes verified; hardware watchdog unverified)"
+}

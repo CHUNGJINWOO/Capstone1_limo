@@ -1,0 +1,35 @@
+{
+  "test_timestamp": "2026-11-08 17:21:28",
+  "safety_parameters": {
+    "enable_auto_reverse": false,
+    "enable_auto_rotate_recovery": false,
+    "require_operator_unlatch": true,
+    "sensor_timeout_sec": 0.45,
+    "stall_confirm_duration_sec": 0.22
+  },
+  "subtest_6A_glass_wall_stall_latch": {
+    "stall_detected": true,
+    "detection_latency_sec": 3.343,
+    "command_zeroed": true,
+    "reverse_motion_detected": false,
+    "post_stall_reverse_drift_m": 0.0,
+    "latched_state_maintained": true,
+    "verdict": "PASS"
+  },
+  "subtest_6B_operator_unlatch": {
+    "service_called": true,
+    "service_success": true,
+    "state_after_unlatch": "NORMAL",
+    "verdict": "PASS"
+  },
+  "subtest_6C_sensor_timeout_failsafe": {
+    "failsafe_entered": true,
+    "timeout_latency_sec": 0.202,
+    "command_zeroed_in_failsafe": true,
+    "verdict": "PASS"
+  },
+  "software_vs_hardware_estop_definition": {
+    "software_command_zeroing": "Supervisory software gate in user-space (stall_detector_node). Zeros /cmd_vel ROS topic when state estimation / slip divergence is detected. Depends on functioning OS kernel, DDS middleware, and microcontroller firmware.",
+    "hardware_emergency_stop": "Physical, hard-wired circuit (E-Stop switch / hardware power relay) that physically cuts electrical power to motor drivers and actuator power busses. Operates independently of software, OS, network, or microcontroller health."
+  }
+}

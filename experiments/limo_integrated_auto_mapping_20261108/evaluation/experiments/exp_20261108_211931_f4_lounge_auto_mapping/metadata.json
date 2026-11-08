@@ -1,0 +1,25 @@
+{
+  "experiment_id": "exp_20261108_211931_f4_lounge_auto_mapping",
+  "estimator_type": "f4",
+  "scenario": "lounge_auto_mapping",
+  "start_wall_time": "2026-11-08T21:19:31.189282",
+  "target_duration_sec": 15.0,
+  "spawn_pose": {
+    "x": -1.1,
+    "y": -0.6,
+    "z": 0.05,
+    "yaw_rad": 1.5708
+  },
+  "record_rosbag2": true,
+  "record_video": true,
+  "paths": {
+    "experiment_root": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/experiments/exp_20261108_211931_f4_lounge_auto_mapping",
+    "rosbag2_dir": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/experiments/exp_20261108_211931_f4_lounge_auto_mapping/rosbag2/exp_20261108_211931_f4_lounge_auto_mapping_bag",
+    "video_path": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/experiments/exp_20261108_211931_f4_lounge_auto_mapping/videos/exp_20261108_211931_f4_lounge_auto_mapping_dual_panel.mp4",
+    "action_events": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/experiments/exp_20261108_211931_f4_lounge_auto_mapping/nav2_action_events.jsonl",
+    "action_summary": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/experiments/exp_20261108_211931_f4_lounge_auto_mapping/nav2_action_summary.json",
+    "execution_log": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/experiments/exp_20261108_211931_f4_lounge_auto_mapping/logs/execution.log"
+  },
+  "end_wall_time": "2026-11-08T21:20:03.032817",
+  "overall_verdict": "PASS"
+}

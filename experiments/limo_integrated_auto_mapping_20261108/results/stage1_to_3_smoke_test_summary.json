@@ -1,0 +1,51 @@
+{
+  "test_timestamp": "2026-11-08 12:51:49",
+  "stages": {
+    "F4_mode": {
+      "estimator_type": "f4",
+      "sensor_inputs": {
+        "scan_received": true,
+        "scan_samples": 75,
+        "imu_received": true,
+        "imu_samples": 726,
+        "raw_wheel_odom_received": true,
+        "raw_wheel_odom_samples": 363,
+        "f4_lidar_odom_received": true,
+        "f4_odom_samples": 74
+      },
+      "tf_tree": {
+        "map_to_odom": 1,
+        "odom_to_base_footprint": 1,
+        "base_footprint_to_base_link": 1,
+        "base_link_to_laser_link": 1,
+        "full_chain_map_to_laser_link": 1
+      },
+      "slam_mapping": {
+        "map_received": true,
+        "map_width": 177,
+        "map_height": 237,
+        "occupied_cells_count": 53
+      },
+      "verdict": "PASS"
+    },
+    "F5_improved_mode": {
+      "estimator_type": "f5_improved",
+      "sensor_inputs": {
+        "f5_ekf_odom_received": true,
+        "f5_odom_samples": 312,
+        "scan_samples": 73,
+        "imu_samples": 716
+      },
+      "tf_tree": {
+        "map_to_odom": 1,
+        "odom_to_base_footprint": 1,
+        "full_chain_map_to_laser_link": 1
+      },
+      "slam_mapping": {
+        "map_received": true,
+        "occupied_cells_count": 54
+      },
+      "verdict": "PASS"
+    }
+  }
+}

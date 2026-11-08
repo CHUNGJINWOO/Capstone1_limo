@@ -1,0 +1,55 @@
+{
+  "test_timestamp": "2026-11-08 22:01:12",
+  "workspace": "${PROJECT_ROOT}/capstone_ws",
+  "packages_tested": [
+    "limo_depth_obstacles",
+    "limo_capstone"
+  ],
+  "stages": {
+    "stage_3_f4_simulation": {
+      "estimator": "f4",
+      "duration_sec": 18.0,
+      "topics_verified": {
+        "/ground_truth/world_odom": 840,
+        "/scan": 138,
+        "/odometry/lidar_odom": 138,
+        "/odom_nav2": 138,
+        "/cmd_vel": 900,
+        "/stall_detector/status_json": 140,
+        "/odom": 691,
+        "/map": 15,
+        "/depth_obstacles/points": 76
+      },
+      "tf_chain_verified": 1,
+      "verdict": "PASS"
+    },
+    "stage_4_f5_simulation": {
+      "estimator": "f5_improved",
+      "duration_sec": 18.0,
+      "topics_verified": {
+        "/ground_truth/world_odom": 829,
+        "/depth_obstacles/points": 86,
+        "/scan": 135,
+        "/odometry/lidar_odom": 135,
+        "/odometry/f5_improved": 676,
+        "/odom": 676,
+        "/odom_nav2": 676,
+        "/cmd_vel": 902,
+        "/stall_detector/status_json": 136,
+        "/map": 15
+      },
+      "tf_chain_verified": 1,
+      "verdict": "PASS"
+    },
+    "stage_7_dynamic_depth_dropout": {
+      "test": "In-Flight Dynamic Depth Dropout with Moving Vehicle",
+      "steady_speed_achieved": true,
+      "detection_latency_sec": 0.017,
+      "cutoff_latency_sec": 0.017,
+      "stopping_distance_m": 0.008,
+      "zero_creep_confirmed": true,
+      "verdict": "PASS"
+    }
+  },
+  "overall_verdict": "PASS"
+}

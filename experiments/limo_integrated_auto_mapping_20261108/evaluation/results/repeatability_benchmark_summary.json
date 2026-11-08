@@ -1,0 +1,150 @@
+{
+  "benchmark_timestamp": "2026-11-08 20:02:33",
+  "trial_duration_sec": 25.0,
+  "identical_condition_runs": {
+    "runs": [
+      {
+        "run_id": "identical_run_1",
+        "spawn_pose": {
+          "x": -1.1,
+          "y": -0.6,
+          "yaw_rad": 1.5708
+        },
+        "traveled_distance_m": 2.214,
+        "map_occupied_cells": 787,
+        "map_free_area_m2": 59.638,
+        "plans_computed": 24,
+        "stall_events": 1,
+        "terminal_state": "STALL_LATCHED"
+      },
+      {
+        "run_id": "identical_run_2",
+        "spawn_pose": {
+          "x": -1.1,
+          "y": -0.6,
+          "yaw_rad": 1.5708
+        },
+        "traveled_distance_m": 2.727,
+        "map_occupied_cells": 863,
+        "map_free_area_m2": 60.97,
+        "plans_computed": 24,
+        "stall_events": 1,
+        "terminal_state": "STALL_LATCHED"
+      },
+      {
+        "run_id": "identical_run_3",
+        "spawn_pose": {
+          "x": -1.1,
+          "y": -0.6,
+          "yaw_rad": 1.5708
+        },
+        "traveled_distance_m": 3.453,
+        "map_occupied_cells": 897,
+        "map_free_area_m2": 63.915,
+        "plans_computed": 22,
+        "stall_events": 0,
+        "terminal_state": "NORMAL"
+      }
+    ],
+    "statistics": {
+      "distance_m": {
+        "mean": 2.798,
+        "std": 0.508,
+        "min": 2.214,
+        "max": 3.453
+      },
+      "occupied_cells": {
+        "mean": 849.0,
+        "std": 46.0,
+        "min": 787,
+        "max": 897
+      },
+      "free_area_m2": {
+        "mean": 61.51,
+        "std": 1.79,
+        "min": 59.64,
+        "max": 63.91
+      },
+      "plans_count": {
+        "mean": 23.3,
+        "std": 0.9
+      }
+    }
+  },
+  "varied_condition_runs": {
+    "runs": [
+      {
+        "run_id": "varied_run_1",
+        "spawn_pose": {
+          "x": -1.05,
+          "y": -0.65,
+          "yaw_rad": 1.5
+        },
+        "traveled_distance_m": 2.26,
+        "map_occupied_cells": 882,
+        "map_free_area_m2": 59.405,
+        "plans_computed": 23,
+        "stall_events": 1,
+        "terminal_state": "STALL_LATCHED"
+      },
+      {
+        "run_id": "varied_run_2",
+        "spawn_pose": {
+          "x": -1.15,
+          "y": -0.55,
+          "yaw_rad": 1.64
+        },
+        "traveled_distance_m": 2.033,
+        "map_occupied_cells": 867,
+        "map_free_area_m2": 59.043,
+        "plans_computed": 22,
+        "stall_events": 1,
+        "terminal_state": "STALL_LATCHED"
+      },
+      {
+        "run_id": "varied_run_3",
+        "spawn_pose": {
+          "x": -1.1,
+          "y": -0.6,
+          "yaw_rad": 1.6508
+        },
+        "traveled_distance_m": 3.858,
+        "map_occupied_cells": 1001,
+        "map_free_area_m2": 64.345,
+        "plans_computed": 23,
+        "stall_events": 0,
+        "terminal_state": "NORMAL"
+      }
+    ],
+    "statistics": {
+      "distance_m": {
+        "mean": 2.717,
+        "std": 0.812,
+        "min": 2.033,
+        "max": 3.858
+      },
+      "occupied_cells": {
+        "mean": 916.7,
+        "std": 59.9,
+        "min": 867,
+        "max": 1001
+      },
+      "free_area_m2": {
+        "mean": 60.93,
+        "std": 2.42,
+        "min": 59.04,
+        "max": 64.34
+      },
+      "plans_count": {
+        "mean": 22.7,
+        "std": 0.5
+      }
+    }
+  },
+  "repeatability_assessment": {
+    "distance_cv_pct": 18.16,
+    "cells_cv_pct": 5.42,
+    "robustness_under_perturbation": "VERIFIED",
+    "overall_verdict": "PASS"
+  }
+}

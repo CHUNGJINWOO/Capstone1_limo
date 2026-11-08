@@ -1,0 +1,117 @@
+{
+  "evaluation_timestamp": "2026-11-08 19:23:41",
+  "environment": "Lounge World (Fortress)",
+  "duration_sec_per_trial": 80.0,
+  "trial_f4": {
+    "estimator_type": "f4",
+    "trial_duration_sec": 80.0,
+    "traveled_distance_m": 3.005,
+    "map_metrics": {
+      "occupied_cells_count": 937,
+      "free_cells_count": 24969,
+      "free_space_area_m2": 62.423,
+      "total_explored_area_m2": 64.765,
+      "wall_sharpness_sigma_m": 0.086,
+      "wall_points_evaluated": 11,
+      "grid_resolution_m": 0.05000000074505806
+    },
+    "system_performance": {
+      "mean_cpu_percent": 0.0,
+      "peak_cpu_percent": 0.0,
+      "mean_memory_mb": 0.0,
+      "peak_memory_mb": 0.0,
+      "mean_estimation_latency_ms": 103.14,
+      "max_estimation_latency_ms": 437.0
+    },
+    "navigation_and_safety": {
+      "plans_computed_count": 22,
+      "depth_clouds_processed": 485,
+      "commands_dispatched_raw": 357,
+      "commands_dispatched_out": 2892,
+      "stall_events_count": 0,
+      "terminal_safety_state": "NORMAL"
+    },
+    "video_audit": {
+      "valid": true,
+      "file_size_bytes": 19752932,
+      "frame_count": 1141,
+      "fps": 15.0,
+      "resolution": "1920x960",
+      "duration_sec": 76.07
+    },
+    "video_file_path": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/videos/long_term_mapping_f4.mp4"
+  },
+  "trial_f5_improved": {
+    "estimator_type": "f5_improved",
+    "trial_duration_sec": 80.0,
+    "traveled_distance_m": 2.351,
+    "map_metrics": {
+      "occupied_cells_count": 878,
+      "free_cells_count": 24322,
+      "free_space_area_m2": 60.805,
+      "total_explored_area_m2": 63.0,
+      "wall_sharpness_sigma_m": 0.0904,
+      "wall_points_evaluated": 7,
+      "grid_resolution_m": 0.05000000074505806
+    },
+    "system_performance": {
+      "mean_cpu_percent": 0.0,
+      "peak_cpu_percent": 0.0,
+      "mean_memory_mb": 0.0,
+      "peak_memory_mb": 0.0,
+      "mean_estimation_latency_ms": 12.5,
+      "max_estimation_latency_ms": 400.0
+    },
+    "navigation_and_safety": {
+      "plans_computed_count": 50,
+      "depth_clouds_processed": 456,
+      "commands_dispatched_raw": 989,
+      "commands_dispatched_out": 3523,
+      "stall_events_count": 1,
+      "terminal_safety_state": "STALL_LATCHED"
+    },
+    "video_audit": {
+      "valid": true,
+      "file_size_bytes": 19649501,
+      "frame_count": 1144,
+      "fps": 15.0,
+      "resolution": "1920x960",
+      "duration_sec": 76.27
+    },
+    "video_file_path": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/videos/long_term_mapping_f5_improved.mp4"
+  },
+  "comparison_summary": {
+    "distance_f4_vs_f5": {
+      "f4_m": 3.005,
+      "f5_m": 2.351,
+      "difference_m": 0.654
+    },
+    "map_coverage_f4_vs_f5": {
+      "f4_occupied_cells": 937,
+      "f5_occupied_cells": 878,
+      "f4_free_area_m2": 62.423,
+      "f5_free_area_m2": 60.805
+    },
+    "wall_sharpness_f4_vs_f5": {
+      "f4_sigma_wall_m": 0.086,
+      "f5_sigma_wall_m": 0.0904,
+      "interpretation": "F4 scan matching provides direct scan-to-scan consistency, while F5_improved fuses wheel/IMU + scan matching in EKF with slight filtering lag."
+    },
+    "cpu_consumption_f4_vs_f5": {
+      "f4_mean_cpu_pct": 0.0,
+      "f5_mean_cpu_pct": 0.0,
+      "f4_peak_cpu_pct": 0.0,
+      "f5_peak_cpu_pct": 0.0
+    },
+    "estimation_latency_f4_vs_f5": {
+      "f4_mean_latency_ms": 103.14,
+      "f5_mean_latency_ms": 12.5
+    },
+    "stalls_and_safety_f4_vs_f5": {
+      "f4_stalls": 0,
+      "f5_stalls": 1,
+      "f4_terminal_state": "NORMAL",
+      "f5_terminal_state": "STALL_LATCHED"
+    }
+  }
+}

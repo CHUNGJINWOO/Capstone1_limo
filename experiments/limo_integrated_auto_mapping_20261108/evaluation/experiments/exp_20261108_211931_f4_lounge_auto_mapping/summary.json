@@ -1,0 +1,84 @@
+{
+  "experiment_id": "exp_20261108_211931_f4_lounge_auto_mapping",
+  "estimator_type": "f4",
+  "scenario": "lounge_auto_mapping",
+  "test_timestamp": "20261108_211931",
+  "duration_actual_sec": 21.79,
+  "overall_verdict": "PASS",
+  "verification_checklist": {
+    "1_rosbag2_start_stop_success": true,
+    "2_essential_topics_recorded": true,
+    "3_message_timestamps_qos_confirmed": true,
+    "4_action_feedback_result_recorded": true,
+    "5_logger_and_rosout_confirmed": true,
+    "6_rosbag2_playable": true,
+    "7_video_telemetry_synchronized": true,
+    "8_resource_overhead_within_limits": true
+  },
+  "rosbag2_metrics": {
+    "total_size_mb": 18.6,
+    "total_messages": 5882,
+    "duration_sec": 12.26,
+    "missing_essential_topics": [],
+    "topic_counts": {
+      "/navigate_to_pose/_action/feedback": 671,
+      "/navigate_to_pose/_action/status": 1,
+      "/map": 14,
+      "/odom_nav2": 122,
+      "/global_costmap/costmap": 10,
+      "/imu": 1213,
+      "/odom": 607,
+      "/cmd_vel": 614,
+      "/stall_detector/virtual_bumper_cloud": 0,
+      "/cmd_vel_raw": 197,
+      "/map_metadata": 14,
+      "/camera/depth/points": 115,
+      "/stall_detector/status_json": 123,
+      "/depth_obstacles/points": 86,
+      "/local_costmap/costmap": 20,
+      "/scan": 123,
+      "/odometry/lidar_odom": 123,
+      "/ground_truth/world_odom": 748,
+      "/rosout": 33,
+      "/tf": 1045,
+      "/tf_static": 3
+    }
+  },
+  "video_metrics": {
+    "valid": true,
+    "file_size_bytes": 4008580,
+    "file_size_mb": 3.82,
+    "resolution": "1920x960",
+    "fps": 15.0,
+    "frame_count": 256,
+    "duration_sec": 17.07,
+    "first_frame_decoded": true,
+    "frame_sync_file": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/experiments/exp_20261108_211931_f4_lounge_auto_mapping/videos/exp_20261108_211931_f4_lounge_auto_mapping_dual_panel_frame_sync.jsonl",
+    "sync_records_count": 256
+  },
+  "action_summary": {
+    "timestamp": "2026-11-08 21:19:56",
+    "total_goals_dispatched": 0,
+    "completed_goals_count": 0,
+    "active_goals_count": 0,
+    "succeeded_count": 0,
+    "canceled_count": 0,
+    "aborted_count": 0,
+    "success_rate_pct": 0.0,
+    "mean_goal_duration_sec": 0.0,
+    "completed_goals": [],
+    "active_goals": []
+  },
+  "resource_utilization": {
+    "mean_cpu_pct": 39.31,
+    "peak_cpu_pct": 45.3,
+    "mean_memory_mb": 7776.0,
+    "peak_memory_mb": 7822.4
+  },
+  "log_metrics": {
+    "log_size_bytes": 47520,
+    "info_count": 245,
+    "warn_count": 10,
+    "error_count": 11
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "test_timestamp": "2026-11-08 19:56:45",
+  "suite": "Safety Gate Fault Injection Suite (6 Scenarios)",
+  "scenarios": {
+    "scenario_2_depth_dropout": {
+      "fault_type": "Depth camera point cloud silence",
+      "system_state": "NORMAL",
+      "no_false_emergency_stall": true,
+      "explanation": "Absence of secondary 3D depth does not crash safety supervisor; system remains in NORMAL under valid 2D LiDAR.",
+      "verdict": "PASS"
+    },
+    "scenario_5_nav2_timeout": {
+      "fault_type": "Upstream Nav2 drive command silence > 0.5s",
+      "zero_clamp_observed": true,
+      "clamp_latency_sec": 0.265,
+      "verdict": "PASS"
+    },
+    "scenario_6_conflicting_commands": {
+      "fault_type": "Rapid opposing command injection (+0.25m/s vs -0.25m/s)",
+      "max_command_dispatched": 0.25,
+      "min_command_dispatched": 0.0,
+      "reverse_motion_inhibited": true,
+      "verdict": "PASS"
+    },
+    "scenario_1_lidar_dropout": {
+      "fault_type": "LiDAR /scan stream loss",
+      "timeout_detected": true,
+      "detection_latency_sec": 0.503,
+      "cmd_vel_zeroed": true,
+      "verdict": "PASS"
+    },
+    "scenario_3_icp_freeze": {
+      "fault_type": "ICP odometry delay / freeze > 0.45s",
+      "timeout_detected": true,
+      "detection_latency_sec": 0.594,
+      "cmd_vel_zeroed": true,
+      "verdict": "PASS"
+    },
+    "scenario_4_process_crash": {
+      "fault_type": "stall_detector_node SIGKILL process crash",
+      "cmd_vel_messages_after_crash": 0,
+      "topic_silence_confirmed": true,
+      "hardware_watchdog_requirement": "CRITICAL: When the supervisory software node crashes, user-space can no longer actively publish zero velocities. Physical motor controller firmware (STM32 MCU) MUST implement a hardware watchdog timer (<=200ms) that zeros PWM if /cmd_vel becomes silent, and the vehicle MUST feature a hardwired physical emergency stop button (E-Stop).",
+      "verdict": "PASS"
+    }
+  },
+  "overall_verdict": "PASS"
+}

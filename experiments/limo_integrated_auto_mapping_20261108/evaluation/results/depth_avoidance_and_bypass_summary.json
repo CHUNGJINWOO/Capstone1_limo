@@ -1,0 +1,99 @@
+{
+  "test_timestamp": "2026-11-08 19:47:33",
+  "evaluation_suite": "Depth Camera 3D Low Obstacle Avoidance & Bypass",
+  "scenario_a_bypassable": {
+    "description": "Open space with 40cm x 30cm x 8cm block; clearance >= 1.0m on sides",
+    "lidar_only": {
+      "scenario": "Scenario A: Bypassable Open Space",
+      "enable_depth_camera": false,
+      "min_distance_to_obstacle_m": 0.346,
+      "obstacle_detected_depth": false,
+      "costmap_marked": false,
+      "deceleration_observed": false,
+      "replan_circumvention_observed": false,
+      "reached_goal": false,
+      "collision_occurred": false,
+      "outcome_verdict": "BLIND_TRAVERSAL",
+      "video_audit": {
+        "valid": false,
+        "note": "Baseline reference run"
+      },
+      "video_file": "none"
+    },
+    "lidar_and_depth": {
+      "scenario": "Scenario A: Bypassable Open Space",
+      "enable_depth_camera": true,
+      "min_distance_to_obstacle_m": 0.371,
+      "obstacle_detected_depth": true,
+      "costmap_marked": true,
+      "deceleration_observed": true,
+      "replan_circumvention_observed": true,
+      "reached_goal": true,
+      "collision_occurred": false,
+      "outcome_verdict": "BYPASS_SUCCESS",
+      "classification_korean": "회피 성공 (BYPASS_SUCCESS)",
+      "video_audit": {
+        "valid": true,
+        "width": 1920,
+        "height": 960,
+        "fps": 15.0,
+        "frame_count": 196,
+        "size_mb": 3.51
+      },
+      "video_file": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/videos/obstacle_bypass_success.mp4"
+    },
+    "bypass_verified": true
+  },
+  "scenario_b_unbypassable_corridor": {
+    "description": "Narrow corridor with 70cm x 10cm x 8cm hurdle completely blocking passage",
+    "lidar_only": {
+      "scenario": "Scenario B: Un-bypassable Narrow Corridor",
+      "enable_depth_camera": false,
+      "min_distance_to_obstacle_m": 0.195,
+      "obstacle_detected_depth": false,
+      "costmap_marked": false,
+      "deceleration_observed": false,
+      "safe_halt_confirmed": false,
+      "collision_occurred": true,
+      "outcome_verdict": "EXPECTED_COLLISION",
+      "classification_clarification": "정지 성공 (Stop Success) is strictly distinguished from 회피 성공 (Bypass Success). 2D LiDAR completely misses the 8cm obstacle, resulting in physical collision.",
+      "video_audit": {
+        "valid": false,
+        "note": "Baseline reference run"
+      },
+      "video_file": "none"
+    },
+    "lidar_and_depth": {
+      "scenario": "Scenario B: Un-bypassable Narrow Corridor",
+      "enable_depth_camera": true,
+      "min_distance_to_obstacle_m": 0.207,
+      "obstacle_detected_depth": true,
+      "costmap_marked": true,
+      "deceleration_observed": true,
+      "safe_halt_confirmed": true,
+      "collision_occurred": false,
+      "outcome_verdict": "STOP_SUCCESS",
+      "classification_korean": "정지 성공 (STOP_SUCCESS)",
+      "classification_clarification": "정지 성공 (Stop Success) is strictly distinguished from 회피 성공 (Bypass Success). In an un-bypassable corridor, stopping safely before the obstacle without contact is the expected correct behavior.",
+      "video_audit": {
+        "valid": true,
+        "width": 1920,
+        "height": 960,
+        "fps": 15.0,
+        "frame_count": 353,
+        "size_mb": 5.73
+      },
+      "video_file": "${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108/evaluation/videos/obstacle_corridor_stop.mp4"
+    },
+    "safe_stop_verified": true
+  },
+  "verification_conclusion": {
+    "detection_stage": "PASS",
+    "costmap_marking_stage": "PASS",
+    "deceleration_stage": "PASS",
+    "replanning_stage": "PASS",
+    "bypass_circumvention_stage": "PASS (Scenario A: 회피 성공)",
+    "corridor_safe_halt_stage": "PASS (Scenario B: 정지 성공)",
+    "overall_status": "PASS"
+  }
+}

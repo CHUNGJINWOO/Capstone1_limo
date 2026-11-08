@@ -1,0 +1,1 @@
+experiments/limo_integrated_auto_mapping_20261108/scripts/run_recorded_experiment.py --estimator f4 --duration 15.0 --scenario lounge_auto_mapping

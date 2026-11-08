@@ -1,0 +1,20 @@
+{
+  "test_timestamp": "2026-11-08 17:14:51",
+  "subtest_5A_lidar_only": {
+    "depth_filter_enabled": false,
+    "depth_clouds_received": 0,
+    "traveled_distance_m": 0.558,
+    "final_distance_to_hurdle_m": 0.197,
+    "collision_detected": true,
+    "verdict": "CONFIRMED_VULNERABLE"
+  },
+  "subtest_5B_lidar_and_depth": {
+    "depth_filter_enabled": true,
+    "depth_clouds_received": 104,
+    "depth_obstacle_points_count": 89938,
+    "traveled_distance_m": 0.661,
+    "final_distance_to_hurdle_m": 0.302,
+    "collision_detected": false,
+    "verdict": "PASS"
+  }
+}

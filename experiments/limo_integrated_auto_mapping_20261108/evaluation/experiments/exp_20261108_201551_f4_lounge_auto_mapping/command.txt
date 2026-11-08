@@ -1,0 +1,1 @@
+scripts/run_recorded_experiment.py --estimator f4 --duration 30.0 --scenario lounge_auto_mapping

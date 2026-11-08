@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-11-08 21:19:56",
+  "total_goals_dispatched": 0,
+  "completed_goals_count": 0,
+  "active_goals_count": 0,
+  "succeeded_count": 0,
+  "canceled_count": 0,
+  "aborted_count": 0,
+  "success_rate_pct": 0.0,
+  "mean_goal_duration_sec": 0.0,
+  "completed_goals": [],
+  "active_goals": []
+}

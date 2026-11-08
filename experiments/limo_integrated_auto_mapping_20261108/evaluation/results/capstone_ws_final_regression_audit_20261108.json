@@ -1,0 +1,106 @@
+{
+  "audit_timestamp": "2026-11-08 22:40:13",
+  "workspace": "${PROJECT_ROOT}/capstone_ws",
+  "git_uncommitted_state_confirmed": true,
+  "sections": {
+    "section_1_package_integrity": {
+      "limo_depth_obstacles_installed": true,
+      "limo_capstone_installed": true,
+      "entrypoints_registered": {
+        "limo_depth_obstacles": [
+          "depth_obstacle_filter_node"
+        ],
+        "limo_capstone": [
+          "depth_to_pointcloud_fixed_node",
+          "ground_truth_publisher_node",
+          "integrated_recorder_node",
+          "lidar_scan_matcher_odom_node",
+          "nav2_action_monitor_node",
+          "odom_tf_relay_node",
+          "sensor_normalizer_node",
+          "stall_detector_node"
+        ]
+      },
+      "get_package_share_directory_works": true,
+      "hidden_experiments_references_in_src": 0,
+      "legacy_files_preserved": true,
+      "verdict": "PASS"
+    },
+    "section_2_real_launch_safety": {
+      "motor_lock_active": true,
+      "cmd_vel_leaked_count": 0,
+      "cmd_vel_locked_routed_count": 160,
+      "driver_subscription_target": "/cmd_vel",
+      "fail_closed_guarantee": "PARTIALLY VERIFIED (Driver lacks ROS software watchdog; requires physical MCU watchdog verification)",
+      "verdict": "PASS"
+    },
+    "section_3_f4_integrated_exploration": {
+      "estimator": "f4",
+      "duration_sec": 22.0,
+      "single_tf_owner_confirmed": true,
+      "actual_odom_freq_hz": 10.0,
+      "map_cells_expanded": true,
+      "nav2_motion_confirmed": true,
+      "explore_lite_active": true,
+      "depth_costmap_connected": true,
+      "safety_gate_normal": true,
+      "rosbag2_recorded": true,
+      "rosbag2_playable": true,
+      "bag_size_mb": 2.509,
+      "verdict": "PASS"
+    },
+    "section_4_f5_integrated_exploration": {
+      "estimator": "f5_improved",
+      "duration_sec": 22.0,
+      "single_tf_owner_confirmed": true,
+      "actual_odom_freq_hz": 50.0,
+      "map_cells_expanded": true,
+      "nav2_motion_confirmed": true,
+      "explore_lite_active": true,
+      "depth_costmap_connected": true,
+      "safety_gate_normal": true,
+      "rosbag2_recorded": true,
+      "rosbag2_playable": true,
+      "bag_size_mb": 3.267,
+      "verdict": "PASS"
+    },
+    "section_5a_depth_dropout_test_a": {
+      "test_type": "Test A: Artificial JSON Error Status Injection (/auto_mapping/depth_status)",
+      "cruising_achieved": true,
+      "t_fault_sim": 6.278,
+      "t_last_depth_sim": 6.1,
+      "t_detect_sim": 6.282,
+      "t_cutoff_sim": 6.281,
+      "t_halt_sim": 6.455,
+      "detection_latency_sec": 0.004,
+      "cutoff_latency_sec": 0.003,
+      "stopping_distance_m": 0.1,
+      "ground_truth_source_verified": true,
+      "verdict": "PASS"
+    },
+    "section_5b_depth_dropout_test_b": {
+      "test_type": "Test B: Real Depth PointCloud2 Publication Stoppage (Physical Stream Loss)",
+      "cruising_achieved": true,
+      "t_stream_kill_sim": 6.258,
+      "t_last_depth_msg_sim": 6.1,
+      "t_detect_sim": 6.521,
+      "t_cutoff_sim": 6.521,
+      "t_halt_sim": 6.703,
+      "sensor_timeout_configured_sec": 0.38,
+      "true_physical_detection_latency_sec": 0.421,
+      "cutoff_latency_sec": 0.421,
+      "stopping_distance_m": 0.165,
+      "ground_truth_source_verified": true,
+      "verdict": "PASS"
+    },
+    "section_6_lidar_dropout_safety": {
+      "test_type": "LiDAR Scan / ICP Estimator Interruption",
+      "cruising_achieved": true,
+      "detection_latency_sec": 0.406,
+      "cutoff_latency_sec": 0.403,
+      "stopping_distance_m": 0.174,
+      "verdict": "PASS"
+    }
+  },
+  "overall_verdict": "PASS"
+}

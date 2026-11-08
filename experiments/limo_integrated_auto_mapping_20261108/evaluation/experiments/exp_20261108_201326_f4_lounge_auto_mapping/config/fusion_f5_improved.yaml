@@ -1,0 +1,40 @@
+ekf_f5_improved_node:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 50.0
+    sensor_timeout: 0.15
+    two_d_mode: true
+    transform_time_offset: 0.0
+    transform_timeout: 0.1
+    print_diagnostics: false
+    debug: false
+    publish_tf: false  # odom_tf_relay_node handles TF authority to avoid multiple publishers
+
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: odom
+
+    # 2D Pose (x, y, yaw) and Planar Linear Velocity (vx, vy) from 2D LiDAR ICP Odometry (F4)
+    odom0: /odometry/lidar_odom
+    odom0_config: [true,  true,  false,
+                   false, false, true,
+                   true,  true,  false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+    odom0_relative: false
+
+    # High-rate 50 Hz Angular Velocity (wz ONLY) from IMU
+    imu0: /imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_differential: false
+    imu0_relative: false
+    imu0_queue_size: 20
+    imu0_remove_gravitational_acceleration: true
+
+    use_control: false

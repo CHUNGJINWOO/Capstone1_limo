@@ -1,0 +1,439 @@
+{
+  "experiment_id": "exp_20261108_201653_f5_improved_lounge_auto_mapping",
+  "estimator_type": "f5_improved",
+  "scenario": "lounge_auto_mapping",
+  "test_timestamp": "20261108_201653",
+  "duration_actual_sec": 37.01,
+  "overall_verdict": "PASS",
+  "verification_checklist": {
+    "1_rosbag2_start_stop_success": true,
+    "2_essential_topics_recorded": true,
+    "3_message_timestamps_qos_confirmed": true,
+    "4_action_feedback_result_recorded": true,
+    "5_logger_and_rosout_confirmed": true,
+    "6_rosbag2_playable": true,
+    "7_video_telemetry_synchronized": true,
+    "8_resource_overhead_within_limits": true
+  },
+  "rosbag2_metrics": {
+    "total_size_mb": 54.5,
+    "total_messages": 15382,
+    "duration_sec": 25.249,
+    "missing_essential_topics": [],
+    "topic_counts": {
+      "/rosout": 79,
+      "/ground_truth/world_odom": 1607,
+      "/map": 29,
+      "/odometry/f5_improved": 1262,
+      "/odom_nav2": 1262,
+      "/local_costmap/costmap": 47,
+      "/depth_obstacles/points": 174,
+      "/tf": 3192,
+      "/navigate_to_pose/_action/status": 19,
+      "/navigate_to_pose/_action/feedback": 1427,
+      "/odom": 1262,
+      "/imu": 2524,
+      "/global_costmap/costmap": 20,
+      "/map_metadata": 29,
+      "/camera/depth/points": 252,
+      "/stall_detector/status_json": 253,
+      "/tf_static": 3,
+      "/stall_detector/virtual_bumper_cloud": 0,
+      "/cmd_vel": 1262,
+      "/scan": 252
+    }
+  },
+  "video_metrics": {
+    "valid": true,
+    "file_size_bytes": 8662810,
+    "file_size_mb": 8.26,
+    "resolution": "1920x960",
+    "fps": 15.0,
+    "frame_count": 468,
+    "duration_sec": 31.2,
+    "first_frame_decoded": true
+  },
+  "action_summary": {
+    "timestamp": "2026-11-08 20:17:34",
+    "total_goals_dispatched": 10,
+    "completed_goals_count": 9,
+    "active_goals_count": 1,
+    "succeeded_count": 0,
+    "canceled_count": 0,
+    "aborted_count": 9,
+    "success_rate_pct": 0.0,
+    "mean_goal_duration_sec": 2.69,
+    "completed_goals": [
+      {
+        "goal_uuid": "1949f0d7-e971-6364-6ccc-acb2eaa8b7de",
+        "start_sim_time": 5.669,
+        "start_wall_time": "2026-11-08 20:17:05",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 0.6408,
+          "y": 0.0672,
+          "yaw": 0.067
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -1.1317,
+          "y": 0.077,
+          "yaw": 1.6719
+        },
+        "status": "ABORTED",
+        "status_code": 6,
+        "distance_remaining": 0.0,
+        "navigation_time_sec": 0.0,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 5.6690000000000005,
+        "end_sim_time": 5.672,
+        "duration_sec": 0.003,
+        "final_estimated_pose": {
+          "x": 0.6432,
+          "y": 0.0746,
+          "yaw": 0.0655
+        },
+        "final_ground_truth_pose_sim_only": {
+          "x": -1.1321,
+          "y": 0.0818,
+          "yaw": 1.6714
+        },
+        "failure_reason": "Aborted by Nav2 (planner/controller failed, stall_state=NORMAL)"
+      },
+      {
+        "goal_uuid": "0afbe2d9-6e40-3905-9b7f-e117e57e61e8",
+        "start_sim_time": 5.669,
+        "start_wall_time": "2026-11-08 20:17:05",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 0.6408,
+          "y": 0.0672,
+          "yaw": 0.067
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -1.1317,
+          "y": 0.077,
+          "yaw": 1.6719
+        },
+        "status": "ABORTED",
+        "status_code": 6,
+        "distance_remaining": 2.798,
+        "navigation_time_sec": 2.669,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 7.691000000000001,
+        "last_feedback_sim_t": 8.34,
+        "end_sim_time": 8.365,
+        "duration_sec": 2.696,
+        "final_estimated_pose": {
+          "x": 1.0304,
+          "y": 0.2822,
+          "yaw": 0.6317
+        },
+        "final_ground_truth_pose_sim_only": {
+          "x": -1.3277,
+          "y": 0.4602,
+          "yaw": 2.3143
+        },
+        "failure_reason": "Aborted by Nav2 (planner/controller failed, stall_state=NORMAL)"
+      },
+      {
+        "goal_uuid": "d1863cad-2049-c17b-ae51-4d9ab02bd735",
+        "start_sim_time": 8.359,
+        "start_wall_time": "2026-11-08 20:17:08",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 1.0296,
+          "y": 0.2804,
+          "yaw": 0.628
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -1.3257,
+          "y": 0.4585,
+          "yaw": 2.31
+        },
+        "status": "ABORTED",
+        "status_code": 6,
+        "distance_remaining": 4.424,
+        "navigation_time_sec": 2.636,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 10.374,
+        "last_feedback_sim_t": 11.001000000000001,
+        "end_sim_time": 11.022,
+        "duration_sec": 2.663,
+        "final_estimated_pose": {
+          "x": 1.3536,
+          "y": 0.4392,
+          "yaw": 0.3313
+        },
+        "final_ground_truth_pose_sim_only": {
+          "x": -1.5269,
+          "y": 0.7703,
+          "yaw": 1.9797
+        },
+        "failure_reason": "Aborted by Nav2 (planner/controller failed, stall_state=NORMAL)"
+      },
+      {
+        "goal_uuid": "21d90812-8a28-862c-d446-00f39b1e785f",
+        "start_sim_time": 11.008,
+        "start_wall_time": "2026-11-08 20:17:11",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 1.3536,
+          "y": 0.4392,
+          "yaw": 0.3313
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -1.5269,
+          "y": 0.7703,
+          "yaw": 1.9797
+        },
+        "status": "ABORTED",
+        "status_code": 6,
+        "distance_remaining": 4.885,
+        "navigation_time_sec": 5.377,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 16.052,
+        "last_feedback_sim_t": 16.398,
+        "end_sim_time": 16.443,
+        "duration_sec": 5.435,
+        "final_estimated_pose": {
+          "x": 1.97,
+          "y": -0.0039,
+          "yaw": -1.163
+        },
+        "final_ground_truth_pose_sim_only": {
+          "x": -1.1282,
+          "y": 1.3904,
+          "yaw": 0.4262
+        },
+        "failure_reason": "Aborted by Nav2 (planner/controller failed, stall_state=NORMAL)"
+      },
+      {
+        "goal_uuid": "caf3b536-ac53-4781-3536-d836d3e2d34a",
+        "start_sim_time": 16.406,
+        "start_wall_time": "2026-11-08 20:17:17",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 1.97,
+          "y": -0.0039,
+          "yaw": -1.163
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -1.1282,
+          "y": 1.3904,
+          "yaw": 0.4262
+        },
+        "status": "ABORTED",
+        "status_code": 6,
+        "distance_remaining": 4.959,
+        "navigation_time_sec": 2.711,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 18.415000000000003,
+        "last_feedback_sim_t": 19.125,
+        "end_sim_time": 19.145,
+        "duration_sec": 2.739,
+        "final_estimated_pose": {
+          "x": 1.8945,
+          "y": -0.3903,
+          "yaw": -1.9664
+        },
+        "final_ground_truth_pose_sim_only": {
+          "x": -0.736,
+          "y": 1.312,
+          "yaw": -0.4059
+        },
+        "failure_reason": "Aborted by Nav2 (planner/controller failed, stall_state=NORMAL)"
+      },
+      {
+        "goal_uuid": "8399e76c-c743-f7d3-2494-f546ddc2dfed",
+        "start_sim_time": 19.14,
+        "start_wall_time": "2026-11-08 20:17:20",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 1.8959,
+          "y": -0.3882,
+          "yaw": -1.9609
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -0.738,
+          "y": 1.3133,
+          "yaw": -0.4017
+        },
+        "status": "ABORTED",
+        "status_code": 6,
+        "distance_remaining": 5.76,
+        "navigation_time_sec": 2.641,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 21.141000000000002,
+        "last_feedback_sim_t": 21.786,
+        "end_sim_time": 21.8,
+        "duration_sec": 2.66,
+        "final_estimated_pose": {
+          "x": 1.447,
+          "y": -0.7621,
+          "yaw": -2.4197
+        },
+        "final_ground_truth_pose_sim_only": {
+          "x": -0.365,
+          "y": 0.8849,
+          "yaw": -0.8342
+        },
+        "failure_reason": "Aborted by Nav2 (planner/controller failed, stall_state=NORMAL)"
+      },
+      {
+        "goal_uuid": "26c774d5-e378-81f4-e8be-f52718f41d51",
+        "start_sim_time": 21.8,
+        "start_wall_time": "2026-11-08 20:17:23",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 1.4512,
+          "y": -0.7588,
+          "yaw": -2.4245
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -0.365,
+          "y": 0.8849,
+          "yaw": -0.8342
+        },
+        "status": "ABORTED",
+        "status_code": 6,
+        "distance_remaining": 4.243,
+        "navigation_time_sec": 2.602,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 23.817,
+        "last_feedback_sim_t": 24.402,
+        "end_sim_time": 24.418,
+        "duration_sec": 2.618,
+        "final_estimated_pose": {
+          "x": 1.1219,
+          "y": -0.9147,
+          "yaw": -2.9213
+        },
+        "final_ground_truth_pose_sim_only": {
+          "x": -0.2239,
+          "y": 0.5147,
+          "yaw": -1.4058
+        },
+        "failure_reason": "Aborted by Nav2 (planner/controller failed, stall_state=NORMAL)"
+      },
+      {
+        "goal_uuid": "dd15e34e-a7da-5c47-5488-ce12228cc51d",
+        "start_sim_time": 24.41,
+        "start_wall_time": "2026-11-08 20:17:26",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 1.1219,
+          "y": -0.9147,
+          "yaw": -2.9213
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -0.2237,
+          "y": 0.5169,
+          "yaw": -1.401
+        },
+        "status": "ABORTED",
+        "status_code": 6,
+        "distance_remaining": 3.835,
+        "navigation_time_sec": 2.778,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 26.436,
+        "last_feedback_sim_t": 27.196,
+        "end_sim_time": 27.2,
+        "duration_sec": 2.79,
+        "final_estimated_pose": {
+          "x": 0.5318,
+          "y": -0.7232,
+          "yaw": 2.694
+        },
+        "final_ground_truth_pose_sim_only": {
+          "x": -0.4611,
+          "y": -0.0831,
+          "yaw": -2.0996
+        },
+        "failure_reason": "Aborted by Nav2 (planner/controller failed, stall_state=NORMAL)"
+      },
+      {
+        "goal_uuid": "7d75f731-45c5-d30e-2b4e-b6cb83f3d5db",
+        "start_sim_time": 27.2,
+        "start_wall_time": "2026-11-08 20:17:29",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 0.5318,
+          "y": -0.7232,
+          "yaw": 2.694
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -0.4611,
+          "y": -0.0831,
+          "yaw": -2.0996
+        },
+        "status": "ABORTED",
+        "status_code": 6,
+        "distance_remaining": 2.875,
+        "navigation_time_sec": 2.625,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 29.213,
+        "last_feedback_sim_t": 29.825000000000003,
+        "end_sim_time": 29.846,
+        "duration_sec": 2.646,
+        "final_estimated_pose": {
+          "x": 0.0039,
+          "y": -0.4276,
+          "yaw": 2.486
+        },
+        "final_ground_truth_pose_sim_only": {
+          "x": -0.805,
+          "y": -0.6002,
+          "yaw": -2.3246
+        },
+        "failure_reason": "Aborted by Nav2 (planner/controller failed, stall_state=NORMAL)"
+      }
+    ],
+    "active_goals": [
+      {
+        "goal_uuid": "4d600683-754c-e91f-32d5-4617a5d91743",
+        "start_sim_time": 29.833,
+        "start_wall_time": "2026-11-08 20:17:32",
+        "target_pose": null,
+        "initial_estimated_pose": {
+          "x": 0.007,
+          "y": -0.43,
+          "yaw": 2.494
+        },
+        "initial_ground_truth_pose_sim_only": {
+          "x": -0.8022,
+          "y": -0.5983,
+          "yaw": -2.3176
+        },
+        "status": "EXECUTING",
+        "status_code": 2,
+        "distance_remaining": 2.91,
+        "navigation_time_sec": 1.27,
+        "number_of_recoveries": 0,
+        "prev_recoveries": 0,
+        "last_event_sim_t": 30.844,
+        "last_feedback_sim_t": 31.115000000000002
+      }
+    ]
+  },
+  "resource_utilization": {
+    "mean_cpu_pct": 38.11,
+    "peak_cpu_pct": 41.7,
+    "mean_memory_mb": 9707.8,
+    "peak_memory_mb": 9788.3
+  },
+  "log_metrics": {
+    "log_size_bytes": 50843,
+    "info_count": 281,
+    "warn_count": 11,
+    "error_count": 8
+  }
+}
