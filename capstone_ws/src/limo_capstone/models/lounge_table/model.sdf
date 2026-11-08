@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="lounge_table">
+    <static>true</static>
+    <link name="table_link">
+      <!-- Table Top -->
+      <visual name="top_visual">
+        <pose>0 0 0.7350 0 0 0</pose>
+        <geometry><box><size>1.400 0.800 0.03</size></box></geometry>
+        <material><ambient>0.65 0.55 0.45 1</ambient><diffuse>0.70 0.60 0.50 1</diffuse></material>
+      </visual>
+      <collision name="top_collision">
+        <pose>0 0 0.7350 0 0 0</pose>
+        <geometry><box><size>1.400 0.800 0.03</size></box></geometry>
+      </collision>
+
+      <!-- Upper Apron (under top restriction) -->
+      <visual name="apron_visual">
+        <pose>0 0 0.7000 0 0 0</pose>
+        <geometry><box><size>1.300 0.700 0.04</size></box></geometry>
+        <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material>
+      </visual>
+      <collision name="apron_collision">
+        <pose>0 0 0.7000 0 0 0</pose>
+        <geometry><box><size>1.300 0.700 0.04</size></box></geometry>
+      </collision>
+
+      <!-- 4 Legs (LiDAR at z=0.16m sees only these 4 cylinders) -->
+      <visual name="leg1_vis"><pose>0.600 0.330 0.360 0 0 0</pose><geometry><cylinder><radius>0.020</radius><length>0.720</length></cylinder></geometry><material><ambient>0.2 0.2 0.2 1</ambient></material></visual>
+      <collision name="leg1_col"><pose>0.600 0.330 0.360 0 0 0</pose><geometry><cylinder><radius>0.020</radius><length>0.720</length></cylinder></geometry></collision>
+
+      <visual name="leg2_vis"><pose>0.600 -0.330 0.360 0 0 0</pose><geometry><cylinder><radius>0.020</radius><length>0.720</length></cylinder></geometry><material><ambient>0.2 0.2 0.2 1</ambient></material></visual>
+      <collision name="leg2_col"><pose>0.600 -0.330 0.360 0 0 0</pose><geometry><cylinder><radius>0.020</radius><length>0.720</length></cylinder></geometry></collision>
+
+      <visual name="leg3_vis"><pose>-0.600 0.330 0.360 0 0 0</pose><geometry><cylinder><radius>0.020</radius><length>0.720</length></cylinder></geometry><material><ambient>0.2 0.2 0.2 1</ambient></material></visual>
+      <collision name="leg3_col"><pose>-0.600 0.330 0.360 0 0 0</pose><geometry><cylinder><radius>0.020</radius><length>0.720</length></cylinder></geometry></collision>
+
+      <visual name="leg4_vis"><pose>-0.600 -0.330 0.360 0 0 0</pose><geometry><cylinder><radius>0.020</radius><length>0.720</length></cylinder></geometry><material><ambient>0.2 0.2 0.2 1</ambient></material></visual>
+      <collision name="leg4_col"><pose>-0.600 -0.330 0.360 0 0 0</pose><geometry><cylinder><radius>0.020</radius><length>0.720</length></cylinder></geometry></collision>
+
+      <!-- Lower Reinforcement Frame: height z=0.210m (LIMO top collides, 2D LiDAR ray misses) -->
+      <visual name="reinf_bar_vis"><pose>0 0 0.210 0 0 0</pose><geometry><box><size>1.200 0.035 0.035</size></box></geometry><material><ambient>0.25 0.25 0.25 1</ambient></material></visual>
+      <collision name="reinf_bar_col"><pose>0 0 0.210 0 0 0</pose><geometry><box><size>1.200 0.035 0.035</size></box></geometry></collision>
+
+      <!-- Side Reinforcement Braces -->
+      <visual name="side_brace_l"><pose>0 0.330 0.210 0 0 0</pose><geometry><box><size>0.035 0.660 0.035</size></box></geometry><material><ambient>0.25 0.25 0.25 1</ambient></material></visual>
+      <collision name="side_brace_l_col"><pose>0 0.330 0.210 0 0 0</pose><geometry><box><size>0.035 0.660 0.035</size></box></geometry></collision>
+
+      <visual name="side_brace_r"><pose>0 -0.330 0.210 0 0 0</pose><geometry><box><size>0.035 0.660 0.035</size></box></geometry><material><ambient>0.25 0.25 0.25 1</ambient></material></visual>
+      <collision name="side_brace_r_col"><pose>0 -0.330 0.210 0 0 0</pose><geometry><box><size>0.035 0.660 0.035</size></box></geometry></collision>
+    </link>
+  </model>
+</sdf>

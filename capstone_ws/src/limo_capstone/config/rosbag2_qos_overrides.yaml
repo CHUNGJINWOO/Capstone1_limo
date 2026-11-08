@@ -1,0 +1,45 @@
+# rosbag2_qos_overrides.yaml
+# QoS Profile Overrides for LIMO Pro Auto-Mapping Experiment Recording
+# ROS 2 Humble requires 'history' and 'depth' settings for any QoS profile override.
+
+/tf_static:
+  history: keep_last
+  depth: 20
+  reliability: reliable
+  durability: transient_local
+
+/map:
+  history: keep_last
+  depth: 5
+  reliability: reliable
+  durability: transient_local
+
+/map_metadata:
+  history: keep_last
+  depth: 5
+  reliability: reliable
+  durability: transient_local
+
+/global_costmap/costmap:
+  history: keep_last
+  depth: 5
+  reliability: reliable
+  durability: transient_local
+
+/local_costmap/costmap:
+  history: keep_last
+  depth: 5
+  reliability: reliable
+  durability: transient_local
+
+/robot_description:
+  history: keep_last
+  depth: 5
+  reliability: reliable
+  durability: transient_local
+
+/navigate_to_pose/_action/status:
+  history: keep_last
+  depth: 10
+  reliability: reliable
+  durability: transient_local

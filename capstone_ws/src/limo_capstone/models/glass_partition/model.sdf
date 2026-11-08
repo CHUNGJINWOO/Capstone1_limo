@@ -1,0 +1,62 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="glass_partition">
+    <static>true</static>
+    <link name="glass_link">
+      <!-- Physical Wall Collision: Fully blocks the robot from driving through -->
+      <collision name="glass_physical_collision">
+        <pose>0 0 0.90 0 0 0</pose>
+        <geometry><box><size>3.60 0.02 1.80</size></box></geometry>
+      </collision>
+
+      <!-- Visual appearance: semi-transparent cyan tint glass. -->
+      <!-- In Gazebo Fortress (Ogre2), alpha < 1.0 visual passes depth testing for gpu_lidar, -->
+      <!-- causing laser rays to penetrate through the glass and hit background walls/objects -->
+      <visual name="glass_visual">
+        <pose>0 0 0.90 0 0 0</pose>
+        <geometry><box><size>3.60 0.01 1.80</size></box></geometry>
+        <material>
+          <ambient>0.4 0.7 0.9 0.25</ambient>
+          <diffuse>0.4 0.7 0.9 0.25</diffuse>
+          <specular>0.9 0.9 0.9 0.8</specular>
+        </material>
+      </visual>
+
+      <!-- Frame posts at ends (metal post, visible to both eye and lidar) -->
+      <!-- Left Post (x = -1.80m) -->
+      <visual name="post_left_vis">
+        <pose>-1.80 0 0.90 0 0 0</pose>
+        <geometry><box><size>0.05 0.05 1.80</size></box></geometry>
+        <material><ambient>0.2 0.2 0.2 1</ambient></material>
+      </visual>
+      <collision name="post_left_col">
+        <pose>-1.80 0 0.90 0 0 0</pose>
+        <geometry><box><size>0.05 0.05 1.80</size></box></geometry>
+      </collision>
+
+      <!-- Right Post (x = +1.80m) -->
+      <visual name="post_right_vis">
+        <pose>1.80 0 0.90 0 0 0</pose>
+        <geometry><box><size>0.05 0.05 1.80</size></box></geometry>
+        <material><ambient>0.2 0.2 0.2 1</ambient></material>
+      </visual>
+      <collision name="post_right_col">
+        <pose>1.80 0 0.90 0 0 0</pose>
+        <geometry><box><size>0.05 0.05 1.80</size></box></geometry>
+      </collision>
+
+      <!-- Top Metal Header Rail (z = 1.78m) - outside robot height -->
+      <visual name="header_vis">
+        <pose>0 0 1.78 0 0 0</pose>
+        <geometry><box><size>3.60 0.04 0.04</size></box></geometry>
+        <material><ambient>0.2 0.2 0.2 1</ambient></material>
+      </visual>
+      <collision name="header_col">
+        <pose>0 0 1.78 0 0 0</pose>
+        <geometry><box><size>3.60 0.04 0.04</size></box></geometry>
+      </collision>
+      <!-- NOTE: Notice there is NO bottom kickplate between -1.75 and +1.75m! -->
+      <!-- The glass extends down to z=0.01m, leaving 2D LiDAR (z=0.16m) completely blind to this wall. -->
+    </link>
+  </model>
+</sdf>
