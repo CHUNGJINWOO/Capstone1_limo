@@ -19,7 +19,7 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 Gst.init(None)
 
-ROOT = Path('${PROJECT_ROOT}')
+ROOT = Path(os.environ.get('PROJECT_ROOT', str(Path(__file__).resolve().parents[3])))
 DATA_BASE = ROOT / 'output/simulation/2026-10-24_verification'
 OUT_DIR = ROOT / 'output/video'
 OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -201,7 +201,7 @@ if __name__ == '__main__':
         title_kr='MC관 3층 복도 가상 환경 주행',
         sub_desc='MC관 3층 실측 지도 기반 벽체 가상 환경 복도 2.5m 직진 및 조향 제어',
         goal_xy=[-2.60, 1.30],
-        map_pgm_path='${PROJECT_ROOT}/capstone_ws/src/limo_capstone/maps/MC_3F_10_15.pgm'
+        map_pgm_path=str(ROOT / 'capstone_ws/src/limo_capstone/maps/MC_3F_10_15.pgm')
     )
 
     # 2. Scenario 3: Unmapped obstacle detour
@@ -210,7 +210,7 @@ if __name__ == '__main__':
         title_kr='미지의 고정 장애물 발견 및 우회로 재계획',
         sub_desc='사전 지도에 없는 상자 발견 -> Costmap 장애물 등록 -> 북쪽 우회로로 실시간 재계획 완주',
         goal_xy=[3.0, 0.5],
-        map_pgm_path='${PROJECT_ROOT}/output/simulation/2026-10-24_verification/maze/maze_map.pgm'
+        map_pgm_path=str(ROOT / 'output/simulation/2026-10-24_verification/maze/maze_map.pgm')
     )
 
     # 3. Scenario 7: Clearing & resume
@@ -219,5 +219,5 @@ if __name__ == '__main__':
         title_kr='장애물 제거 후 Costmap 갱신 및 주행 재개',
         sub_desc='차단벽으로 인한 정지/대기 -> 장애물 제거 -> raytrace clearing 갱신 -> 주행 재개 완주',
         goal_xy=[4.0, -3.5],
-        map_pgm_path='${PROJECT_ROOT}/output/simulation/2026-10-24_verification/maze/maze_map.pgm'
+        map_pgm_path=str(ROOT / 'output/simulation/2026-10-24_verification/maze/maze_map.pgm')
     )

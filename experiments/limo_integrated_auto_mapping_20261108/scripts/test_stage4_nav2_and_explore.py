@@ -33,7 +33,8 @@ from nav2_msgs.action import NavigateToPose
 from action_msgs.msg import GoalStatus
 from tf2_ros import Buffer, TransformListener
 
-EXP_DIR = '${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108'
+REPO_ROOT = os.environ.get('PROJECT_ROOT', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+EXP_DIR = os.path.abspath(os.path.join(REPO_ROOT, 'experiments', 'limo_integrated_auto_mapping_20261108'))
 RESULTS_DIR = os.path.join(EXP_DIR, 'results')
 LOGS_DIR = os.path.join(EXP_DIR, 'logs')
 os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -126,7 +127,7 @@ def reset_gazebo_pose(x=-1.10, y=-0.60, z=0.05, qz=0.7071068, qw=0.7071068):
 def run_stage4_verification():
     env = os.environ.copy()
     env['PYTHONNOUSERSITE'] = '1'
-    rl_lib_dir = '${PROJECT_ROOT}/capstone_ws/install/robot_localization/lib'
+    rl_lib_dir = os.path.join(REPO_ROOT, 'capstone_ws', 'install', 'robot_localization', 'lib')
     env['LD_LIBRARY_PATH'] = f"{rl_lib_dir}:{env.get('LD_LIBRARY_PATH', '')}"
 
     print("=================================================================")

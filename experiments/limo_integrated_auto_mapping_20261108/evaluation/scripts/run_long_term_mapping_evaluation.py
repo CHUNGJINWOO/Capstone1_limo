@@ -33,7 +33,8 @@ from nav_msgs.msg import Odometry, OccupancyGrid, Path as NavPath
 from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import String
 
-EXP_DIR = '${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108'
+REPO_ROOT = os.environ.get('PROJECT_ROOT', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))
+EXP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 EVAL_DIR = os.path.join(EXP_DIR, 'evaluation')
 RESULTS_DIR = os.path.join(EVAL_DIR, 'results')
 VIDEOS_DIR = os.path.join(EVAL_DIR, 'videos')
@@ -45,7 +46,7 @@ LOGS_DIR_EXIST = os.makedirs(LOGS_DIR, exist_ok=True)
 
 env = os.environ.copy()
 env['PYTHONNOUSERSITE'] = '1'
-rl_lib = '${PROJECT_ROOT}/capstone_ws/install/robot_localization/lib'
+rl_lib = os.path.join(REPO_ROOT, 'capstone_ws', 'install', 'robot_localization', 'lib')
 env['LD_LIBRARY_PATH'] = f"{rl_lib}:{env.get('LD_LIBRARY_PATH', '')}"
 
 

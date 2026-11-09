@@ -11,15 +11,24 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    lounge_exp_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../lounge_failure_investigation_20261107"))
-    exp_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../limo_final_deployment_prep_20261108"))
-    sim_research_dir = os.environ.get("LIMO_SIM_RESEARCH_DIR", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../experiments/fortress")))
-    mesh_dir = os.environ.get("LIMO_MESH_DIR", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../capstone_ws/install/limo_description/share")))
+    repo_root = os.environ.get("PROJECT_ROOT", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+    capstone_src = os.path.join(repo_root, "capstone_ws", "src", "limo_capstone")
+    capstone_share = os.path.join(repo_root, "capstone_ws", "install", "limo_capstone", "share", "limo_capstone")
+    capstone_dir = capstone_share if os.path.isdir(capstone_share) else capstone_src
 
-    default_world = os.path.join(lounge_exp_dir, 'worlds', 'lounge_evaluation_world.sdf')
-    default_model = os.path.join(lounge_exp_dir, 'models', 'limo_eval', 'model.sdf')
+    exp_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    sim_research_dir = os.environ.get("LIMO_SIM_RESEARCH_DIR", os.path.join(capstone_dir, "urdf"))
+    default_mesh_share = os.path.join(repo_root, "capstone_ws", "install", "limo_description", "share")
+    default_mesh_src = os.path.join(repo_root, "capstone_ws", "src", "limo_ros2", "limo_description", "meshes")
+    mesh_dir = os.environ.get(
+        "LIMO_MESH_DIR",
+        default_mesh_share if os.path.isdir(default_mesh_share) else default_mesh_src
+    )
+
+    default_world = os.path.join(capstone_dir, 'worlds', 'lounge_evaluation_world.sdf')
+    default_model = os.path.join(capstone_dir, 'models', 'limo_eval', 'model.sdf')
     default_urdf = os.path.join(sim_research_dir, 'limo_ackermann_fortress.urdf')
-    models_dir = os.path.join(lounge_exp_dir, 'models')
+    models_dir = os.path.join(capstone_dir, 'models')
     nodes_dir = os.path.join(exp_dir, 'nodes')
 
     declare_world = DeclareLaunchArgument('world', default_value=default_world)
@@ -32,7 +41,7 @@ def generate_launch_description():
     declare_headless = DeclareLaunchArgument('headless', default_value='true')
     declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='true')
 
-    resource_path = f"{models_dir}:{mesh_dir}:{sim_research_dir}:{os.path.join(lounge_exp_dir, 'worlds')}"
+    resource_path = f"{models_dir}:{mesh_dir}:{sim_research_dir}:{os.path.join(capstone_dir, 'worlds')}"
     set_ign_resource = SetEnvironmentVariable('IGN_GAZEBO_RESOURCE_PATH', resource_path)
     set_gz_resource = SetEnvironmentVariable('GZ_SIM_RESOURCE_PATH', resource_path)
     set_sdf_path = SetEnvironmentVariable('SDF_PATH', models_dir)

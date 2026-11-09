@@ -44,7 +44,8 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
 
-EXP_DIR = '${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108'
+REPO_ROOT = os.environ.get('PROJECT_ROOT', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+EXP_DIR = os.path.abspath(os.path.join(REPO_ROOT, 'experiments', 'limo_integrated_auto_mapping_20261108'))
 RESULTS_DIR = os.path.join(EXP_DIR, 'results')
 LOGS_DIR = os.path.join(EXP_DIR, 'logs')
 os.makedirs(RESULTS_DIR, exist_ok=True)

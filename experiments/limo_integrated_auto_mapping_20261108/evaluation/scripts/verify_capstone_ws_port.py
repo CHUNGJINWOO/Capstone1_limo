@@ -28,8 +28,9 @@ from std_msgs.msg import String, Float32MultiArray
 from std_srvs.srv import Trigger
 from tf2_ros import Buffer, TransformListener
 
-WS_DIR = '${PROJECT_ROOT}/capstone_ws'
-EXP_DIR = '${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108'
+REPO_ROOT = os.environ.get('PROJECT_ROOT', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))
+WS_DIR = os.path.join(REPO_ROOT, 'capstone_ws')
+EXP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 RESULT_JSON = os.path.join(EXP_DIR, 'evaluation', 'results', 'capstone_ws_porting_verification_20261108.json')
 
 env = os.environ.copy()

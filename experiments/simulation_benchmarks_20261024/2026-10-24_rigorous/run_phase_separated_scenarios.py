@@ -2,7 +2,7 @@
 """
 run_phase_separated_scenarios.py:
 Runs scenarios 4, 5, 6, 7 in a dedicated output directory:
-  ${PROJECT_ROOT}/output/simulation/2026-10-24_phase_separated
+  <PROJECT_ROOT>/output/simulation/2026-10-24_phase_separated
 Preserves previous results in 2026-10-24_rigorous intact.
 """
 
@@ -12,7 +12,7 @@ import time
 import subprocess
 import pathlib
 
-BASE_DIR = pathlib.Path(__file__).resolve().parents[3]
+BASE_DIR = pathlib.Path(os.environ.get('PROJECT_ROOT', str(pathlib.Path(__file__).resolve().parents[3])))
 OUT_DIR = BASE_DIR / 'output/simulation/2026-10-24_phase_separated'
 RUNNER_SCRIPT = BASE_DIR / 'output/simulation/2026-10-24_rigorous/sim_rigorous_runner.py'
 

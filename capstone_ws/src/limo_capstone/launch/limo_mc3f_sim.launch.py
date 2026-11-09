@@ -7,14 +7,36 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    pkg_limo_capstone = get_package_share_directory('limo_capstone')
-    sim_research_dir = '${SIM_WS}/experiments/fortress'
+    try:
+        pkg_limo_capstone = get_package_share_directory('limo_capstone')
+    except Exception:
+        pkg_limo_capstone = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+    repo_root = os.environ.get('PROJECT_ROOT', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+    sim_ws = os.environ.get('SIM_WS', '')
+    sim_research_dir = os.environ.get(
+        'LIMO_SIM_RESEARCH_DIR',
+        os.path.join(sim_ws, 'experiments', 'fortress') if sim_ws else os.path.join(pkg_limo_capstone, 'urdf')
+    )
 
     default_world = os.path.join(pkg_limo_capstone, 'worlds', 'mc3f_10_15.sdf')
-    default_sdf = os.path.join(sim_research_dir, 'limo_ackermann_fortress.sdf')
-    default_urdf = os.path.join(sim_research_dir, 'limo_ackermann_fortress.urdf')
-    default_rviz_config = os.path.join(sim_research_dir, 'limo_slam_fortress.rviz')
-    mesh_dir = '${SIM_WS}/install/limo_description/share'
+    model_sdf = os.path.join(pkg_limo_capstone, 'models', 'limo_eval', 'model.sdf')
+    fortress_sdf = os.path.join(sim_research_dir, 'limo_ackermann_fortress.sdf')
+    default_sdf = fortress_sdf if os.path.exists(fortress_sdf) else model_sdf
+
+    fortress_urdf = os.path.join(sim_research_dir, 'limo_ackermann_fortress.urdf')
+    in_pkg_urdf = os.path.join(pkg_limo_capstone, 'urdf', 'limo_ackermann_fortress.urdf')
+    default_urdf = fortress_urdf if os.path.exists(fortress_urdf) else in_pkg_urdf
+
+    fortress_rviz = os.path.join(sim_research_dir, 'limo_slam_fortress.rviz')
+    default_rviz_config = fortress_rviz if os.path.exists(fortress_rviz) else ''
+
+    default_mesh_share = os.path.join(repo_root, 'capstone_ws', 'install', 'limo_description', 'share')
+    default_mesh_src = os.path.join(repo_root, 'capstone_ws', 'src', 'limo_ros2', 'limo_description', 'meshes')
+    mesh_dir = os.environ.get(
+        'LIMO_MESH_DIR',
+        default_mesh_share if os.path.isdir(default_mesh_share) else default_mesh_src
+    )
 
     # Launch Arguments
     declare_world_cmd = DeclareLaunchArgument(
@@ -136,13 +158,14 @@ def generate_launch_description():
     )
 
     # RViz2 Node
+    rviz_args = ['-d', default_rviz_config] if default_rviz_config and os.path.exists(default_rviz_config) else []
     rviz_node = Node(
         condition=IfCondition(LaunchConfiguration('rviz')),
         package='rviz2',
         executable='rviz2',
         name='rviz2',
         output='screen',
-        arguments=['-d', default_rviz_config],
+        arguments=rviz_args,
         parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}]
     )
 

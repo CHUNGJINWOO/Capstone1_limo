@@ -35,7 +35,8 @@ from sensor_msgs.msg import LaserScan, Imu
 from tf2_ros import Buffer, TransformListener
 import tf2_ros
 
-EXP_DIR = '${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108'
+REPO_ROOT = os.environ.get('PROJECT_ROOT', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+EXP_DIR = os.path.abspath(os.path.join(REPO_ROOT, 'experiments', 'limo_integrated_auto_mapping_20261108'))
 RESULTS_DIR = os.path.join(EXP_DIR, 'results')
 LOGS_DIR = os.path.join(EXP_DIR, 'logs')
 os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -106,7 +107,7 @@ def kill_proc(p):
 def run_smoke_test():
     env = os.environ.copy()
     env['PYTHONNOUSERSITE'] = '1'
-    rl_lib_dir = '${PROJECT_ROOT}/capstone_ws/install/robot_localization/lib'
+    rl_lib_dir = os.path.join(REPO_ROOT, 'capstone_ws', 'install', 'robot_localization', 'lib')
     env['LD_LIBRARY_PATH'] = f"{rl_lib_dir}:{env.get('LD_LIBRARY_PATH', '')}"
 
     print("=================================================================")

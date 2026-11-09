@@ -6,11 +6,22 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
-    pkg_limo_capstone = get_package_share_directory('limo_capstone')
+    try:
+        pkg_limo_capstone = get_package_share_directory('limo_capstone')
+    except Exception:
+        pkg_limo_capstone = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
     pkg_nav2_bringup = get_package_share_directory('nav2_bringup')
 
-    # Fortress 가상 환경(5m x 5m 방) 전용 지도 및 파라미터 기본값 지정
-    default_map_path = '${SIM_WS}/experiments/fortress/maps/limo_fortress_map.yaml'
+    sim_ws = os.environ.get('SIM_WS', '')
+    fortress_map = os.path.join(sim_ws, 'experiments', 'fortress', 'maps', 'limo_fortress_map.yaml') if sim_ws else ''
+    if fortress_map and os.path.exists(fortress_map):
+        default_map_path = fortress_map
+    else:
+        default_map_path = os.environ.get(
+            'LIMO_MAP_PATH',
+            os.path.join(pkg_limo_capstone, 'maps', 'MC3F_room_map.yaml')
+        )
     default_params_file = os.path.join(pkg_limo_capstone, 'config', 'nav2_sim_params.yaml')
 
     map_arg = DeclareLaunchArgument(

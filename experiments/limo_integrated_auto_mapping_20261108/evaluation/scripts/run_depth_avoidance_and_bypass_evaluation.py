@@ -46,7 +46,8 @@ from action_msgs.msg import GoalStatus
 from std_msgs.msg import String
 from tf2_ros import Buffer, TransformListener
 
-EXP_DIR = '${PROJECT_ROOT}/experiments/limo_integrated_auto_mapping_20261108'
+REPO_ROOT = os.environ.get('PROJECT_ROOT', os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))
+EXP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 EVAL_DIR = os.path.join(EXP_DIR, 'evaluation')
 RESULTS_DIR = os.path.join(EVAL_DIR, 'results')
 VIDEOS_DIR = os.path.join(EVAL_DIR, 'videos')
@@ -59,8 +60,9 @@ os.makedirs(LOGS_DIR, exist_ok=True)
 
 env = os.environ.copy()
 env['PYTHONNOUSERSITE'] = '1'
-rl_lib = '${PROJECT_ROOT}/capstone_ws/install/robot_localization/lib'
-depth_ws_install = '${PROJECT_ROOT}/experiments/depth_mapping_20261107/ws/install'
+rl_lib = os.path.join(REPO_ROOT, 'capstone_ws', 'install', 'robot_localization', 'lib')
+capstone_ws_install = os.path.join(REPO_ROOT, 'capstone_ws', 'install')
+depth_ws_install = capstone_ws_install if os.path.exists(capstone_ws_install) else os.path.join(REPO_ROOT, 'experiments', 'depth_mapping_20261107', 'ws', 'install')
 existing_ament = env.get('AMENT_PREFIX_PATH', '')
 env['AMENT_PREFIX_PATH'] = f"{depth_ws_install}:{existing_ament}" if existing_ament else depth_ws_install
 env['LD_LIBRARY_PATH'] = f"{rl_lib}:{env.get('LD_LIBRARY_PATH', '')}"
