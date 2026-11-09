@@ -1,0 +1,30 @@
+repositories:
+  # AgileX LIMO 공식 드라이버 (실차 모터 제어 및 시각화용 메시 필요 시)
+  limo_ros2:
+    type: git
+    url: https://github.com/agilexrobotics/limo_ros2.git
+    version: humble
+
+  # YDLidar 2D 라이다 드라이버 (실차 라이다 센서 구동 시)
+  ydlidar_ros2_driver:
+    type: git
+    url: https://github.com/YDLIDAR/ydlidar_ros2_driver.git
+    version: master
+
+  # Orbbec DaBai 카메라 드라이버 (실차 깊이 카메라 센서 구동 시)
+  ros2_astra_camera:
+    type: git
+    url: https://github.com/orbbec/ros2_astra_camera.git
+    version: humble
+
+  # 프론티어 탐색 알고리즘
+  m-explore-ros2:
+    type: git
+    url: https://github.com/robo-friends/m-explore-ros2.git
+    version: main
+
+  # 로봇 로컬라이제이션 EKF (apt 바이너리 미사용 시 소스 빌드)
+  robot_localization:
+    type: git
+    url: https://github.com/cra-ros-pkg/robot_localization.git
+    version: humble-devel
