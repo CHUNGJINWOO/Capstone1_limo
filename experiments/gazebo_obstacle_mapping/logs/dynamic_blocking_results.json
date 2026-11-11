@@ -1,0 +1,88 @@
+[
+  {
+    "run_id": "temp_block_cb4c9a",
+    "scenario": "temp_block",
+    "spawn_pose": [
+      -7.0,
+      0.0,
+      0.0
+    ],
+    "events": [
+      {
+        "time": 5.061574697494507,
+        "event": "robot_moving",
+        "dist": 0.3656061778678861
+      },
+      {
+        "time": 5.417498350143433,
+        "event": "obstacle_spawned",
+        "success": true
+      },
+      {
+        "time": 15.418631553649902,
+        "event": "halt_or_replan_observed",
+        "halt_observed": false,
+        "dist_diff": -0.1673779548190917
+      },
+      {
+        "time": 15.772207021713257,
+        "event": "obstacle_removed",
+        "success": true
+      },
+      {
+        "time": 18.24324655532837,
+        "event": "exploration_resumed",
+        "resumed": true,
+        "final_dist": 0.5012982621625909
+      }
+    ],
+    "success": true,
+    "details": {
+      "dist_before_block": 0.3656061778678861,
+      "dist_during_block": 0.19822822304879437,
+      "final_dist": 0.5012982621625909,
+      "net_resume_travel": 0.3030700391137965
+    }
+  },
+  {
+    "run_id": "persistent_block_c04391",
+    "scenario": "persistent_block",
+    "spawn_pose": [
+      -7.0,
+      0.0,
+      0.0
+    ],
+    "events": [
+      {
+        "event": "persistent_obstacle_spawned",
+        "success": true
+      }
+    ],
+    "success": true,
+    "details": {
+      "retry_limit_seen": false,
+      "fails_seen": 1,
+      "final_dist": 5.108735356711275,
+      "switched_to_alternative_goal": true,
+      "notes": "Blocked corridor goal failed (1 attempt) and excluded with 10s cooldown; explorer dynamically selected alternative frontier in classroom (3.77, -1.89) and traveled 5.108m."
+    }
+  },
+  {
+    "run_id": "close_goal_4eb5a9",
+    "scenario": "close_goal",
+    "spawn_pose": [
+      -7.0,
+      0.0,
+      0.0
+    ],
+    "events": [],
+    "success": true,
+    "details": {
+      "nav2_status": 4,
+      "dist_traveled": 3.3758266191248102e-21,
+      "classified_as_zero_displacement": true,
+      "cooldown_applied_sec": 15.0,
+      "fail_count_incremented": false
+    }
+  }
+]

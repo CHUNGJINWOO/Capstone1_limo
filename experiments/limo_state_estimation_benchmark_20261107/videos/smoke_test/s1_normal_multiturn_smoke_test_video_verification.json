@@ -1,0 +1,14 @@
+{
+  "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/smoke_test/s1_normal_multiturn_smoke_test.mp4",
+  "file_size_bytes": 7613273,
+  "written_frames": 350,
+  "decoded_frames_verified": 350,
+  "non_black_frames_verified": 350,
+  "resolution": "1920x960",
+  "fps": 15.0,
+  "sim_time_start": 7.587,
+  "sim_time_end": 30.905,
+  "sim_duration_s": 23.318,
+  "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/smoke_test/s1_normal_multiturn_smoke_test_mid_frame.png",
+  "playable": true
+}

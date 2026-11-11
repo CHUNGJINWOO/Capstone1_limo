@@ -1,0 +1,38 @@
+--- experiments/safety_gate_verification_20261110/baseline/originals/limo_eval_diff_model.sdf.pre_session	2026-11-10 21:23:10.242168391 +0900
++++ capstone_ws/src/limo_capstone/models/limo_eval_diff/model.sdf	2026-11-10 20:10:31.287302332 +0900
+@@ -140,7 +140,7 @@
+       <collision name="fl_wheel_collision">
+         <pose>0 0.0225 0 1.570796 0 0</pose>
+         <geometry><cylinder><radius>0.045</radius><length>0.045</length></cylinder></geometry>
+-        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
++        <surface><friction><ode><mu>0.3</mu><mu2>1.0</mu2><fdir1>0 0 1</fdir1></ode></friction></surface>
+       </collision>
+     </link>
+     <joint name="front_left_wheel" type="revolute">
+@@ -179,7 +179,7 @@
+       <collision name="fr_wheel_collision">
+         <pose>0 -0.0225 0 1.570796 0 0</pose>
+         <geometry><cylinder><radius>0.045</radius><length>0.045</length></cylinder></geometry>
+-        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
++        <surface><friction><ode><mu>0.3</mu><mu2>1.0</mu2><fdir1>0 0 1</fdir1></ode></friction></surface>
+       </collision>
+     </link>
+     <joint name="front_right_wheel" type="revolute">
+@@ -201,7 +201,7 @@
+       <collision name="rl_wheel_collision">
+         <pose>0 0.0225 0 1.570796 0 0</pose>
+         <geometry><cylinder><radius>0.045</radius><length>0.045</length></cylinder></geometry>
+-        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
++        <surface><friction><ode><mu>0.3</mu><mu2>1.0</mu2><fdir1>0 0 1</fdir1></ode></friction></surface>
+       </collision>
+     </link>
+     <joint name="rear_left_wheel" type="revolute">
+@@ -224,7 +224,7 @@
+       <collision name="rr_wheel_collision">
+         <pose>0 -0.0225 0 1.570796 0 0</pose>
+         <geometry><cylinder><radius>0.045</radius><length>0.045</length></cylinder></geometry>
+-        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
++        <surface><friction><ode><mu>0.3</mu><mu2>1.0</mu2><fdir1>0 0 1</fdir1></ode></friction></surface>
+       </collision>
+     </link>
+     <joint name="rear_right_wheel" type="revolute">

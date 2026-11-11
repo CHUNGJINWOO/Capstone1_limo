@@ -1,0 +1,74 @@
+--- launch/limo_integrated_auto_mapping_real.launch.py	2026-11-11 12:51:43.536937339 +0900
++++ /home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/real_launch_guard.py	2026-11-11 12:54:33.333119959 +0900
+@@ -352,12 +352,13 @@
+         "' if '", speed_profile, "' == 'slow' else '", config_nav2_lidar, "')"
+     ])
+     # Fail closed: never run a "slow" request on a configuration that has no slow profile.
++    speed_profile_invalid = PythonExpression([
++        "('", speed_profile, "' not in ['normal', 'slow']) or ('", speed_profile, "' == 'slow' and '",
++        use_depth_camera, "' == 'true')"
++    ])
+     bad_speed_profile = Shutdown(
+         reason="speed_profile must be 'normal' or 'slow', and 'slow' needs use_depth_camera:=false",
+-        condition=IfCondition(PythonExpression([
+-            "('", speed_profile, "' not in ['normal', 'slow']) or ('", speed_profile, "' == 'slow' and '",
+-            use_depth_camera, "' == 'true')"
+-        ]))
++        condition=IfCondition(speed_profile_invalid)
+     )
+ 
+     # Command routing (fail-closed, no bypass):
+@@ -475,25 +476,32 @@
+         declare_camera_yaw,
+         log_lock_notice,
+         bad_speed_profile,
+-        log_deprecated_stall_arg,
+-        limo_base_launch,
+-        ydlidar_launch,
+-        dabai_launch,
+-        load_urdf_launch,
+-        base_footprint_tf,
+-        camera_tf_node,
+-        depth_filter_node,
+-        f1b_ekf_node,
+-        comp_filter_node,
+-        f4_node,
+-        f5_ekf_node,
+-        relay_b0,
+-        relay_f1b,
+-        relay_f3b,
+-        relay_f4,
+-        relay_f5,
+-        slam_launch,
+-        nav2_launch,
+-        explore_node,
+-        stall_gate
++        # Everything that starts a node (driver, TF, estimators, SLAM, Nav2, gate) lives in this group, so an
++        # invalid speed_profile/use_depth_camera combination shuts the launch down before any of them starts.
++        GroupAction(
++            condition=UnlessCondition(speed_profile_invalid),
++            actions=[
++                log_deprecated_stall_arg,
++                limo_base_launch,
++                ydlidar_launch,
++                dabai_launch,
++                load_urdf_launch,
++                base_footprint_tf,
++                camera_tf_node,
++                depth_filter_node,
++                f1b_ekf_node,
++                comp_filter_node,
++                f4_node,
++                f5_ekf_node,
++                relay_b0,
++                relay_f1b,
++                relay_f3b,
++                relay_f4,
++                relay_f5,
++                slam_launch,
++                nav2_launch,
++                explore_node,
++                stall_gate
++            ],
++        ),
+     ])

@@ -1,0 +1,123 @@
+{
+  "timestamp": "2026-11-04T23:45:10+0900",
+  "code_hashes": {
+    "server": "c4d7eb9c23f729c630a9e0a37aaa40a81aaa2e491fe75e3180f1d43ed3b67b67",
+    "explorer": "54ff9d2c7f2e77ffad638cc88d29cb61369839f443ea254be90577c3fa788c32",
+    "frontier": "61f82e0c311cdb7feac15da7b7be017e3561e3139467e1ee6bc9083afa91238a",
+    "resume": "9c21eb74482f8561d678ea3e8352b4f7a3e594ac559f469a04db0f0d2560c77f"
+  },
+  "raw_log_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/gazebo_obstacle_mapping/logs/all_scenarios_live.raw.log",
+  "results": [
+    {
+      "scenario": "Condition_1_Cluttered_Start",
+      "run_id": "c1_clutter_rep1_c76a69ee",
+      "rep": 1,
+      "spawn": [
+        -5.2,
+        -3.5,
+        1.57
+      ],
+      "passed": true,
+      "distance_traveled_m": 0.6847795624967841,
+      "action_status": null,
+      "feedbacks_count": 141,
+      "contact_measured": "not_measured"
+    },
+    {
+      "scenario": "Condition_1_Cluttered_Start",
+      "run_id": "c1_clutter_rep2_593ae4c2",
+      "rep": 2,
+      "spawn": [
+        -5.0,
+        -3.2,
+        0.0
+      ],
+      "passed": true,
+      "distance_traveled_m": 1.0470649347476906,
+      "action_status": null,
+      "feedbacks_count": 141,
+      "contact_measured": "not_measured"
+    },
+    {
+      "scenario": "Condition_1_Cluttered_Start",
+      "run_id": "c1_clutter_rep3_c51885df",
+      "rep": 3,
+      "spawn": [
+        -5.4,
+        -3.8,
+        3.14
+      ],
+      "passed": true,
+      "distance_traveled_m": 0.006171569971492983,
+      "action_status": null,
+      "feedbacks_count": 141,
+      "contact_measured": "not_measured"
+    },
+    {
+      "scenario": "Conditions_3_4_5_6_7_Policy_and_Margin",
+      "run_id": "c3_to_7_policy_5d2427ee",
+      "c3_zero_displacement_pass": true,
+      "c4_transient_retry_pass": true,
+      "c5_max_retries_limit_reached_pass": true,
+      "c6_margin_updated": true,
+      "c7_margin_restored": true,
+      "contact_measured": "not_measured"
+    },
+    {
+      "scenario": "Condition_8_C103_Glass_Classroom",
+      "run_id": "c8_glass_7c943179",
+      "invisible_penetration_verified": true,
+      "normal_reflection_verified": true,
+      "passed": true,
+      "contact_measured": "not_measured"
+    },
+    {
+      "scenario": "Condition_9_Auto_Resume",
+      "run_id": "c9_resume_rep1_4977bbcd",
+      "rep": 1,
+      "spawn": [
+        -6.2,
+        -2.0,
+        0.0
+      ],
+      "localization_ready": false,
+      "localization_time_s": null,
+      "action_accepted": false,
+      "action_feedback_received": false,
+      "passed": false,
+      "contact_measured": "not_measured"
+    },
+    {
+      "scenario": "Condition_9_Auto_Resume",
+      "run_id": "c9_resume_rep2_572e6705",
+      "rep": 2,
+      "spawn": [
+        -5.5,
+        -2.0,
+        0.0
+      ],
+      "localization_ready": true,
+      "localization_time_s": 96.70631408400004,
+      "action_accepted": true,
+      "action_feedback_received": true,
+      "passed": true,
+      "contact_measured": "not_measured"
+    },
+    {
+      "scenario": "Condition_9_Auto_Resume",
+      "run_id": "c9_resume_rep3_2ff0153b",
+      "rep": 3,
+      "spawn": [
+        -6.5,
+        1.8,
+        1.57
+      ],
+      "localization_ready": false,
+      "localization_time_s": null,
+      "action_accepted": false,
+      "action_feedback_received": false,
+      "passed": false,
+      "contact_measured": "not_measured"
+    }
+  ]
+}

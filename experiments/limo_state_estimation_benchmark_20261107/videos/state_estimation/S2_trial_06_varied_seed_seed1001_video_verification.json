@@ -1,0 +1,14 @@
+{
+  "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/state_estimation/S2_trial_06_varied_seed_seed1001.mp4",
+  "file_size_bytes": 4012227,
+  "written_frames": 206,
+  "decoded_frames_verified": 206,
+  "non_black_frames_verified": 206,
+  "resolution": "1920x960",
+  "fps": 15.0,
+  "sim_time_start": 87.36,
+  "sim_time_end": 101.183,
+  "sim_duration_s": 13.823000000000008,
+  "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/state_estimation/S2_trial_06_varied_seed_seed1001_mid_frame.png",
+  "playable": true
+}

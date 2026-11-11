@@ -1,0 +1,26 @@
+{
+  "test_category": "별도 구성요소 시험: 시작 좌표 직접 주입을 통한 SLAM 재개·핸드오프·Action 독립 검증",
+  "start_pose_injected": true,
+  "ready_gate_bypassed": true,
+  "sim_spawn_world": [-6.2, -2.0, 0.0],
+  "injected_start_pose": [0.0, 0.0, 0.0],
+  "pre_handoff_amcl_pose": "미측정 (AMCL 전역 위치 추정 단계를 거치지 않고 start_pose 직접 주입)",
+  "post_handoff_slam_pose": [0.0, 0.0, 0.0],
+  "pose_delta_position_m": "미측정 (AMCL 추정값 부재로 전후 오차 비교 불가)",
+  "pose_delta_yaw_rad": "미측정 (AMCL 추정값 부재로 전후 오차 비교 불가)",
+  "amcl_node_active": false,
+  "slam_node_active": true,
+  "map_odom_tf_broadcaster_count": 1,
+  "tf_duplicated": false,
+  "min_obstacle_distance_m": 0.5241,
+  "collision_detected": false,
+  "action_goal_accepted": true,
+  "action_feedback_phase": "exploring",
+  "action_cmd_vel_count": 440,
+  "new_files_generated": {
+    "resumed_session_01.posegraph": 5905124,
+    "resumed_session_01.data": 773310,
+    "resumed_session_01.yaml": 141,
+    "resumed_session_01.pgm": 48672
+  }
+}

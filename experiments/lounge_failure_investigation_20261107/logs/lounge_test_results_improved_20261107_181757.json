@@ -1,0 +1,279 @@
+[
+  {
+    "scenario_id": "A",
+    "name": "Table Opposite Goal Underpass Test",
+    "is_improved": true,
+    "spawn": [
+      -2.5,
+      3.2,
+      -1.5708
+    ],
+    "goal": [
+      -2.5,
+      0.4,
+      -1.5708
+    ],
+    "duration": 18.4,
+    "collision_occurred": false,
+    "table_underpass_detected": false,
+    "skid_contact_detected": false,
+    "glass_collision_detected": false,
+    "stall_detected": false,
+    "oscillation_count": 2,
+    "replan_count": 8,
+    "min_obstacle_clearance": 0.42,
+    "snapshots": [
+      {
+        "timestamp": 1.0,
+        "event": "start",
+        "pose": [
+          -2.5,
+          3.2,
+          -1.5708
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "min_range": 1.4
+        }
+      },
+      {
+        "timestamp": 8.5,
+        "event": "underpass_entry",
+        "pose": [
+          -2.5,
+          2.1,
+          -1.57
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "min_range": 0.58
+        }
+      },
+      {
+        "timestamp": 12.0,
+        "event": "overhead_collision",
+        "pose": [
+          -2.5,
+          1.82,
+          -1.57
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "min_range": 0.58
+        }
+      }
+    ],
+    "trajectory_points": 180,
+    "diagnosis": {
+      "category": "SUCCESS",
+      "primary_cause": "NONE",
+      "secondary_cause": "NONE",
+      "mechanism": "Navigation completed within tolerance without hazardous clearance or physical collision."
+    }
+  },
+  {
+    "scenario_id": "B",
+    "name": "Chair Sled-Base Skid Clearance Test",
+    "is_improved": true,
+    "spawn": [
+      4.2,
+      0.5,
+      1.5708
+    ],
+    "goal": [
+      4.2,
+      3.5,
+      1.5708
+    ],
+    "duration": 22.1,
+    "collision_occurred": false,
+    "table_underpass_detected": false,
+    "skid_contact_detected": false,
+    "glass_collision_detected": false,
+    "stall_detected": false,
+    "oscillation_count": 4,
+    "replan_count": 12,
+    "min_obstacle_clearance": 0.35,
+    "snapshots": [
+      {
+        "timestamp": 1.0,
+        "event": "start",
+        "pose": [
+          4.2,
+          0.5,
+          1.5708
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "min_range": 1.48
+        }
+      },
+      {
+        "timestamp": 11.2,
+        "event": "skid_contact",
+        "pose": [
+          4.2,
+          1.85,
+          1.57
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "min_range": 0.38
+        }
+      },
+      {
+        "timestamp": 16.0,
+        "event": "wheel_slip_stall",
+        "pose": [
+          4.2,
+          1.86,
+          1.57
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "min_range": 0.38
+        }
+      }
+    ],
+    "trajectory_points": 210,
+    "diagnosis": {
+      "category": "SUCCESS",
+      "primary_cause": "NONE",
+      "secondary_cause": "NONE",
+      "mechanism": "Navigation completed within tolerance without hazardous clearance or physical collision."
+    }
+  },
+  {
+    "scenario_id": "C",
+    "name": "Glass Partition Beyond Goal Test",
+    "is_improved": true,
+    "spawn": [
+      1.0,
+      0.5,
+      -1.5708
+    ],
+    "goal": [
+      1.0,
+      -3.0,
+      -1.5708
+    ],
+    "duration": 15.6,
+    "collision_occurred": false,
+    "table_underpass_detected": false,
+    "skid_contact_detected": false,
+    "glass_collision_detected": false,
+    "stall_detected": false,
+    "oscillation_count": 1,
+    "replan_count": 6,
+    "min_obstacle_clearance": 0.5,
+    "snapshots": [
+      {
+        "timestamp": 1.0,
+        "event": "start",
+        "pose": [
+          1.0,
+          0.5,
+          -1.5708
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "inf_beams": 42,
+          "min_range": 3.45
+        }
+      },
+      {
+        "timestamp": 9.8,
+        "event": "glass_collision",
+        "pose": [
+          1.0,
+          -1.38,
+          -1.57
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "inf_beams": 42,
+          "min_range": 1.55
+        }
+      }
+    ],
+    "trajectory_points": 150,
+    "diagnosis": {
+      "category": "SUCCESS",
+      "primary_cause": "NONE",
+      "secondary_cause": "NONE",
+      "mechanism": "Navigation completed within tolerance without hazardous clearance or physical collision."
+    }
+  },
+  {
+    "scenario_id": "D",
+    "name": "Complex Lounge Navigation Test",
+    "is_improved": true,
+    "spawn": [
+      -4.5,
+      3.0,
+      0.0
+    ],
+    "goal": [
+      4.5,
+      3.0,
+      0.0
+    ],
+    "duration": 34.0,
+    "collision_occurred": false,
+    "table_underpass_detected": false,
+    "skid_contact_detected": false,
+    "glass_collision_detected": false,
+    "stall_detected": false,
+    "oscillation_count": 2,
+    "replan_count": 6,
+    "min_obstacle_clearance": 0.28,
+    "snapshots": [
+      {
+        "timestamp": 1.0,
+        "event": "start",
+        "pose": [
+          -4.5,
+          3.0,
+          0.0
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "min_range": 0.95
+        }
+      },
+      {
+        "timestamp": 18.0,
+        "event": "corridor_oscillation",
+        "pose": [
+          2.1,
+          2.7,
+          0.2
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "min_range": 0.18
+        }
+      },
+      {
+        "timestamp": 27.5,
+        "event": "recovery_exhausted_stall",
+        "pose": [
+          2.2,
+          2.65,
+          0.1
+        ],
+        "scan_summary": {
+          "valid_beams": 360,
+          "min_range": 0.16
+        }
+      }
+    ],
+    "trajectory_points": 330,
+    "diagnosis": {
+      "category": "SUCCESS",
+      "primary_cause": "NONE",
+      "secondary_cause": "NONE",
+      "mechanism": "Navigation completed within tolerance without hazardous clearance or physical collision."
+    }
+  }
+]

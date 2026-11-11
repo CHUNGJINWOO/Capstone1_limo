@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-11-08 12:06:30",
+  "safety_configuration": {
+    "enable_auto_reverse": false,
+    "enable_auto_rotate_recovery": false,
+    "require_operator_unlatch": true,
+    "stall_confirm_duration_sec": 0.22,
+    "sensor_timeout_sec": 0.45
+  },
+  "tests": {
+    "glass_wall_safety_locked_test": {
+      "t_impact_sim_time_s": 12.945,
+      "t_stall_latched_sim_time_s": 13.296,
+      "stall_detection_latency_s": 0.351,
+      "physical_travel_from_impact_to_latch_m": 0.0,
+      "wheel_odometry_slip_during_latency_m": 0.0966,
+      "reverse_commands_blocked": true,
+      "max_cmd_vx_out_during_reverse_test": 0.0,
+      "actual_chassis_reverse_displacement_m": 0.0,
+      "auto_reverse_prohibited_and_prevented": true,
+      "operator_unlatch_service_executed": true,
+      "operator_unlatch_message": "Stall latch cleared by operator (transitioned from STALL_LATCHED to NORMAL).",
+      "verdict": "PASS_SAFETY_LOCKED"
+    },
+    "sensor_dropout_failsafe_test": {
+      "t_sensor_dropout_sim_time_s": 26.428,
+      "t_failsafe_latched_sim_time_s": 26.785,
+      "failsafe_latency_s": 0.357,
+      "cmd_zeroed_on_timeout": true,
+      "verdict": "PASS"
+    }
+  }
+}

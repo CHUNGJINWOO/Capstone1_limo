@@ -1,0 +1,15 @@
+gate: {"sim_time": 49.6, "state": "NORMAL", "state_code": 0, "cmd_blocked": 
+---
+/cmd_vel PUB:       1 stall_detector_node 
+/cmd_vel_raw PUB:       3 behavior_server       1 velocity_smoother 
+BT: navigate_to_pose_w_replanning_and_recovery.xml
+gate state at start: NORMAL
+goal map=(0.50,0.00) yaw=-0 dist=0.50
+goal accepted: True
+** fault injected (depth) after 0.25 m, state=NORMAL
+   moved 0.0000 m during 2..5 s after fault; state=FAILSAFE_SENSOR_TIMEOUT
+nav status=not finished (4=SUCCEEDED); GT path=0.35 m, net=0.35 m; map pose end=(0.35,0.03) goal err=0.16 m
+/cmd_vel nonzero=61/396; state transitions=[(1794325350.97, 'NORMAL'), (1794325353.52, 'STALL_PENDING'), (1794325353.62, 'NORMAL'), (1794325354.93, 'FAILSAFE_SENSOR_TIMEOUT')]
+gate after: {"sim_time": 62.3, "state": "FAILSAFE_SENSOR_TIMEOUT", "state_code": 3
+---
+gate log: [stall_detector_node-22] [ERROR] [1794325354.925496686] [stall_detector_node]: [FAIL-SAFE SENSOR TIMEOUT] scan_stale=False, lidar_stale=False, wheel_odom_stale=False, est_odom_stale=False, depth_fault 

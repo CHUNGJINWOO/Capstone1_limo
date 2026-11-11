@@ -1,0 +1,10 @@
+/depth_obstacle_filter processing_hz: Double value is: 10.0 
+/depth_obstacle_filter min_height: Double value is: 0.025 
+/depth_obstacle_filter data_timeout_sec: Double value is: 0.38 
+/local_costmap/local_costmap obstacle_layer.depth_obstacles.min_obstacle_height: Double value is: 0.02 
+/global_costmap/global_costmap obstacle_layer.depth_obstacles.min_obstacle_height: Double value is: 0.02 
+/local_costmap/local_costmap obstacle_layer.virtual_bumper.min_obstacle_height: Double value is: 0.01 
+/global_costmap/global_costmap obstacle_layer.virtual_bumper.min_obstacle_height: Double value is: 0.01 
+/bt_navigator default_nav_to_pose_bt_xml: String value is: navigate_to_pose_ackermann_no_reverse.xml 
+/stall_detector_node sensor_timeout_sec: Double value is: 0.38 
+/cmd_vel publishers:       1 stall_detector_node 

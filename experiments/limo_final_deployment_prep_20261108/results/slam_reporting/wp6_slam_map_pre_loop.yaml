@@ -1,0 +1,7 @@
+image: wp6_slam_map_pre_loop.pgm
+mode: trinary
+resolution: 0.0500
+origin: [-3.6008, -7.0457, 0.0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.25

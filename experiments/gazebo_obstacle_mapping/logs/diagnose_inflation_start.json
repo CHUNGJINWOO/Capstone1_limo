@@ -1,0 +1,418 @@
+{
+  "spawn_pose": [
+    -7.75,
+    0.0,
+    0.0
+  ],
+  "actual_robot_pose_map": [
+    1.5173121780726042e-11,
+    7.4319591112429775e-34
+  ],
+  "global_costmap_window": {
+    "grid_coord": [
+      1,
+      116
+    ],
+    "world_coord": [
+      1.5173121780726042e-11,
+      7.4319591112429775e-34
+    ],
+    "resolution": 0.05000000074505806,
+    "center_cost": 99,
+    "window_9x9": [
+      [
+        null,
+        null,
+        null,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67
+      ],
+      [
+        null,
+        null,
+        null,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67
+      ],
+      [
+        null,
+        null,
+        null,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67
+      ],
+      [
+        null,
+        null,
+        null,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67
+      ],
+      [
+        null,
+        null,
+        null,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67
+      ],
+      [
+        null,
+        null,
+        null,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67
+      ],
+      [
+        null,
+        null,
+        null,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67
+      ],
+      [
+        null,
+        null,
+        null,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67
+      ],
+      [
+        null,
+        null,
+        null,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67
+      ]
+    ]
+  },
+  "local_costmap_window": {
+    "grid_coord": [
+      29,
+      29
+    ],
+    "world_coord": [
+      1.5173121780726042e-11,
+      7.4319591112429775e-34
+    ],
+    "resolution": 0.05000000074505806,
+    "center_cost": 80,
+    "window_9x9": [
+      [
+        99,
+        99,
+        99,
+        99,
+        99,
+        99,
+        91,
+        64,
+        0
+      ],
+      [
+        99,
+        99,
+        99,
+        99,
+        99,
+        99,
+        80,
+        58,
+        0
+      ],
+      [
+        99,
+        99,
+        99,
+        99,
+        99,
+        87,
+        67,
+        50,
+        0
+      ],
+      [
+        80,
+        91,
+        95,
+        91,
+        80,
+        67,
+        53,
+        0,
+        0
+      ],
+      [
+        80,
+        91,
+        95,
+        91,
+        80,
+        67,
+        53,
+        0,
+        0
+      ],
+      [
+        99,
+        99,
+        99,
+        99,
+        99,
+        87,
+        67,
+        50,
+        0
+      ],
+      [
+        99,
+        99,
+        99,
+        99,
+        99,
+        99,
+        80,
+        58,
+        0
+      ],
+      [
+        99,
+        99,
+        99,
+        99,
+        99,
+        99,
+        91,
+        64,
+        0
+      ],
+      [
+        99,
+        99,
+        100,
+        99,
+        99,
+        99,
+        95,
+        67,
+        47
+      ]
+    ]
+  },
+  "direct_compute_path_result": {
+    "accepted": true,
+    "status": 6,
+    "path_len": 0,
+    "error": ""
+  },
+  "action_diagnostics": {
+    "goal_accepted": true,
+    "terminal_status": null,
+    "terminal_message": "",
+    "feedbacks": []
+  },
+  "feedbacks_count": 101,
+  "feedbacks_sample": [
+    {
+      "phase": "waiting_for_inputs",
+      "elapsed": 3.042599928448908e-05,
+      "retries": 0
+    },
+    {
+      "phase": "exploring",
+      "elapsed": 0.007593974998599151,
+      "retries": 0
+    },
+    {
+      "phase": "exploring",
+      "elapsed": 0.2582710880014929,
+      "retries": 0
+    },
+    {
+      "phase": "exploring",
+      "elapsed": 0.5107129509997321,
+      "retries": 0
+    },
+    {
+      "phase": "exploring",
+      "elapsed": 0.7613229620001221,
+      "retries": 0
+    },
+    {
+      "phase": "exploring",
+      "elapsed": 1.0118805189995328,
+      "retries": 0
+    },
+    {
+      "phase": "exploring",
+      "elapsed": 1.26262106500144,
+      "retries": 0
+    },
+    {
+      "phase": "exploring",
+      "elapsed": 1.5135379640014435,
+      "retries": 0
+    },
+    {
+      "phase": "exploring",
+      "elapsed": 1.764242032000766,
+      "retries": 0
+    },
+    {
+      "phase": "exploring",
+      "elapsed": 2.01485354399847,
+      "retries": 0
+    }
+  ],
+  "cmd_vel_count": 123,
+  "cmd_vel_samples": [
+    {
+      "time": 31936.093086032,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    },
+    {
+      "time": 31936.193152084,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    },
+    {
+      "time": 31936.293101238,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    },
+    {
+      "time": 31936.393109374,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    },
+    {
+      "time": 31936.493025226,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    },
+    {
+      "time": 31936.593121335,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    },
+    {
+      "time": 31936.693030501,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    },
+    {
+      "time": 31936.793079109,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    },
+    {
+      "time": 31936.893861581,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    },
+    {
+      "time": 31936.993155976,
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 1.0
+    }
+  ],
+  "distance_traveled_m": 6.248517943126966e-13,
+  "mapping_server_log_tail": [
+    "[velocity_smoother-8] [INFO] [1793804230.778620963] [velocity_smoother]: Cleaning up",
+    "[velocity_smoother-8] [INFO] [1793804230.778713633] [velocity_smoother]: Destroying bond (velocity_smoother) to lifecycle manager.",
+    "[velocity_smoother-8] [INFO] [1793804230.782668466] [velocity_smoother]: Destroying",
+    "[waypoint_follower-7] [INFO] [1793804230.783425110] [waypoint_follower]: Destroying bond (waypoint_follower) to lifecycle manager.",
+    "[smoother_server-3] [INFO] [1793804230.786731383] [smoother_server]: Destroying bond (smoother_server) to lifecycle manager.",
+    "[behavior_server-5] [INFO] [1793804230.788038046] [behavior_server]: Canceling spin",
+    "[behavior_server-5] [WARN] [1793804230.788103940] [LifecyclePublisher]: Trying to publish message on the topic '/cmd_vel', but the publisher is not activated",
+    "[behavior_server-5] [INFO] [1793804230.788119513] [behavior_server]: [spin] [ActionServer] Client requested to cancel the goal. Cancelling.",
+    "[behavior_server-5] [WARN] [1793804230.788234232] [behavior_server]: [spin] [ActionServer] Stopping the thread per request.",
+    "[behavior_server-5] [INFO] [1793804230.788401064] [behavior_server]: Destroying bond (behavior_server) to lifecycle manager.",
+    "[bt_navigator-6] [WARN] [1793804230.790038422] [bt_navigator]: [navigate_to_pose] [ActionServer] Aborting handle.",
+    "[bt_navigator-6] [INFO] [1793804230.790263846] [bt_navigator]: Goal canceled",
+    "[bt_navigator-6] [WARN] [1793804230.790285541] [bt_navigator]: [navigate_to_pose] [ActionServer] Stopping the thread per request.",
+    "[bt_navigator-6] [INFO] [1793804230.790457987] [bt_navigator]: Destroying bond (bt_navigator) to lifecycle manager.",
+    "[smoother_server-3] [INFO] [1793804230.791024330] [smoother_server]: Destroying",
+    "[waypoint_follower-7] [INFO] [1793804230.791040653] [waypoint_follower]: Destroying",
+    "[behavior_server-5] [INFO] [1793804230.798847465] [behavior_server]: Cleaning up",
+    "[controller_server-2] [INFO] [1793804230.799223646] [controller_server]: Destroying bond (controller_server) to lifecycle manager.",
+    "[bt_navigator-6] [INFO] [1793804230.800883227] [bt_navigator]: Cleaning up",
+    "[behavior_server-5] [INFO] [1793804230.808952588] [behavior_server]: Destroying bond (behavior_server) to lifecycle manager.",
+    "[controller_server-2] [INFO] [1793804230.809581692] [controller_server]: Cleaning up",
+    "[controller_server-2] [INFO] [1793804230.809727326] [local_costmap.local_costmap]: Cleaning up",
+    "[behavior_server-5] [INFO] [1793804230.824823898] [behavior_server]: Destroying",
+    "[controller_server-2] [INFO] [1793804230.828220643] [controller_server]: Destroying bond (controller_server) to lifecycle manager.",
+    "[mapping_server-10] [WARN] [1793804230.829617767] [explore_node]: Nav2 \uc8fc\ud589 \uc911\ub2e8(ABORTED): \ubaa9\ud45c (0.7503364914011462, 0.05025156381848017)",
+    "[controller_server-2] [INFO] [1793804230.830008068] [local_costmap.local_costmap]: Destroying",
+    "[mapping_server-10] [INFO] [1793804230.830164763] [explore_node]: \ubaa9\ud45c (0.7503364914011462, 0.05025156381848017) \uc8fc\ud589 \uc2e4\ud328(1\ud68c): 10.0\ucd08 \ucfe8\ub2e4\uc6b4 \ud6c4 \uc7ac\ud3c9\uac00 \uc608\uc815",
+    "[controller_server-2] [INFO] [1793804230.836962547] [controller_server]: Destroying",
+    "[bt_navigator-6] [INFO] [1793804230.852127244] [bt_navigator]: Completed Cleaning up",
+    "[bt_navigator-6] [INFO] [1793804230.852162610] [bt_navigator]: Destroying bond (bt_navigator) to lifecycle manager.",
+    "[bt_navigator-6] [INFO] [1793804230.853794923] [bt_navigator]: Destroying",
+    "[lifecycle_manager-9] [INFO] [1793804230.854075467] [lifecycle_manager_navigation]: Destroying lifecycle_manager_navigation",
+    "[INFO] [async_slam_toolbox_node-1]: process has finished cleanly [pid 267]",
+    "[INFO] [velocity_smoother-8]: process has finished cleanly [pid 281]",
+    "[INFO] [waypoint_follower-7]: process has finished cleanly [pid 279]",
+    "[INFO] [smoother_server-3]: process has finished cleanly [pid 271]",
+    "[INFO] [behavior_server-5]: process has finished cleanly [pid 275]",
+    "[INFO] [controller_server-2]: process has finished cleanly [pid 269]",
+    "[INFO] [lifecycle_manager-9]: process has finished cleanly [pid 283]",
+    "[INFO] [bt_navigator-6]: process has finished cleanly [pid 277]",
+    "[planner_server-4] [INFO] [1793804231.760694850] [planner_server]: Deactivating plugin GridBased of type NavfnPlanner",
+    "[planner_server-4] [INFO] [1793804231.760732643] [planner_server]: Destroying bond (planner_server) to lifecycle manager.",
+    "[planner_server-4] [INFO] [1793804231.770890027] [planner_server]: Cleaning up",
+    "[planner_server-4] [INFO] [1793804231.775786387] [global_costmap.global_costmap]: Cleaning up",
+    "[planner_server-4] [INFO] [1793804231.777481150] [planner_server]: Cleaning up plugin GridBased of type NavfnPlanner",
+    "[planner_server-4] [INFO] [1793804231.777639198] [planner_server]: Destroying plugin GridBased of type NavfnPlanner",
+    "[planner_server-4] [INFO] [1793804231.780252529] [planner_server]: Destroying bond (planner_server) to lifecycle manager.",
+    "[planner_server-4] [INFO] [1793804231.782839936] [global_costmap.global_costmap]: Destroying",
+    "[planner_server-4] [INFO] [1793804231.788856370] [planner_server]: Destroying",
+    "[INFO] [planner_server-4]: process has finished cleanly [pid 273]"
+  ]
+}

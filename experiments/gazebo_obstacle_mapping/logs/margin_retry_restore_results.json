@@ -1,0 +1,36 @@
+{
+  "run_id": "margin_test_c12e86",
+  "tests": {
+    "1_initial_params": {
+      "global_params": {
+        "inflation_radius": 0.3,
+        "robot_radius": 0.19,
+        "footprint": "[]",
+        "enabled": true
+      },
+      "local_params": {
+        "inflation_radius": 0.3,
+        "robot_radius": 0.19,
+        "footprint": "[]",
+        "enabled": true
+      },
+      "passed": true
+    },
+    "2_live_service_mutation_and_restore": {
+      "mutation_ok": true,
+      "restore_ok": true,
+      "passed": true
+    },
+    "3_path_planning_probe": {
+      "open_path_ok": true,
+      "poses_len": 39,
+      "passed": true
+    },
+    "4_restore_on_cancel": {
+      "global_inflation": 0.3,
+      "local_inflation": 0.3,
+      "passed": true
+    }
+  },
+  "all_passed": true
+}

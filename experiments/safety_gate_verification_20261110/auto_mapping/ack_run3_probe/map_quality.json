@@ -1,0 +1,109 @@
+{
+ "run": ".",
+ "resolution_m": 0.05000000074505806,
+ "interior_area_m2": 103.84,
+ "known_in_interior_m2": 48.79,
+ "free_in_interior_m2": 47.64,
+ "occupied_in_interior_m2": 1.15,
+ "interior_known_fraction": 0.47,
+ "known_outside_interior_m2": 0.95,
+ "note_outside": "known cells outside the outer walls = leaked rays (e.g. through glass) or wall thickness",
+ "walls": [
+  {
+   "wall": "north (y=4.4)",
+   "occupied_cells_in_band": 122,
+   "offset_mean_m": -0.029,
+   "offset_std_m": 0.157,
+   "offset_p95_abs_m": 0.284,
+   "along_coverage": 0.653
+  },
+  {
+   "wall": "south (y=-4.4)",
+   "occupied_cells_in_band": 40,
+   "offset_mean_m": -0.066,
+   "offset_std_m": 0.05,
+   "offset_p95_abs_m": 0.147,
+   "along_coverage": 0.22
+  },
+  {
+   "wall": "west (x=-5.9)",
+   "occupied_cells_in_band": 85,
+   "offset_mean_m": -0.065,
+   "offset_std_m": 0.121,
+   "offset_p95_abs_m": 0.264,
+   "along_coverage": 0.602
+  },
+  {
+   "wall": "east (x=5.9)",
+   "occupied_cells_in_band": 89,
+   "offset_mean_m": 0.067,
+   "offset_std_m": 0.092,
+   "offset_p95_abs_m": 0.22,
+   "along_coverage": 0.477
+  },
+  {
+   "wall": "glass wall (y=-1.5)",
+   "occupied_cells_in_band": 95,
+   "offset_mean_m": 0.199,
+   "offset_std_m": 0.078,
+   "offset_p95_abs_m": 0.33,
+   "along_coverage": 0.557
+  }
+ ],
+ "outer_wall_mean_coverage": 0.488,
+ "outer_wall_mean_abs_offset_m": 0.057,
+ "outer_wall_mean_std_m": 0.105,
+ "occupied_away_from_walls_m2": 0.36,
+ "unknown_inside_clusters_ge_0p25m2": [
+  {
+   "area_m2": 22.99,
+   "centroid_world": [
+    2.04,
+    -2.68
+   ]
+  },
+  {
+   "area_m2": 7.84,
+   "centroid_world": [
+    -4.34,
+    -2.83
+   ]
+  },
+  {
+   "area_m2": 7.73,
+   "centroid_world": [
+    3.79,
+    3.32
+   ]
+  },
+  {
+   "area_m2": 1.18,
+   "centroid_world": [
+    -4.92,
+    3.44
+   ]
+  },
+  {
+   "area_m2": 0.56,
+   "centroid_world": [
+    -5.3,
+    2.37
+   ]
+  },
+  {
+   "area_m2": 0.4,
+   "centroid_world": [
+    -3.87,
+    3.81
+   ]
+  },
+  {
+   "area_m2": 0.27,
+   "centroid_world": [
+    -5.55,
+    3.13
+   ]
+  }
+ ],
+ "unknown_inside_total_m2": 51.54
+}

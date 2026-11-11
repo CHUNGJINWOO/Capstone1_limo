@@ -1,0 +1,53 @@
+[
+  {
+    "label": "inscribed_zone",
+    "spawn_x": -7.75,
+    "dist_to_wall_m": 0.04999999999999982,
+    "robot_map_pose": [
+      1.529829832418998e-11,
+      5.983869604004606e-34
+    ],
+    "center_cost": 99,
+    "compute_path_status": 6,
+    "compute_path_len": 0,
+    "action_status": null,
+    "action_msg": "",
+    "cmd_vel_count": 101,
+    "dist_traveled_m": 5.625538290769172e-13,
+    "feedbacks_count": 81
+  },
+  {
+    "label": "inflation_decay_zone",
+    "spawn_x": -7.58,
+    "dist_to_wall_m": 0.21999999999999975,
+    "robot_map_pose": [
+      -2.5200001693776794e-13,
+      3.909178683857981e-48
+    ],
+    "center_cost": 67,
+    "compute_path_status": 4,
+    "compute_path_len": 60,
+    "action_status": null,
+    "action_msg": "",
+    "cmd_vel_count": 301,
+    "dist_traveled_m": 0.45482327109903636,
+    "feedbacks_count": 81
+  },
+  {
+    "label": "free_zone",
+    "spawn_x": -7.4,
+    "dist_to_wall_m": 0.39999999999999947,
+    "robot_map_pose": [
+      -2.5200001558838034e-13,
+      3.820030493180724e-48
+    ],
+    "center_cost": 0,
+    "compute_path_status": 4,
+    "compute_path_len": 60,
+    "action_status": null,
+    "action_msg": "",
+    "cmd_vel_count": 311,
+    "dist_traveled_m": 0.6866222793305349,
+    "feedbacks_count": 81
+  }
+]

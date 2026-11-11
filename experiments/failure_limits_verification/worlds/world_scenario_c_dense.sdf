@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="mc3f_world">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="libignition-gazebo-physics-system.so" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="libignition-gazebo-user-commands-system.so" name="ignition::gazebo::systems::UserCommands"/>
+    <plugin filename="libignition-gazebo-scene-broadcaster-system.so" name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="libignition-gazebo-sensors-system.so" name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="libignition-gazebo-imu-system.so" name="ignition::gazebo::systems::Imu"/>
+
+    <light name="sun" type="directional">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 20 0 0 0</pose>
+      <diffuse>0.9 0.9 0.92 1</diffuse>
+      <specular>0.3 0.3 0.3 1</specular>
+      <direction>-0.25 0.15 -0.95</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="ground_plane_link">
+        <collision name="ground_collision">
+          <geometry><plane><normal>0 0 1</normal><size>30 30</size></plane></geometry>
+          <surface><friction><ode><mu>100</mu><mu2>50</mu2></ode></friction></surface>
+        </collision>
+        <visual name="ground_visual">
+          <cast_shadows>false</cast_shadows>
+          <geometry><plane><normal>0 0 1</normal><size>30 30</size></plane></geometry>
+          <material><ambient>0.74 0.76 0.80 1</ambient><diffuse>0.74 0.76 0.80 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Dense Obstacles Surrounding Spawn Point (0,0) -->
+    <!-- Distance to obstacle faces is ~0.15m-0.20m, putting robot center within cost >= 99 -->
+    <model name="dense_obstacles_env">
+      <static>true</static>
+      <link name="obstacles">
+        <!-- North Obstacle: y = +0.22, size 0.6 x 0.2 x 0.8 -->
+        <collision name="obs_n"><pose>0.0 0.24 0.4 0 0 0</pose><geometry><box><size>0.6 0.15 0.8</size></box></geometry></collision>
+        <visual name="v_obs_n"><pose>0.0 0.24 0.4 0 0 0</pose><geometry><box><size>0.6 0.15 0.8</size></box></geometry><material><ambient>0.8 0.3 0.2 1</ambient><diffuse>0.8 0.3 0.2 1</diffuse></material></visual>
+
+        <!-- South Obstacle: y = -0.22, size 0.6 x 0.2 x 0.8 -->
+        <collision name="obs_s"><pose>0.0 -0.24 0.4 0 0 0</pose><geometry><box><size>0.6 0.15 0.8</size></box></geometry></collision>
+        <visual name="v_obs_s"><pose>0.0 -0.24 0.4 0 0 0</pose><geometry><box><size>0.6 0.15 0.8</size></box></geometry><material><ambient>0.8 0.3 0.2 1</ambient><diffuse>0.8 0.3 0.2 1</diffuse></material></visual>
+
+        <!-- West Obstacle (Dead-end back): x = -0.25, size 0.2 x 0.6 x 0.8 -->
+        <collision name="obs_w"><pose>-0.25 0.0 0.4 0 0 0</pose><geometry><box><size>0.15 0.6 0.8</size></box></geometry></collision>
+        <visual name="v_obs_w"><pose>-0.25 0.0 0.4 0 0 0</pose><geometry><box><size>0.15 0.6 0.8</size></box></geometry><material><ambient>0.8 0.3 0.2 1</ambient><diffuse>0.8 0.3 0.2 1</diffuse></material></visual>
+
+        <!-- East Exit Corridor walls (robot can only escape East, but exit is tight) -->
+        <collision name="exit_n"><pose>1.2 0.35 0.4 0 0 0</pose><geometry><box><size>1.6 0.1 0.8</size></box></geometry></collision>
+        <visual name="v_exit_n"><pose>1.2 0.35 0.4 0 0 0</pose><geometry><box><size>1.6 0.1 0.8</size></box></geometry><material><ambient>0.5 0.5 0.6 1</ambient><diffuse>0.5 0.5 0.6 1</diffuse></material></visual>
+
+        <collision name="exit_s"><pose>1.2 -0.35 0.4 0 0 0</pose><geometry><box><size>1.6 0.1 0.8</size></box></geometry></collision>
+        <visual name="v_exit_s"><pose>1.2 -0.35 0.4 0 0 0</pose><geometry><box><size>1.6 0.1 0.8</size></box></geometry><material><ambient>0.5 0.5 0.6 1</ambient><diffuse>0.5 0.5 0.6 1</diffuse></material></visual>
+
+        <!-- Outer Boundary -->
+        <collision name="b_e"><pose>2.5 0.0 0.4 0 0 0</pose><geometry><box><size>0.2 2.0 0.8</size></box></geometry></collision>
+        <visual name="v_b_e"><pose>2.5 0.0 0.4 0 0 0</pose><geometry><box><size>0.2 2.0 0.8</size></box></geometry><material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

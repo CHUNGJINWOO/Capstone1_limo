@@ -1,0 +1,14 @@
+{
+  "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_B_improved.mp4",
+  "file_size_bytes": 5370313,
+  "written_frames": 232,
+  "decoded_frames_verified": 232,
+  "non_black_frames_verified": 232,
+  "resolution": "1920x960",
+  "fps": 15.0,
+  "sim_time_start": 6.569,
+  "sim_time_end": 21.99,
+  "sim_duration_s": 15.421,
+  "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_B_improved_mid_frame.png",
+  "playable": true
+}

@@ -1,0 +1,190 @@
+[
+  {
+    "scenario_id": "A",
+    "name": "Table Opposite Goal Underpass Test",
+    "is_improved": true,
+    "world": "lounge_evaluation_world.sdf",
+    "verdict": "INCONCLUSIVE",
+    "action_status": "RUNNING_TIMEOUT",
+    "failure_reason": "Navigation ended with status: RUNNING_TIMEOUT",
+    "odom": {
+      "samples": 1518,
+      "initial": {
+        "time": 1794045441.334249,
+        "x": 6.702387934021475e-20,
+        "y": 2.028799515143038e-48,
+        "yaw": 6.061323724779053e-29
+      },
+      "final": {
+        "time": 1794045474.4410827,
+        "x": 0.2722993025232278,
+        "y": -0.047044048086121976,
+        "yaw": -0.4194041698556004
+      },
+      "net_displacement_m": 0.276
+    },
+    "cmd_vel": {
+      "samples": 600
+    },
+    "global_paths_planned": 30,
+    "local_paths_planned": 590,
+    "min_obstacle_distance_m": 0.33,
+    "costmap_metadata": {
+      "resolution": 0.05000000074505806,
+      "width": 244,
+      "height": 184,
+      "origin": [
+        -6.1,
+        -4.6
+      ]
+    },
+    "scan_data": {
+      "total_messages": 314,
+      "beams_per_scan": 360,
+      "valid_beams_last": 360,
+      "min_range_overall": 0.33,
+      "min_range_last": 0.33
+    }
+  },
+  {
+    "scenario_id": "B",
+    "name": "Chair Sled-Base Skid Clearance Test",
+    "is_improved": true,
+    "world": "lounge_evaluation_world.sdf",
+    "verdict": "INCONCLUSIVE",
+    "action_status": "RUNNING_TIMEOUT",
+    "failure_reason": "Navigation ended with status: RUNNING_TIMEOUT",
+    "odom": {
+      "samples": 1519,
+      "initial": {
+        "time": 1794045497.1977162,
+        "x": 1.2482564779840038e-19,
+        "y": 6.607920806486969e-48,
+        "yaw": 1.1219493522071445e-28
+      },
+      "final": {
+        "time": 1794045530.6106522,
+        "x": 2.813304377589745,
+        "y": -0.3573439699610831,
+        "yaw": 0.37459601582844937
+      },
+      "net_displacement_m": 2.836
+    },
+    "cmd_vel": {
+      "samples": 599
+    },
+    "global_paths_planned": 30,
+    "local_paths_planned": 593,
+    "min_obstacle_distance_m": 0.334,
+    "costmap_metadata": {
+      "resolution": 0.05000000074505806,
+      "width": 244,
+      "height": 184,
+      "origin": [
+        -6.1,
+        -4.6
+      ]
+    },
+    "scan_data": {
+      "total_messages": 315,
+      "beams_per_scan": 360,
+      "valid_beams_last": 360,
+      "min_range_overall": 0.334,
+      "min_range_last": 0.987
+    }
+  },
+  {
+    "scenario_id": "C",
+    "name": "Glass Partition Beyond Goal Test",
+    "is_improved": true,
+    "world": "lounge_evaluation_world_invisible_glass.sdf",
+    "verdict": "INCONCLUSIVE",
+    "action_status": "RUNNING_TIMEOUT",
+    "failure_reason": "Navigation ended with status: RUNNING_TIMEOUT",
+    "odom": {
+      "samples": 1519,
+      "initial": {
+        "time": 1794045553.062591,
+        "x": 1.0019817232874702e-20,
+        "y": 2.039607052022434e-49,
+        "yaw": 9.914128873695097e-30
+      },
+      "final": {
+        "time": 1794045586.7832243,
+        "x": 0.5728924235260334,
+        "y": -1.780335109344315,
+        "yaw": -1.3632464565086384
+      },
+      "net_displacement_m": 1.87
+    },
+    "cmd_vel": {
+      "samples": 600
+    },
+    "global_paths_planned": 29,
+    "local_paths_planned": 580,
+    "min_obstacle_distance_m": 0.675,
+    "costmap_metadata": {
+      "resolution": 0.05000000074505806,
+      "width": 244,
+      "height": 184,
+      "origin": [
+        -6.1,
+        -4.6
+      ]
+    },
+    "scan_data": {
+      "total_messages": 314,
+      "beams_per_scan": 360,
+      "valid_beams_last": 360,
+      "min_range_overall": 0.675,
+      "min_range_last": 0.988
+    }
+  },
+  {
+    "scenario_id": "D",
+    "name": "Complex Lounge Navigation Test",
+    "is_improved": true,
+    "world": "lounge_evaluation_world.sdf",
+    "verdict": "INCONCLUSIVE",
+    "action_status": "RUNNING_TIMEOUT",
+    "failure_reason": "Navigation ended with status: RUNNING_TIMEOUT",
+    "odom": {
+      "samples": 1770,
+      "initial": {
+        "time": 1794045609.1831932,
+        "x": -1.0023831116585664e-20,
+        "y": 1.854480919630832e-49,
+        "yaw": -7.705882040696377e-30
+      },
+      "final": {
+        "time": 1794045647.9125628,
+        "x": 8.512249920303143,
+        "y": -0.4055354557817221,
+        "yaw": 0.5794146676559858
+      },
+      "net_displacement_m": 8.522
+    },
+    "cmd_vel": {
+      "samples": 700
+    },
+    "global_paths_planned": 34,
+    "local_paths_planned": 700,
+    "min_obstacle_distance_m": 0.328,
+    "costmap_metadata": {
+      "resolution": 0.05000000074505806,
+      "width": 244,
+      "height": 184,
+      "origin": [
+        -6.1,
+        -4.6
+      ]
+    },
+    "scan_data": {
+      "total_messages": 365,
+      "beams_per_scan": 360,
+      "valid_beams_last": 360,
+      "min_range_overall": 0.328,
+      "min_range_last": 0.677
+    }
+  }
+]

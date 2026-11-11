@@ -1,0 +1,399 @@
+[
+  {
+    "test_name": "distinctive_west_loop_dock_seed42",
+    "category": "1_distinctive_mapped",
+    "spawn_world": [
+      -6.2,
+      -2.0,
+      0.0
+    ],
+    "ground_truth_map": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "seed": 42,
+    "world_file": "complex_indoor_stageA.sdf",
+    "timeout_sec": 60.0,
+    "status": "FAILED",
+    "ready_emitted": false,
+    "false_ready": false,
+    "cmd_vel_violations": 0,
+    "pos_error_m": 5.0825,
+    "yaw_error_rad": 1.5579,
+    "localization_time_sec": 64.6,
+    "failure_reason": "Localization not reliable before timeout; use manual start_pose or retry elsewhere",
+    "details": {
+      "latest_status": {
+        "state": "failed",
+        "detail": "Localization not reliable before timeout; use manual start_pose or retry elsewhere"
+      },
+      "final_pose": [
+        4.610000093132229,
+        -2.1399999746680187,
+        1.5578543213302067
+      ]
+    },
+    "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (\uc704\uce58 \ucd94\uc815 \uc218\ub834 \ubbf8\uc644\ub8cc\ub85c \ud578\ub4dc\uc624\ud504 \ubbf8\uc9c4\uc785)",
+    "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (SLAM \uc804\ud658 \ubbf8\uc9c4\uc785)",
+    "pose_delta_position_m": "\ubbf8\uce21\uc815",
+    "pose_delta_yaw_rad": "\ubbf8\uce21\uc815",
+    "tf_duplicated": "\ubbf8\uce21\uc815 (AMCL \ub2e8\ub3c5 \uc2e4\ud589 \uc911 \uc885\ub8cc)",
+    "collision_detected": false,
+    "start_pose_injected": false,
+    "ready_gate_bypassed": false
+  },
+  {
+    "test_name": "distinctive_south_corridor_seed101",
+    "category": "1_distinctive_mapped",
+    "spawn_world": [
+      -5.5,
+      -2.0,
+      0.0
+    ],
+    "ground_truth_map": [
+      0.7000000000000002,
+      0.0,
+      0.0
+    ],
+    "seed": 101,
+    "world_file": "complex_indoor_stageA.sdf",
+    "timeout_sec": 60.0,
+    "status": "FAILED",
+    "ready_emitted": false,
+    "false_ready": false,
+    "cmd_vel_violations": 0,
+    "pos_error_m": "\ubbf8\uce21\uc815",
+    "yaw_error_rad": "\ubbf8\uce21\uc815",
+    "localization_time_sec": 13.94,
+    "failure_reason": "Timed out waiting for localization/TF/service",
+    "details": {
+      "latest_status": {
+        "state": "failed",
+        "detail": "Timed out waiting for localization/TF/service"
+      }
+    },
+    "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (\uc704\uce58 \ucd94\uc815 \uc218\ub834 \ubbf8\uc644\ub8cc\ub85c \ud578\ub4dc\uc624\ud504 \ubbf8\uc9c4\uc785)",
+    "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (SLAM \uc804\ud658 \ubbf8\uc9c4\uc785)",
+    "pose_delta_position_m": "\ubbf8\uce21\uc815",
+    "pose_delta_yaw_rad": "\ubbf8\uce21\uc815",
+    "tf_duplicated": "\ubbf8\uce21\uc815 (AMCL \ub2e8\ub3c5 \uc2e4\ud589 \uc911 \uc885\ub8cc)",
+    "collision_detected": false,
+    "start_pose_injected": false,
+    "ready_gate_bypassed": false
+  },
+  {
+    "test_name": "distinctive_west_avenue_seed2026",
+    "category": "1_distinctive_mapped",
+    "spawn_world": [
+      -6.5,
+      1.8,
+      1.57
+    ],
+    "ground_truth_map": [
+      -0.2999999999999998,
+      3.8,
+      1.57
+    ],
+    "seed": 2026,
+    "world_file": "complex_indoor_stageA.sdf",
+    "timeout_sec": 60.0,
+    "status": "FAILED",
+    "ready_emitted": false,
+    "false_ready": false,
+    "cmd_vel_violations": 0,
+    "pos_error_m": 0.3778,
+    "yaw_error_rad": 0.0314,
+    "localization_time_sec": 63.85,
+    "failure_reason": "Localization not reliable before timeout; use manual start_pose or retry elsewhere",
+    "details": {
+      "latest_status": {
+        "state": "failed",
+        "detail": "Localization not reliable before timeout; use manual start_pose or retry elsewhere"
+      },
+      "final_pose": [
+        -0.1913660986322527,
+        3.438142184955515,
+        1.5386423533142437
+      ]
+    },
+    "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (\uc704\uce58 \ucd94\uc815 \uc218\ub834 \ubbf8\uc644\ub8cc\ub85c \ud578\ub4dc\uc624\ud504 \ubbf8\uc9c4\uc785)",
+    "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (SLAM \uc804\ud658 \ubbf8\uc9c4\uc785)",
+    "pose_delta_position_m": "\ubbf8\uce21\uc815",
+    "pose_delta_yaw_rad": "\ubbf8\uce21\uc815",
+    "tf_duplicated": "\ubbf8\uce21\uc815 (AMCL \ub2e8\ub3c5 \uc2e4\ud589 \uc911 \uc885\ub8cc)",
+    "collision_detected": false,
+    "start_pose_injected": false,
+    "ready_gate_bypassed": false
+  },
+  {
+    "test_name": "ambiguous_corridor_center_seed42",
+    "category": "2_ambiguous_corridor",
+    "spawn_world": [
+      -1.5,
+      -2.0,
+      0.0
+    ],
+    "ground_truth_map": [
+      4.7,
+      0.0,
+      0.0
+    ],
+    "seed": 42,
+    "world_file": "complex_indoor_stageA.sdf",
+    "timeout_sec": 45.0,
+    "status": "FAILED",
+    "ready_emitted": false,
+    "false_ready": false,
+    "cmd_vel_violations": 0,
+    "pos_error_m": 0.2474,
+    "yaw_error_rad": 0.0221,
+    "localization_time_sec": 48.91,
+    "failure_reason": "Localization not reliable before timeout; use manual start_pose or retry elsewhere",
+    "details": {
+      "latest_status": {
+        "state": "failed",
+        "detail": "Localization not reliable before timeout; use manual start_pose or retry elsewhere"
+      },
+      "final_pose": [
+        4.4600000908970445,
+        0.06000005811452823,
+        -0.02205510983269135
+      ]
+    },
+    "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (\uc704\uce58 \ucd94\uc815 \uc218\ub834 \ubbf8\uc644\ub8cc\ub85c \ud578\ub4dc\uc624\ud504 \ubbf8\uc9c4\uc785)",
+    "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (SLAM \uc804\ud658 \ubbf8\uc9c4\uc785)",
+    "pose_delta_position_m": "\ubbf8\uce21\uc815",
+    "pose_delta_yaw_rad": "\ubbf8\uce21\uc815",
+    "tf_duplicated": "\ubbf8\uce21\uc815 (AMCL \ub2e8\ub3c5 \uc2e4\ud589 \uc911 \uc885\ub8cc)",
+    "collision_detected": false,
+    "start_pose_injected": false,
+    "ready_gate_bypassed": false
+  },
+  {
+    "test_name": "ambiguous_corridor_reverse_seed101",
+    "category": "2_ambiguous_corridor",
+    "spawn_world": [
+      -2.0,
+      -2.0,
+      3.14
+    ],
+    "ground_truth_map": [
+      4.2,
+      0.0,
+      3.14
+    ],
+    "seed": 101,
+    "world_file": "complex_indoor_stageA.sdf",
+    "timeout_sec": 45.0,
+    "status": "FAILED",
+    "ready_emitted": false,
+    "false_ready": false,
+    "cmd_vel_violations": 0,
+    "pos_error_m": 5.0738,
+    "yaw_error_rad": 1.5596,
+    "localization_time_sec": 49.99,
+    "failure_reason": "Localization not reliable before timeout; use manual start_pose or retry elsewhere",
+    "details": {
+      "latest_status": {
+        "state": "failed",
+        "detail": "Localization not reliable before timeout; use manual start_pose or retry elsewhere"
+      },
+      "final_pose": [
+        -0.5399999836087221,
+        1.8100000841915396,
+        1.5804106059757155
+      ]
+    },
+    "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (\uc704\uce58 \ucd94\uc815 \uc218\ub834 \ubbf8\uc644\ub8cc\ub85c \ud578\ub4dc\uc624\ud504 \ubbf8\uc9c4\uc785)",
+    "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (SLAM \uc804\ud658 \ubbf8\uc9c4\uc785)",
+    "pose_delta_position_m": "\ubbf8\uce21\uc815",
+    "pose_delta_yaw_rad": "\ubbf8\uce21\uc815",
+    "tf_duplicated": "\ubbf8\uce21\uc815 (AMCL \ub2e8\ub3c5 \uc2e4\ud589 \uc911 \uc885\ub8cc)",
+    "collision_detected": false,
+    "start_pose_injected": false,
+    "ready_gate_bypassed": false
+  },
+  {
+    "test_name": "unexplored_east_plaza_seed42",
+    "category": "3_unexplored_low_overlap",
+    "spawn_world": [
+      5.0,
+      1.0,
+      0.0
+    ],
+    "ground_truth_map": [
+      11.2,
+      3.0,
+      0.0
+    ],
+    "seed": 42,
+    "world_file": "complex_indoor_stageA.sdf",
+    "timeout_sec": 40.0,
+    "status": "FAILED",
+    "ready_emitted": false,
+    "false_ready": false,
+    "cmd_vel_violations": 0,
+    "pos_error_m": "\ubbf8\uce21\uc815",
+    "yaw_error_rad": "\ubbf8\uce21\uc815",
+    "localization_time_sec": 13.96,
+    "failure_reason": "Timed out waiting for localization/TF/service",
+    "details": {
+      "latest_status": {
+        "state": "failed",
+        "detail": "Timed out waiting for localization/TF/service"
+      }
+    },
+    "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (\uc704\uce58 \ucd94\uc815 \uc218\ub834 \ubbf8\uc644\ub8cc\ub85c \ud578\ub4dc\uc624\ud504 \ubbf8\uc9c4\uc785)",
+    "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (SLAM \uc804\ud658 \ubbf8\uc9c4\uc785)",
+    "pose_delta_position_m": "\ubbf8\uce21\uc815",
+    "pose_delta_yaw_rad": "\ubbf8\uce21\uc815",
+    "tf_duplicated": "\ubbf8\uce21\uc815 (AMCL \ub2e8\ub3c5 \uc2e4\ud589 \uc911 \uc885\ub8cc)",
+    "collision_detected": false,
+    "start_pose_injected": false,
+    "ready_gate_bypassed": false
+  },
+  {
+    "test_name": "altered_obstacles_stageB_seed42",
+    "category": "4_altered_obstacles",
+    "spawn_world": [
+      -5.0,
+      -2.0,
+      0.0
+    ],
+    "ground_truth_map": [
+      1.2000000000000002,
+      0.0,
+      0.0
+    ],
+    "seed": 42,
+    "world_file": "complex_indoor_stageB.sdf",
+    "timeout_sec": 40.0,
+    "status": "FAILED",
+    "ready_emitted": false,
+    "false_ready": false,
+    "cmd_vel_violations": 0,
+    "pos_error_m": 2.7107,
+    "yaw_error_rad": 0.0181,
+    "localization_time_sec": 43.91,
+    "failure_reason": "Localization not reliable before timeout; use manual start_pose or retry elsewhere",
+    "details": {
+      "latest_status": {
+        "state": "failed",
+        "detail": "Localization not reliable before timeout; use manual start_pose or retry elsewhere"
+      },
+      "final_pose": [
+        1.2600000432133462,
+        2.710000097602558,
+        0.018104972907293196
+      ]
+    },
+    "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (\uc704\uce58 \ucd94\uc815 \uc218\ub834 \ubbf8\uc644\ub8cc\ub85c \ud578\ub4dc\uc624\ud504 \ubbf8\uc9c4\uc785)",
+    "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (SLAM \uc804\ud658 \ubbf8\uc9c4\uc785)",
+    "pose_delta_position_m": "\ubbf8\uce21\uc815",
+    "pose_delta_yaw_rad": "\ubbf8\uce21\uc815",
+    "tf_duplicated": "\ubbf8\uce21\uc815 (AMCL \ub2e8\ub3c5 \uc2e4\ud589 \uc911 \uc885\ub8cc)",
+    "collision_detected": false,
+    "start_pose_injected": false,
+    "ready_gate_bypassed": false
+  },
+  {
+    "test_name": "sensor_dropout_seed42",
+    "category": "5_sensor_dropout",
+    "spawn_world": [
+      -5.5,
+      -2.0,
+      0.0
+    ],
+    "ground_truth_map": [
+      0.7000000000000002,
+      0.0,
+      0.0
+    ],
+    "seed": 42,
+    "world_file": "complex_indoor_stageA.sdf",
+    "timeout_sec": 35.0,
+    "status": "FAILED",
+    "ready_emitted": false,
+    "false_ready": false,
+    "cmd_vel_violations": 0,
+    "pos_error_m": 0.1136,
+    "yaw_error_rad": 0.0693,
+    "localization_time_sec": 40.03,
+    "failure_reason": "Localization not reliable before timeout; use manual start_pose or retry elsewhere",
+    "details": {
+      "latest_status": {
+        "state": "failed",
+        "detail": "Localization not reliable before timeout; use manual start_pose or retry elsewhere"
+      },
+      "final_pose": [
+        0.8133784149365596,
+        0.006621678940750562,
+        -0.06929674616286581
+      ]
+    },
+    "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (\uc704\uce58 \ucd94\uc815 \uc218\ub834 \ubbf8\uc644\ub8cc\ub85c \ud578\ub4dc\uc624\ud504 \ubbf8\uc9c4\uc785)",
+    "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (SLAM \uc804\ud658 \ubbf8\uc9c4\uc785)",
+    "pose_delta_position_m": "\ubbf8\uce21\uc815",
+    "pose_delta_yaw_rad": "\ubbf8\uce21\uc815",
+    "tf_duplicated": "\ubbf8\uce21\uc815 (AMCL \ub2e8\ub3c5 \uc2e4\ud589 \uc911 \uc885\ub8cc)",
+    "collision_detected": false,
+    "start_pose_injected": false,
+    "ready_gate_bypassed": false
+  },
+  {
+    "run_id": "f2fa97d9-e5c5-4db4-a093-c8299b4ed732",
+    "command": "python3 /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_resume_verification/scripts/run_rigorous_gazebo_tests.py --trial robot_motion_during_loc_seed42",
+    "code_hash": "git:67fbb4d69b27a089d9d16de7f1eaf1b87e42cd73 | script_sha256:7fe8f0dce4335912a48d70bef484c9360a937bceafe676f82a71570621503e2a",
+    "raw_log_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_resume_verification/logs/gazebo_safety_suite.raw.log",
+    "test_type": "gazebo_safety_robustness",
+    "test_name": "robot_motion_during_loc_seed42",
+    "category": "6_robot_moved_during_loc",
+    "spawn_world": [
+      -5.5,
+      -2.0,
+      0.0
+    ],
+    "ground_truth_map": [
+      0.7000000000000002,
+      0.0,
+      0.0
+    ],
+    "seed": 42,
+    "world_file": "complex_indoor_stageA.sdf",
+    "timeout_sec": 35.0,
+    "start_pose_injected": false,
+    "ready_gate_bypassed": false,
+    "status": "FAILED",
+    "ready_emitted": false,
+    "false_ready": false,
+    "cmd_vel_violations": 1,
+    "pos_error_m": 2.2741,
+    "yaw_error_rad": 0.2719,
+    "localization_time_sec": 6.51,
+    "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (\uc704\uce58 \ucd94\uc815 \uc218\ub834 \ubbf8\uc644\ub8cc\ub85c \ud578\ub4dc\uc624\ud504 \ubbf8\uc9c4\uc785)",
+    "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (SLAM \ubbf8\uc2e4\ud589)",
+    "pose_delta_position_m": "\ubbf8\uce21\uc815",
+    "pose_delta_yaw_rad": "\ubbf8\uce21\uc815",
+    "tf_duplicated": "\ubbf8\uce21\uc815 (AMCL \ub2e8\ub3c5 \uc2e4\ud589 \uc911 \uc885\ub8cc)",
+    "min_obstacle_distance_m": 1.89,
+    "collision_detected": false,
+    "action_goal_accepted": "\ubbf8\uce21\uc815 (\uc548\uc804\uc131 \uc2dc\ud5d8\uc73c\ub85c Action \ubbf8\uc2e4\ud589)",
+    "action_status": "\ubbf8\uce21\uc815 (\uc548\uc804\uc131 \uc2dc\ud5d8\uc73c\ub85c Action \ubbf8\uc2e4\ud589)",
+    "action_feedback_received": "\ubbf8\uce21\uc815 (\uc548\uc804\uc131 \uc2dc\ud5d8\uc73c\ub85c Action \ubbf8\uc2e4\ud589)",
+    "action_cmd_vel_count": "\ubbf8\uce21\uc815 (\uc548\uc804\uc131 \uc2dc\ud5d8\uc73c\ub85c Action \ubbf8\uc2e4\ud589)",
+    "new_serialized_files": "\ubbf8\uce21\uc815 (SLAM \ubbf8\uc2e4\ud589)",
+    "failure_reason": "Robot moved during localization/handoff; restart from rest",
+    "details": {
+      "latest_status": {
+        "state": "failed",
+        "detail": "Robot moved during localization/handoff; restart from rest"
+      },
+      "final_pose": [
+        2.7966942304873754,
+        0.8804782249389224,
+        0.2718850064777866
+      ]
+    }
+  }
+]

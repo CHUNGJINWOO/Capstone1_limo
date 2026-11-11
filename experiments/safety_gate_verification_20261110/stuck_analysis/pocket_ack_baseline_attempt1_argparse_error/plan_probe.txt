@@ -1,0 +1,3 @@
+usage: plan_probe.py [-h] [--spawn SPAWN SPAWN SPAWN]
+                     [--world-goals WORLD_GOALS]
+plan_probe.py: error: argument --world-goals: expected one argument

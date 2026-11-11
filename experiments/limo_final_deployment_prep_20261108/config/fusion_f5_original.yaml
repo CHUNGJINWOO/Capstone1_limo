@@ -1,0 +1,49 @@
+# F5: Multi-Sensor Fusion EKF (2D LiDAR Scan-Matching Odometry + IMU)
+# STRICT SENSOR INDEPENDENCE:
+# - odom0 (/odometry/lidar_odom, F4) is computed 100% from 2D LiDAR (/scan) via Trimmed-ICP.
+#   We fuse its 2D position (X, Y) and linear velocity (vx, vy), with yaw=false to avoid
+#   correlating scan-matcher yaw with IMU yaw.
+# - imu0 (/imu) is 100% from the IMU sensor. We fuse its relative yaw (psi) and yaw rate (wz),
+#   with linear accelerations disabled.
+# - Zero wheel odometry and zero duplicate sensor paths are fed into F5.
+
+ekf_lidar_imu_fusion_node:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 50.0
+    sensor_timeout: 0.15
+    two_d_mode: true
+    transform_time_offset: 0.0
+    transform_timeout: 0.1
+    print_diagnostics: false
+    debug: false
+    publish_tf: false
+
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: odom
+
+    # Position (x, y) and linear velocity (vx, vy) from 2D LiDAR Scan Matching Odometry (F4)
+    odom0: /odometry/lidar_odom
+    odom0_config: [true,  true,  false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+    odom0_relative: false
+
+    # High-rate heading (yaw) and angular velocity (wz) from IMU
+    imu0: /imu
+    imu0_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_differential: false
+    imu0_relative: true
+    imu0_queue_size: 20
+    imu0_remove_gravitational_acceleration: true
+
+    use_control: false

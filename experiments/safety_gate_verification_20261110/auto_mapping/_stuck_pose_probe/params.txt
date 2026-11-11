@@ -1,0 +1,7 @@
+/global_costmap/global_costmap robot_radius: Double value is: 0.18 
+/global_costmap/global_costmap footprint: String value is: [] 
+/global_costmap/global_costmap inflation_layer.inflation_radius: Double value is: 0.28 
+/global_costmap/global_costmap inflation_layer.cost_scaling_factor: Double value is: 7.5 
+/planner_server GridBased.tolerance: Double value is: 0.3 
+/controller_server FollowPath.allow_reversing: 
+/controller_server FollowPath.use_rotate_to_heading: Boolean value is: False 

@@ -1,0 +1,251 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="mc3f_world">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- Ignition Gazebo Systems -->
+    <plugin filename="libignition-gazebo-physics-system.so" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="libignition-gazebo-user-commands-system.so" name="ignition::gazebo::systems::UserCommands"/>
+    <plugin filename="libignition-gazebo-scene-broadcaster-system.so" name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="libignition-gazebo-sensors-system.so" name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="libignition-gazebo-imu-system.so" name="ignition::gazebo::systems::Imu"/>
+
+    <light name="sun" type="directional">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 20 0 0 0</pose>
+      <diffuse>0.9 0.9 0.92 1</diffuse>
+      <specular>0.3 0.3 0.3 1</specular>
+      <direction>-0.25 0.15 -0.95</direction>
+    </light>
+
+    <!-- Ground Plane -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="ground_plane_link">
+        <collision name="ground_collision">
+          <geometry><plane><normal>0 0 1</normal><size>30 30</size></plane></geometry>
+          <surface><friction><ode><mu>100</mu><mu2>50</mu2></ode></friction></surface>
+        </collision>
+        <visual name="ground_visual">
+          <cast_shadows>false</cast_shadows>
+          <geometry><plane><normal>0 0 1</normal><size>30 30</size></plane></geometry>
+          <material>
+            <ambient>0.74 0.76 0.80 1</ambient>
+            <diffuse>0.74 0.76 0.80 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Overhead Sensor Camera (/demo/overhead) perfectly framing C103 corridor & classroom -->
+    <model name="overhead_camera_model">
+      <static>true</static>
+      <!-- Center at (0.0, 0.85), height 7.2m, top-down looking straight down -->
+      <pose>0.0 0.85 7.2 0 1.57079632679 1.57079632679</pose>
+      <link name="overhead_camera_link">
+        <sensor name="overhead" type="camera">
+          <always_on>true</always_on>
+          <update_rate>15</update_rate>
+          <topic>/demo/overhead</topic>
+          <camera>
+            <horizontal_fov>1.16</horizontal_fov>
+            <image>
+              <width>1280</width>
+              <height>960</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip><near>0.1</near><far>20</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+
+    <!-- C103 Classroom & Corridor Structure -->
+    <!-- Corridor: y in [-2.2, 0.0], x in [-4.0, 4.0] -->
+    <!-- Classroom: y in [0.0, 4.0], x in [-4.0, 4.0] -->
+    <model name="c103_environment">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      
+      <!-- Outer Boundary Walls -->
+      <link name="outer_walls">
+        <!-- South Wall (Corridor Outer) -->
+        <collision name="wall_south">
+          <pose>0.0 -2.3 0.5 0 0 0</pose>
+          <geometry><box><size>8.4 0.2 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_south">
+          <pose>0.0 -2.3 0.5 0 0 0</pose>
+          <geometry><box><size>8.4 0.2 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- North Wall (Classroom Outer) -->
+        <collision name="wall_north">
+          <pose>0.0 4.1 0.5 0 0 0</pose>
+          <geometry><box><size>8.4 0.2 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_north">
+          <pose>0.0 4.1 0.5 0 0 0</pose>
+          <geometry><box><size>8.4 0.2 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- West Wall -->
+        <collision name="wall_west">
+          <pose>-4.1 0.9 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 6.6 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_west">
+          <pose>-4.1 0.9 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 6.6 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- East Wall -->
+        <collision name="wall_east">
+          <pose>4.1 0.9 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 6.6 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_east">
+          <pose>4.1 0.9 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 6.6 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- Dividing Wall at y = 0.0 -->
+      <link name="dividing_wall_solid">
+        <!-- West Solid Wall: x in [-4.0, -2.0] -->
+        <collision name="wall_div_west">
+          <pose>-3.0 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>2.0 0.2 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_div_west">
+          <pose>-3.0 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>2.0 0.2 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- Door Opening: x in [-2.0, -1.0] (Width 1.0m, completely free for robot passage) -->
+
+        <!-- Door Pillar / Frame: x in [-1.0, -0.9] -->
+        <collision name="door_pillar">
+          <pose>-0.95 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>0.1 0.2 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_door_pillar">
+          <pose>-0.95 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>0.1 0.2 1.0</size></box></geometry>
+          <material><ambient>0.2 0.2 0.2 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
+        </visual>
+
+        <!-- Lower Kickplate under the Glass Wall: x in [-0.9, 4.0], length 4.9m, height 10cm (z in [0, 0.10]) -->
+        <collision name="kickplate_collision">
+          <pose>1.55 0.0 0.05 0 0 0</pose>
+          <geometry><box><size>4.9 0.15 0.10</size></box></geometry>
+        </collision>
+        <visual name="v_kickplate">
+          <pose>1.55 0.0 0.05 0 0 0</pose>
+          <geometry><box><size>4.9 0.15 0.10</size></box></geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- Glass Partition Section: x in [-0.9, 4.0], z in [0.10, 1.50] (height 1.4m) -->
+      <!-- Physical Collision blocks the robot; visual is semi-transparent cyan glass -->
+      <link name="glass_wall_link">
+        <collision name="glass_physical_collision">
+          <pose>1.55 0.0 0.80 0 0 0</pose>
+          <geometry><box><size>4.9 0.08 1.40</size></box></geometry>
+        </collision>
+        <visual name="glass_visual_normal">
+          <pose>1.55 0.0 0.80 0 0 0</pose>
+          <geometry><box><size>4.9 0.05 1.40</size></box></geometry>
+          <material>
+            <ambient>0.5 0.75 0.9 0.45</ambient>
+            <diffuse>0.5 0.75 0.9 0.45</diffuse>
+            <specular>0.9 0.9 0.9 1.0</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Corridor Fixed Obstacles -->
+      <link name="corridor_obstacles">
+        <!-- Obstacle Pillar 1 (Mid Corridor): causes robot to maneuver & plan curved path around obstacle -->
+        <collision name="c_pillar_1">
+          <pose>0.8 -0.75 0.45 0 0 0</pose>
+          <geometry><box><size>0.4 0.4 0.9</size></box></geometry>
+        </collision>
+        <visual name="v_pillar_1">
+          <pose>0.8 -0.75 0.45 0 0 0</pose>
+          <geometry><box><size>0.4 0.4 0.9</size></box></geometry>
+          <material><ambient>0.85 0.45 0.2 1</ambient><diffuse>0.85 0.45 0.2 1</diffuse></material>
+        </visual>
+
+        <!-- Obstacle Box 2 (Far East Dead-End / Barrier): creates tight frontier candidate that gets blacklisted -->
+        <collision name="c_barrier_east">
+          <pose>3.2 -1.1 0.45 0 0 0</pose>
+          <geometry><box><size>0.4 1.4 0.9</size></box></geometry>
+        </collision>
+        <visual name="v_barrier_east">
+          <pose>3.2 -1.1 0.45 0 0 0</pose>
+          <geometry><box><size>0.4 1.4 0.9</size></box></geometry>
+          <material><ambient>0.7 0.25 0.25 1</ambient><diffuse>0.7 0.25 0.25 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- Classroom Interior Furniture (Desks, Chairs, Podium, Cabinet) visible through glass -->
+      <link name="classroom_furniture">
+        <!-- Desk Row 1 -->
+        <collision name="desk_1">
+          <pose>0.6 1.8 0.38 0 0 0</pose>
+          <geometry><box><size>1.6 0.6 0.75</size></box></geometry>
+        </collision>
+        <visual name="v_desk_1">
+          <pose>0.6 1.8 0.38 0 0 0</pose>
+          <geometry><box><size>1.6 0.6 0.75</size></box></geometry>
+          <material><ambient>0.82 0.62 0.42 1</ambient><diffuse>0.82 0.62 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- Desk Row 2 -->
+        <collision name="desk_2">
+          <pose>2.7 1.8 0.38 0 0 0</pose>
+          <geometry><box><size>1.6 0.6 0.75</size></box></geometry>
+        </collision>
+        <visual name="v_desk_2">
+          <pose>2.7 1.8 0.38 0 0 0</pose>
+          <geometry><box><size>1.6 0.6 0.75</size></box></geometry>
+          <material><ambient>0.82 0.62 0.42 1</ambient><diffuse>0.82 0.62 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- Instructor Podium near Door -->
+        <collision name="podium">
+          <pose>-1.8 2.2 0.5 0 0 0</pose>
+          <geometry><box><size>0.8 0.6 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_podium">
+          <pose>-1.8 2.2 0.5 0 0 0</pose>
+          <geometry><box><size>0.8 0.6 1.0</size></box></geometry>
+          <material><ambient>0.42 0.28 0.18 1</ambient><diffuse>0.42 0.28 0.18 1</diffuse></material>
+        </visual>
+
+        <!-- Cabinet along North Wall -->
+        <collision name="cabinet">
+          <pose>1.5 3.7 0.6 0 0 0</pose>
+          <geometry><box><size>2.4 0.5 1.2</size></box></geometry>
+        </collision>
+        <visual name="v_cabinet">
+          <pose>1.5 3.7 0.6 0 0 0</pose>
+          <geometry><box><size>2.4 0.5 1.2</size></box></geometry>
+          <material><ambient>0.22 0.32 0.28 1</ambient><diffuse>0.22 0.32 0.28 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

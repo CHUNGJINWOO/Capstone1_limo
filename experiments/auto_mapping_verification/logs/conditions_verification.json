@@ -1,0 +1,136 @@
+{
+  "run_id": "12a1b522-35d3-4081-a974-3ac62eea52f2",
+  "timestamp": "2026-11-04T22:55:03+0900",
+  "git_hash": "67fbb4d69b27a089d9d16de7f1eaf1b87e42cd73",
+  "file_hashes": {
+    "frontier.py": "94e692afd368690c7731ff28b6d322078b95949e5e442448eb8bfc3f44037387",
+    "explorer.py": "a6e685488743edd275f49de340efacfad82513500aa2ca84c96b73b137afe02c",
+    "resume.py": "c67e9842f5e7b11ae8be8a1b495637fb8b583b7f38004aa3b02dabb38c02870c",
+    "server.py": "c4d7eb9c23f729c630a9e0a37aaa40a81aaa2e491fe75e3180f1d43ed3b67b67",
+    "policy.py": "1e6159e00bbfd7e2d693009b4b04c527b43b77ad55e7e62c2d135050def80d27",
+    "localization.py": "fb584982646b9f5710aee4273940ed4bf26bff5271145fb580c182029b4b0864"
+  },
+  "command": "python3 /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/scripts/run_all_conditions_verification.py",
+  "raw_log_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/logs/conditions_verification.raw.log",
+  "all_passed": true,
+  "results": [
+    {
+      "condition_id": "C1_cluttered_start_exit_available",
+      "passed": true,
+      "candidates_count": 1,
+      "detail": "Fallback enabled finds 1 exit candidate at (0.225, 0.225), preventing premature completion.",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "condition_id": "C2_start_in_inflation_zone",
+      "passed": true,
+      "diagnostic_message": "Robot at (0.10, 0.10) is stuck in inflation/obstacle cell (cost=99)",
+      "detail": "Nearby traversable escape resolved: True. Trapped diagnostic caught: 'Robot at (0.10, 0.10) is stuck in inflation/obstacle cell (cost=99)'",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "condition_id": "C3_near_goal_no_progress",
+      "passed": true,
+      "displacement_m": 0.0,
+      "progress_granted": false,
+      "detail": "Displacement was 0.0000m (< 0.05m). Exploration progress correctly rejected.",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "condition_id": "C4_temporary_passage_blockage",
+      "passed": true,
+      "blocked_during_cooldown": true,
+      "reopened_after_cooldown": true,
+      "detail": "Target correctly excluded during cooldown (True) and reopened after cooldown (True).",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "condition_id": "C5_permanent_passage_blockage",
+      "passed": true,
+      "fails_recorded": 2,
+      "permanent_exclusion": true,
+      "detail": "After 2 failures, target permanently excluded=True; prevents infinite retry loop.",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "condition_id": "C6_C7_safety_margin_bounds_and_restoration",
+      "passed": true,
+      "clearance_m": 0.05,
+      "margin_changed": true,
+      "margin_restored": true,
+      "detail": "Floor enforcement: safe_passed=True, unsafe_rejected=True. Margin retry changed=True, restored=True.",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "condition_id": "C8_cancel_and_duplicate_goal_prevention",
+      "passed": true,
+      "duplicate_prevented": true,
+      "timeout_reported": true,
+      "detail": "Duplicate goal prevented during cancellation: True. Timeout cleanly reported: True.",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "condition_id": "C9_c103_glass_classroom_phenomena",
+      "passed": true,
+      "sub_cases": [
+        {
+          "case": "C9_1_glass_normal_reflection",
+          "description": "LiDAR sees glass wall directly as obstacle",
+          "measured_min_range_m": 0.872,
+          "measured_mean_range_m": 0.882,
+          "penetration_to_interior": false,
+          "contact_occurred": false,
+          "passed": true,
+          "detail": "Glass wall detected at 0.88m; frontiers stay outside glass; robot does not collide."
+        },
+        {
+          "case": "C9_2_glass_invisible_sensor_only",
+          "description": "LiDAR penetrates glass, physical collision intact (sensor-only baseline)",
+          "measured_min_range_m": 2.397,
+          "measured_mean_range_m": 2.956,
+          "penetration_to_interior": true,
+          "contact_occurred": true,
+          "contact_measured": "Glass wall physical collision contact verified at x=0.90m (robot stopped by chassis box collision)",
+          "passed": true,
+          "detail": "Phenomenon verified: Sensor-only cannot detect transparent glass; physical collision accurately reproduced and reported."
+        },
+        {
+          "case": "C9_2_glass_invisible_with_auxiliary_keepout",
+          "description": "LiDAR penetrates glass, but auxiliary keepout zone marks glass wall as impassable",
+          "penetration_to_interior": true,
+          "auxiliary_info_used": "Manual glass keepout zone mask along x=[0.85, 0.95]",
+          "contact_occurred": false,
+          "passed": true,
+          "detail": "With auxiliary keepout, Nav2 successfully routes around glass through the real classroom doorway without collision."
+        },
+        {
+          "case": "C9_3_glass_intermittent_reflection",
+          "description": "Intermittent returns between glass wall and classroom interior",
+          "measured_min_range_m": 0.878,
+          "measured_mean_range_m": 2.49,
+          "measured_max_range_m": 4.49,
+          "contact_occurred": false,
+          "passed": true,
+          "detail": "Partial glass fragments detected; costmap marks intermittent obstacle cells."
+        },
+        {
+          "case": "C9_4_glass_specular_no_return",
+          "description": "Specular reflection causes invalid / inf readings in glass sector",
+          "invalid_inf_beams_verified": true,
+          "contact_occurred": false,
+          "passed": true,
+          "detail": "glass_sensor_filter generates inf values; costmap raytracer ignores invalid beams."
+        }
+      ],
+      "detail": "All 4 glass sensor modes and auxiliary keepout mitigation rigorously reproduced and measured in Gazebo Fortress."
+    },
+    {
+      "condition_id": "C10_relocalization_timestamp_tracking",
+      "passed": true,
+      "single_increment_verified": true,
+      "reinit_triggered": true,
+      "detail": "Same scan repeated 5 times incremented mismatch_count to 1. 8 distinct timestamps successfully triggered global relocalization reinitialization.",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    }
+  ]
+}

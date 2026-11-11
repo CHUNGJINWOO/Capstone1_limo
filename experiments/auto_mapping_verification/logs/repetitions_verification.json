@@ -1,0 +1,166 @@
+{
+  "batch_id": "914006a6-3917-4a01-803b-caa5147b0dd1",
+  "timestamp": "2026-11-04T22:55:36+0900",
+  "command": "python3 /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/scripts/run_repetitions.py",
+  "raw_log_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/logs/repetitions_verification.raw.log",
+  "total_runs": 12,
+  "all_passed": true,
+  "runs": [
+    {
+      "run_id": "ad94ccf4-ddc0-4048-bd0b-d39cf42b243c",
+      "condition": "C1_cluttered_start_exit_available",
+      "rep_index": 1,
+      "seed": 42,
+      "start_pose": {
+        "x": 0.16999999999999998,
+        "y": 0.15,
+        "yaw": 0.0
+      },
+      "passed": true,
+      "candidates_count": 1,
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "edfd328f-038b-4046-802c-1e4fbf7ff396",
+      "condition": "C1_cluttered_start_exit_available",
+      "rep_index": 2,
+      "seed": 101,
+      "start_pose": {
+        "x": 0.16,
+        "y": 0.18,
+        "yaw": 0.0
+      },
+      "passed": true,
+      "candidates_count": 1,
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "7d42ba4e-5ce1-4ecd-afa0-cda83a8f9538",
+      "condition": "C1_cluttered_start_exit_available",
+      "rep_index": 3,
+      "seed": 202,
+      "start_pose": {
+        "x": 0.16999999999999998,
+        "y": 0.21,
+        "yaw": 0.0
+      },
+      "passed": true,
+      "candidates_count": 1,
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "fb5d6529-a3ea-4f69-99a0-c6ad027712ca",
+      "condition": "C2_start_in_inflation_zone",
+      "rep_index": 1,
+      "seed": 42,
+      "start_pose": {
+        "x": 0.1,
+        "y": 0.12000000000000001,
+        "yaw": 0.0
+      },
+      "passed": true,
+      "diagnostic_message": "Robot at (0.10, 0.12) is stuck in inflation/obstacle cell (cost=99)",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "aef9996a-9eb8-4b32-b354-1debd56e1306",
+      "condition": "C2_start_in_inflation_zone",
+      "rep_index": 2,
+      "seed": 101,
+      "start_pose": {
+        "x": 0.12000000000000001,
+        "y": 0.11,
+        "yaw": 0.0
+      },
+      "passed": true,
+      "diagnostic_message": "Robot at (0.12, 0.11) is stuck in inflation/obstacle cell (cost=99)",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "caeb9f9c-f260-4191-adc7-e36e03639fe4",
+      "condition": "C2_start_in_inflation_zone",
+      "rep_index": 3,
+      "seed": 202,
+      "start_pose": {
+        "x": 0.11,
+        "y": 0.12000000000000001,
+        "yaw": 0.0
+      },
+      "passed": true,
+      "diagnostic_message": "Robot at (0.11, 0.12) is stuck in inflation/obstacle cell (cost=99)",
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "0cbea112-431a-42bc-81df-bd850436ab3f",
+      "condition": "C4_temporary_passage_blockage",
+      "rep_index": 1,
+      "seed": 42,
+      "target": [
+        2.0,
+        1.0
+      ],
+      "passed": true,
+      "blocked_during_cooldown": true,
+      "reopened_after_cooldown": true,
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "d79aa363-2dc9-44ea-8f76-7d5740d89e7e",
+      "condition": "C4_temporary_passage_blockage",
+      "rep_index": 2,
+      "seed": 101,
+      "target": [
+        2.2,
+        1.1
+      ],
+      "passed": true,
+      "blocked_during_cooldown": true,
+      "reopened_after_cooldown": true,
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "263aed31-02c0-400b-859a-6f54aed5f9a4",
+      "condition": "C4_temporary_passage_blockage",
+      "rep_index": 3,
+      "seed": 202,
+      "target": [
+        2.1,
+        1.0
+      ],
+      "passed": true,
+      "blocked_during_cooldown": true,
+      "reopened_after_cooldown": true,
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "f22ed43b-b557-47f6-96ab-9da0cfe3764d",
+      "condition": "C10_relocalization_timestamp_tracking",
+      "rep_index": 1,
+      "seed": 42,
+      "passed": true,
+      "single_increment_verified": true,
+      "reinit_triggered": true,
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "4048d264-8090-4305-acdf-9cc5ed347579",
+      "condition": "C10_relocalization_timestamp_tracking",
+      "rep_index": 2,
+      "seed": 101,
+      "passed": true,
+      "single_increment_verified": true,
+      "reinit_triggered": true,
+      "contact_measured": "\ubbf8\uce21\uc815"
+    },
+    {
+      "run_id": "49da9b9e-4a82-4f5f-865b-905a5127d003",
+      "condition": "C10_relocalization_timestamp_tracking",
+      "rep_index": 3,
+      "seed": 202,
+      "passed": true,
+      "single_increment_verified": true,
+      "reinit_triggered": true,
+      "contact_measured": "\ubbf8\uce21\uc815"
+    }
+  ]
+}

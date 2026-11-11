@@ -1,0 +1,81 @@
+{
+ "run": "C1_cap0_control",
+ "resolution_m": 0.05000000074505806,
+ "interior_area_m2": 103.84,
+ "known_in_interior_m2": 98.74,
+ "free_in_interior_m2": 95.76,
+ "occupied_in_interior_m2": 2.98,
+ "interior_known_fraction": 0.951,
+ "known_outside_interior_m2": 1.4,
+ "note_outside": "known cells outside the outer walls = leaked rays (e.g. through glass) or wall thickness",
+ "walls": [
+  {
+   "wall": "north (y=4.4)",
+   "occupied_cells_in_band": 292,
+   "offset_mean_m": -0.048,
+   "offset_std_m": 0.071,
+   "offset_p95_abs_m": 0.151,
+   "along_coverage": 0.992
+  },
+  {
+   "wall": "south (y=-4.4)",
+   "occupied_cells_in_band": 371,
+   "offset_mean_m": 0.076,
+   "offset_std_m": 0.044,
+   "offset_p95_abs_m": 0.148,
+   "along_coverage": 1.0
+  },
+  {
+   "wall": "west (x=-5.9)",
+   "occupied_cells_in_band": 169,
+   "offset_mean_m": 0.022,
+   "offset_std_m": 0.086,
+   "offset_p95_abs_m": 0.253,
+   "along_coverage": 0.898
+  },
+  {
+   "wall": "east (x=5.9)",
+   "occupied_cells_in_band": 262,
+   "offset_mean_m": 0.035,
+   "offset_std_m": 0.061,
+   "offset_p95_abs_m": 0.137,
+   "along_coverage": 0.955
+  },
+  {
+   "wall": "glass wall (y=-1.5)",
+   "occupied_cells_in_band": 174,
+   "offset_mean_m": 0.103,
+   "offset_std_m": 0.037,
+   "offset_p95_abs_m": 0.158,
+   "along_coverage": 1.0
+  }
+ ],
+ "outer_wall_mean_coverage": 0.961,
+ "outer_wall_mean_abs_offset_m": 0.045,
+ "outer_wall_mean_std_m": 0.066,
+ "occupied_away_from_walls_m2": 0.57,
+ "unknown_inside_clusters_ge_0p25m2": [
+  {
+   "area_m2": 3.33,
+   "centroid_world": [
+    3.43,
+    3.37
+   ]
+  },
+  {
+   "area_m2": 0.37,
+   "centroid_world": [
+    1.3,
+    -4.37
+   ]
+  },
+  {
+   "area_m2": 0.37,
+   "centroid_world": [
+    -4.26,
+    -1.46
+   ]
+  }
+ ],
+ "unknown_inside_total_m2": 5.05
+}

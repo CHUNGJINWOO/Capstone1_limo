@@ -1,0 +1,159 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="mc3f_world">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="libignition-gazebo-physics-system.so" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="libignition-gazebo-user-commands-system.so" name="ignition::gazebo::systems::UserCommands"/>
+    <plugin filename="libignition-gazebo-scene-broadcaster-system.so" name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="libignition-gazebo-sensors-system.so" name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="libignition-gazebo-imu-system.so" name="ignition::gazebo::systems::Imu"/>
+
+    <light name="sun" type="directional">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 20 0 0 0</pose>
+      <diffuse>0.9 0.9 0.92 1</diffuse>
+      <specular>0.3 0.3 0.3 1</specular>
+      <direction>-0.25 0.15 -0.95</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="ground_plane_link">
+        <collision name="ground_collision">
+          <geometry><plane><normal>0 0 1</normal><size>30 30</size></plane></geometry>
+          <surface><friction><ode><mu>100</mu><mu2>50</mu2></ode></friction></surface>
+        </collision>
+        <visual name="ground_visual">
+          <cast_shadows>false</cast_shadows>
+          <geometry><plane><normal>0 0 1</normal><size>30 30</size></plane></geometry>
+          <material>
+            <ambient>0.74 0.76 0.80 1</ambient>
+            <diffuse>0.74 0.76 0.80 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- C103 Glass Wall Environment -->
+    <model name="c103_glass_env">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+
+      <!-- Outer Boundary Walls (Opaque) -->
+      <link name="outer_walls">
+        <!-- South Wall (Corridor Outer) -->
+        <collision name="wall_south">
+          <pose>0.0 -2.3 0.5 0 0 0</pose>
+          <geometry><box><size>8.4 0.2 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_south">
+          <pose>0.0 -2.3 0.5 0 0 0</pose>
+          <geometry><box><size>8.4 0.2 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- North Wall (Classroom Back) -->
+        <collision name="wall_north">
+          <pose>0.0 4.1 0.5 0 0 0</pose>
+          <geometry><box><size>8.4 0.2 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_north">
+          <pose>0.0 4.1 0.5 0 0 0</pose>
+          <geometry><box><size>8.4 0.2 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- West Wall -->
+        <collision name="wall_west">
+          <pose>-4.1 0.9 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 6.6 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_west">
+          <pose>-4.1 0.9 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 6.6 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- East Wall -->
+        <collision name="wall_east">
+          <pose>4.1 0.9 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 6.6 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_east">
+          <pose>4.1 0.9 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 6.6 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- Dividing Wall Section 1: Solid West Wall (Opaque) -->
+      <link name="dividing_wall_solid">
+        <collision name="wall_solid_west">
+          <pose>-2.9 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>2.2 0.2 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_wall_solid_west">
+          <pose>-2.9 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>2.2 0.2 1.0</size></box></geometry>
+          <material><ambient>0.28 0.33 0.42 1</ambient><diffuse>0.28 0.33 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- Door Frame Pillar at x = -0.75 -->
+        <collision name="door_pillar">
+          <pose>-0.75 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>0.1 0.2 1.0</size></box></geometry>
+        </collision>
+        <visual name="v_door_pillar">
+          <pose>-0.75 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>0.1 0.2 1.0</size></box></geometry>
+          <material><ambient>0.2 0.2 0.2 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- Glass Partition Link (PHYSICAL COLLISION EXISTS, BUT INVISIBLE TO LIDAR) -->
+      <!-- Sub-condition A2: Closed Glass Door + Glass Wall -->
+      <link name="invisible_glass_partition">
+        <!-- Closed Glass Door: x in [-1.8, -0.8], length 1.0m, y = 0.0 -->
+        <collision name="glass_door_collision">
+          <pose>-1.3 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>1.0 0.08 1.0</size></box></geometry>
+        </collision>
+
+        <!-- Main Glass Wall: x in [-0.7, 4.0], length 4.7m, y = 0.0 -->
+        <collision name="glass_wall_collision">
+          <pose>1.65 0.0 0.5 0 0 0</pose>
+          <geometry><box><size>4.7 0.08 1.0</size></box></geometry>
+        </collision>
+        <!-- Notice: No visual geometry is included for this link. In Ogre2 GPU LiDAR, 
+             rays pass completely unhindered and hit the classroom interior behind it! -->
+      </link>
+
+      <!-- Classroom Interior Furniture (LiDAR rays hit these through the glass!) -->
+      <link name="classroom_furniture">
+        <!-- Teacher podium at x=-1.3, y=1.8 -->
+        <collision name="podium_c"><pose>-1.3 1.8 0.5 0 0 0</pose><geometry><box><size>0.8 0.6 1.0</size></box></geometry></collision>
+        <visual name="podium_v"><pose>-1.3 1.8 0.5 0 0 0</pose><geometry><box><size>0.8 0.6 1.0</size></box></geometry>
+          <material><ambient>0.42 0.28 0.18 1</ambient><diffuse>0.42 0.28 0.18 1</diffuse></material>
+        </visual>
+
+        <!-- Desk Row 1 at x=0.6, y=1.8 -->
+        <collision name="desk1_c"><pose>0.6 1.8 0.38 0 0 0</pose><geometry><box><size>1.6 0.6 0.75</size></box></geometry></collision>
+        <visual name="desk1_v"><pose>0.6 1.8 0.38 0 0 0</pose><geometry><box><size>1.6 0.6 0.75</size></box></geometry>
+          <material><ambient>0.82 0.62 0.42 1</ambient><diffuse>0.82 0.62 0.42 1</diffuse></material>
+        </visual>
+
+        <!-- Desk Row 2 at x=2.7, y=1.8 -->
+        <collision name="desk2_c"><pose>2.7 1.8 0.38 0 0 0</pose><geometry><box><size>1.6 0.6 0.75</size></box></geometry></collision>
+        <visual name="desk2_v"><pose>2.7 1.8 0.38 0 0 0</pose><geometry><box><size>1.6 0.6 0.75</size></box></geometry>
+          <material><ambient>0.82 0.62 0.42 1</ambient><diffuse>0.82 0.62 0.42 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

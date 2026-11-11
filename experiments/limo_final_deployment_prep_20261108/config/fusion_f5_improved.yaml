@@ -1,0 +1,55 @@
+# F5_improved: Improved Multi-Sensor Fusion EKF (2D LiDAR Scan-Matching Pose/Vel + High-Rate IMU Gyro wz)
+#
+# DESIGN RATIONALE & AUDIT FIXES:
+# 1. Fixes Original F5's IMU Yaw Bias Vulnerability (S4 Yaw RMSE = 15.50 deg):
+#    Original F5 set odom0 yaw=false and imu0 yaw=true, causing any IMU gyro bias accumulated in
+#    imu0.orientation to pull the EKF heading off by up to 30.3 deg.
+#    In F5_improved, absolute 2D heading (yaw) is anchored to F4's geometric 2D LiDAR ICP scan-matching
+#    (odom0 yaw=true), while imu0 fuses ONLY high-rate angular velocity (wz=true, yaw=false).
+# 2. Zero Duplicate Sensor Information:
+#    - odom0 (/odometry/lidar_odom, F4) is derived 100% from 2D LiDAR (/scan): fuses [x, y, yaw, vx, vy].
+#      F4's finite-difference wz is set to false.
+#    - imu0 (/imu) is derived 100% from the IMU gyroscope: fuses ONLY [wz] at 50 Hz for inter-scan
+#      prediction between 10 Hz LiDAR updates. Linear accelerations (ax, ay) and integrated IMU yaw are false.
+#    - Zero wheel odometry (/odom) is used, preserving 100% immunity to wheel slip and physical stall.
+
+ekf_f5_improved_node:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 50.0
+    sensor_timeout: 0.15
+    two_d_mode: true
+    transform_time_offset: 0.0
+    transform_timeout: 0.1
+    print_diagnostics: false
+    debug: false
+    publish_tf: false
+
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: odom
+
+    # 2D Pose (x, y, yaw) and Planar Linear Velocity (vx, vy) from 2D LiDAR ICP Odometry (F4)
+    odom0: /odometry/lidar_odom
+    odom0_config: [true,  true,  false,
+                   false, false, true,
+                   true,  true,  false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+    odom0_relative: false
+
+    # High-rate 50 Hz Angular Velocity (wz ONLY) from IMU (immune to integrated IMU yaw drift & accel bias)
+    imu0: /imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_differential: false
+    imu0_relative: false
+    imu0_queue_size: 20
+    imu0_remove_gravitational_acceleration: true
+
+    use_control: false

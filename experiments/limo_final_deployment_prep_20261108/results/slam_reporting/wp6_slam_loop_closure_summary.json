@@ -1,0 +1,173 @@
+{
+  "trajectory_total_distance_m": 16.05,
+  "pose_graph_nodes_count": 75,
+  "pose_graph_edges_count": 75,
+  "sequential_odometry_edges_count": 74,
+  "non_sequential_loop_closure_edges_count": 1,
+  "first_loop_closure_edge_detected_at": {
+    "sim_time_s": 46.852,
+    "node_index": 51,
+    "transition": "N=50,E=49 -> N=51,E=51 (E - (N-1) = 1 cycle constraint)"
+  },
+  "map_to_odom_pgo_jumps_detected": 44,
+  "map_to_odom_pgo_jumps_sample": [
+    {
+      "sim_time": 8.806,
+      "phase": "east_aisle_north_1",
+      "delta_pos_m": 0.0538,
+      "delta_yaw_deg": 1.6
+    },
+    {
+      "sim_time": 13.419,
+      "phase": "east_aisle_north_turn_entry",
+      "delta_pos_m": 0.0401,
+      "delta_yaw_deg": 0.2
+    },
+    {
+      "sim_time": 15.437,
+      "phase": "east_aisle_north_turn_entry",
+      "delta_pos_m": 0.0283,
+      "delta_yaw_deg": 0.4
+    },
+    {
+      "sim_time": 19.26,
+      "phase": "north_aisle_turn_exit",
+      "delta_pos_m": 0.0441,
+      "delta_yaw_deg": 1.0
+    },
+    {
+      "sim_time": 20.019,
+      "phase": "north_aisle_turn_exit",
+      "delta_pos_m": 0.0797,
+      "delta_yaw_deg": 1.2
+    },
+    {
+      "sim_time": 20.696,
+      "phase": "north_aisle_turn_exit",
+      "delta_pos_m": 0.0761,
+      "delta_yaw_deg": 1.4
+    },
+    {
+      "sim_time": 21.753,
+      "phase": "north_aisle_west_1",
+      "delta_pos_m": 0.0518,
+      "delta_yaw_deg": 1.2
+    },
+    {
+      "sim_time": 22.695,
+      "phase": "north_aisle_west_1",
+      "delta_pos_m": 0.05,
+      "delta_yaw_deg": 1.2
+    },
+    {
+      "sim_time": 23.362,
+      "phase": "north_aisle_west_1",
+      "delta_pos_m": 0.1128,
+      "delta_yaw_deg": 1.8
+    },
+    {
+      "sim_time": 24.038,
+      "phase": "north_aisle_west_1",
+      "delta_pos_m": 0.0601,
+      "delta_yaw_deg": 0.8
+    }
+  ],
+  "true_loop_closure_verified": true,
+  "loop_closure_verification_basis": "Pose graph built 75 nodes and 75 edges (74 sequential odometry edges + 1 non-sequential loop-closure constraint added at node 51, sim_time=46.852s) with 44 map->odom Ceres PGO updates.",
+  "pose_accuracy_comparison_m": {
+    "B0_perturbed_full_loop_ate_rmse_m": 0.7934,
+    "B0_perturbed_post_loop_err_m": 1.1043,
+    "F5_improved_full_loop_ate_rmse_m": 0.5423,
+    "SLAM_full_loop_ate_rmse_m": 0.032,
+    "SLAM_pre_loop_closure_err_m": 0.0411,
+    "SLAM_post_loop_closure_err_m": 0.0385,
+    "SLAM_final_settled_hold_err_m": 0.0115
+  },
+  "pre_loop_map_evaluation": {
+    "status": "OK",
+    "occupied_cells_count": 1179,
+    "wall_position_errors_m": {
+      "north_wall_mean_err_m": 0.0249,
+      "west_wall_mean_err_m": 0.0293,
+      "mid_wall_mean_err_m": 0.028,
+      "overall_wall_mean_err_m": 0.0275
+    },
+    "corridor_width_accuracy_m": {
+      "north_corridor_true_m": 1.85,
+      "north_corridor_measured_m": 1.9,
+      "north_corridor_error_m": 0.05,
+      "west_corridor_true_m": 2.75,
+      "west_corridor_measured_m": 2.7975,
+      "west_corridor_error_m": 0.0475
+    },
+    "obstacle_position_errors_m": {
+      "table_1_cluster_err_m": 0.0792,
+      "table_3_cluster_err_m": 0.0674,
+      "door_post_err_m": 0.0443
+    },
+    "map_overlap_and_distortion": {
+      "north_wall_thickness_std_m": 0.0161,
+      "west_wall_thickness_std_m": 0.0,
+      "double_wall_overlap_detected": false,
+      "north_wall_angular_distortion_deg": 0.346,
+      "west_wall_angular_distortion_deg": 0.0
+    }
+  },
+  "post_loop_map_evaluation": {
+    "status": "OK",
+    "occupied_cells_count": 1273,
+    "wall_position_errors_m": {
+      "north_wall_mean_err_m": 0.0225,
+      "west_wall_mean_err_m": 0.0293,
+      "mid_wall_mean_err_m": 0.0285,
+      "overall_wall_mean_err_m": 0.0268
+    },
+    "corridor_width_accuracy_m": {
+      "north_corridor_true_m": 1.85,
+      "north_corridor_measured_m": 1.85,
+      "north_corridor_error_m": 0.0,
+      "west_corridor_true_m": 2.75,
+      "west_corridor_measured_m": 2.8,
+      "west_corridor_error_m": 0.05
+    },
+    "obstacle_position_errors_m": {
+      "table_1_cluster_err_m": 0.0552,
+      "table_3_cluster_err_m": 0.0524,
+      "door_post_err_m": 0.0408
+    },
+    "map_overlap_and_distortion": {
+      "north_wall_thickness_std_m": 0.0121,
+      "west_wall_thickness_std_m": 0.0,
+      "double_wall_overlap_detected": false,
+      "north_wall_angular_distortion_deg": 0.216,
+      "west_wall_angular_distortion_deg": 0.0
+    }
+  },
+  "saved_files": {
+    "pre_loop_map": {
+      "pgm": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_nav2_closed_loop_verification_20261107/results/slam_evaluation/wp6_slam_map_pre_loop.pgm",
+      "yaml": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_nav2_closed_loop_verification_20261107/results/slam_evaluation/wp6_slam_map_pre_loop.yaml",
+      "width": 179,
+      "height": 238,
+      "resolution": 0.05000000074505806,
+      "origin": [
+        -3.6007645921311284,
+        -7.045717020634169
+      ]
+    },
+    "post_loop_map": {
+      "pgm": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_nav2_closed_loop_verification_20261107/results/slam_evaluation/wp6_slam_map_post_loop.pgm",
+      "yaml": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_nav2_closed_loop_verification_20261107/results/slam_evaluation/wp6_slam_map_post_loop.yaml",
+      "width": 179,
+      "height": 238,
+      "resolution": 0.05000000074505806,
+      "origin": [
+        -3.604495446202326,
+        -7.045717020634169
+      ]
+    },
+    "trajectory_csv": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_nav2_closed_loop_verification_20261107/results/slam_evaluation/wp6_slam_16m_loop_trajectory.csv",
+    "slam_stdout_log": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_nav2_closed_loop_verification_20261107/results/slam_evaluation/slam_toolbox_stdout.log",
+    "video_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_nav2_closed_loop_verification_20261107/videos/slam_loop_closure/wp6_slam_16m_loop_closure.mp4"
+  }
+}

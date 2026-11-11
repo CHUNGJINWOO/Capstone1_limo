@@ -1,0 +1,18 @@
+== estimator_study_20261111/runs/f4__wall  (GT travel 0.966 m)
+   F4 as is: trim 85%, gate 0.30      travel 0.222 m | final err 0.744 m
+   no trimming, gate 0.30             travel 0.876 m | final err 0.091 m
+   trim 85%, gate 0.60                travel 0.146 m | final err 0.820 m
+   no trimming, gate 0.60             travel 0.825 m | final err 0.141 m
+   no trimming, gate 1.00             travel 0.804 m | final err 0.163 m
+== estimator_study_20261111/runs/f4__wall2  (GT travel 0.624 m)
+   F4 as is: trim 85%, gate 0.30      travel 0.000 m | final err 0.624 m
+   no trimming, gate 0.30             travel 0.543 m | final err 0.081 m
+   trim 85%, gate 0.60                travel 0.000 m | final err 0.624 m
+   no trimming, gate 0.60             travel 0.536 m | final err 0.088 m
+   no trimming, gate 1.00             travel 0.536 m | final err 0.088 m
+== estimator_study_20261111/runs/f4__ctrl  (GT travel 1.800 m)
+   F4 as is: trim 85%, gate 0.30      travel 1.720 m | final err 0.101 m
+   no trimming, gate 0.30             travel 1.800 m | final err 0.026 m
+   trim 85%, gate 0.60                travel 1.715 m | final err 0.095 m
+   no trimming, gate 0.60             travel 1.782 m | final err 0.050 m
+   no trimming, gate 1.00             travel 1.784 m | final err 0.030 m

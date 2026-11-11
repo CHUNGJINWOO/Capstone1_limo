@@ -1,0 +1,59 @@
+ M capstone_ws/src/limo_capstone/config/integrated_explore_params.yaml
+ M capstone_ws/src/limo_capstone/config/integrated_nav2_params.yaml
+ M capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_real.launch.py
+ M capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py
+ M capstone_ws/src/limo_capstone/limo_capstone/lidar_scan_matcher_odom_node.py
+ M capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py
+ M capstone_ws/src/limo_capstone/setup.py
+?? capstone_ws/src/limo_capstone/config/ekf_tuned.yaml
+?? capstone_ws/src/limo_capstone/config/integrated_nav2_diff_params.yaml
+?? capstone_ws/src/limo_capstone/config/integrated_nav2_lidar_only_params.yaml
+?? capstone_ws/src/limo_capstone/config/navigate_to_pose_ackermann_no_reverse.xml
+?? capstone_ws/src/limo_capstone/config/ukf_tuned.yaml
+?? capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim_diff.launch.py
+?? capstone_ws/src/limo_capstone/limo_capstone/complementary_filter_node.py
+?? capstone_ws/src/limo_capstone/models/limo_eval_diff/
+?? capstone_ws/src/limo_capstone/rviz/
+?? capstone_ws/src/limo_capstone/scripts/audit_estimator_dryrun.py
+?? capstone_ws/src/limo_capstone/scripts/auto_mapping_experiment_manager.py
+?? capstone_ws/src/limo_capstone/scripts/manage_auto_mapping.sh
+?? capstone_ws/src/limo_capstone/scripts/run_recorder.py
+?? capstone_ws/src/limo_capstone/scripts/run_unpowered_trial.py
+?? capstone_ws/src/limo_capstone/urdf/limo_diff_fortress.urdf
+?? docs/design/
+?? docs/dev_notes/10_16
+?? docs/dev_notes/2026_10_15
+?? docs/dev_notes/2026_11_05.md
+?? "docs/dev_notes/2026_11_05_\354\213\244\355\214\250\354\213\234\355\227\230_\352\263\204\354\270\241\352\265\220\354\240\225.md"
+?? "docs/dev_notes/2026_11_05_\354\236\220\353\217\231\353\247\265\355\225\221_\354\275\224\353\223\234\354\210\230\354\240\225.md"
+?? "docs/dev_notes/2026_11_06_\353\252\251\355\221\234\354\204\240\355\203\235_\354\242\205\353\243\214\352\270\260\353\241\235.md"
+?? "docs/dev_notes/2026_11_07_\352\271\212\354\235\264\354\271\264\353\251\224\353\235\274_\354\236\220\353\217\231\353\247\265\355\225\221.md"
+?? "docs/dev_notes/2026_11_10_cmd_vel_\354\225\210\354\240\204\352\262\214\354\235\264\355\212\270_\352\262\275\353\241\234_\354\240\220\352\262\200.md"
+?? docs/dev_notes/bashrc
+?? "docs/dev_notes/\353\254\270\354\240\234 \354\240\225\353\246\254"
+?? "docs/dev_notes/\354\236\220\354\234\250\354\243\274\355\226\211 \353\254\270\354\240\234"
+?? "docs/dev_notes/\354\236\221\354\227\205 \354\240\225\353\246\254"
+?? docs/troubleshooting/MC3F_nav2/active.png
+?? docs/troubleshooting/MC3F_nav2/active_tf.png
+?? docs/troubleshooting/MC3F_nav2/hide_tf.png
+?? docs/troubleshooting/MC3F_nav2/limo_tf_tree-1.png
+?? docs/troubleshooting/MC3F_nav2/nav2_MC3F.png
+?? experiments/auto_mapping_action/
+?? experiments/auto_mapping_python/
+?? experiments/auto_mapping_verification/
+?? experiments/auto_resume_verification/
+?? experiments/depth_mapping_20261107/
+?? experiments/failure_limits_verification/
+?? experiments/failure_measurement_audit_20261105/
+?? experiments/gazebo_obstacle_mapping/
+?? experiments/inscribed_start_verification/
+?? experiments/limo_final_deployment_prep_20261108/
+?? experiments/limo_nav2_closed_loop_verification_20261107/
+?? experiments/limo_onboard_trials/
+?? experiments/limo_state_estimation_benchmark_20261107/
+?? experiments/lounge_failure_investigation_20261107/
+?? experiments/mapping_goal_journal_20261105/
+?? experiments/safety_gate_verification_20261110/
+?? notebook/
+?? scripts/tools/generate_presentation.py
+?? src/

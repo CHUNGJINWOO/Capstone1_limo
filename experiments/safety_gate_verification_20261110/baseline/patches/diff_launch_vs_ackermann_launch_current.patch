@@ -1,0 +1,63 @@
+--- capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py	2026-11-10 21:11:16.566291039 +0900
++++ capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim_diff.launch.py	2026-11-10 20:45:14.616404770 +0900
+@@ -1,9 +1,11 @@
+ #!/usr/bin/env python3
+ """
+-limo_integrated_auto_mapping_sim.launch.py
++limo_integrated_auto_mapping_sim_diff.launch.py
++(Differential-drive variant of limo_integrated_auto_mapping_sim.launch.py;
++ only the robot model, URDF and Nav2 params differ)
+ Master Simulation Launch File for LIMO Pro Integrated Auto-Mapping:
+ Fully self-contained in capstone_ws:
+-1. Gazebo Fortress simulation (Lounge/MC3F World) + LIMO Pro Ackermann entity + ROS-GZ Bridge
++1. Gazebo Fortress simulation (Lounge/MC3F World) + LIMO Pro 4WD-differential entity + ROS-GZ Bridge
+ 2. Simulation Ground Truth & Sensor Normalizer
+ 3. Simulation Depth Image to PointCloud2 converter
+ 4. DaBai 3D Depth Obstacle Filter (limo_depth_obstacles package)
+@@ -23,7 +25,6 @@
+ from launch.launch_description_sources import PythonLaunchDescriptionSource
+ from launch.substitutions import LaunchConfiguration, PythonExpression
+ from launch_ros.actions import Node, SetRemap
+-from nav2_common.launch import RewrittenYaml
+ 
+ 
+ def generate_launch_description():
+@@ -35,11 +36,11 @@
+ 
+     # Simulation assets self-contained in limo_capstone and limo_description
+     default_world = os.path.join(pkg_limo_capstone, 'worlds', 'lounge_evaluation_world.sdf')
+-    default_model = os.path.join(pkg_limo_capstone, 'models', 'limo_eval', 'model.sdf')
+-    default_urdf = os.path.join(pkg_limo_capstone, 'urdf', 'limo_ackermann_fortress.urdf')
++    default_model = os.path.join(pkg_limo_capstone, 'models', 'limo_eval_diff', 'model.sdf')
++    default_urdf = os.path.join(pkg_limo_capstone, 'urdf', 'limo_diff_fortress.urdf')
+ 
+     config_slam = os.path.join(pkg_limo_capstone, 'config', 'integrated_slam_params.yaml')
+-    config_nav2 = os.path.join(pkg_limo_capstone, 'config', 'integrated_nav2_params.yaml')
++    config_nav2 = os.path.join(pkg_limo_capstone, 'config', 'integrated_nav2_diff_params.yaml')
+     config_explore = os.path.join(pkg_limo_capstone, 'config', 'integrated_explore_params.yaml')
+     config_ekf = os.path.join(pkg_limo_capstone, 'config', 'fusion_f5_improved.yaml')
+ 
+@@ -253,14 +254,6 @@
+     )
+ 
+     # 7. Nav2 Navigation Stack (gated strictly to /cmd_vel_raw)
+-    # Ackermann chassis cannot rotate in place and reverse is blocked by the gate:
+-    # use a recovery tree without Spin/BackUp (key exists as a placeholder in the yaml).
+-    ackermann_bt = os.path.join(pkg_limo_capstone, 'config', 'navigate_to_pose_ackermann_no_reverse.xml')
+-    nav2_params_file = RewrittenYaml(
+-        source_file=config_nav2,
+-        param_rewrites={'bt_navigator.ros__parameters.default_nav_to_pose_bt_xml': ackermann_bt},
+-    )
+-
+     nav2_launch = GroupAction(
+         actions=[
+             # Every Nav2 velocity command must reach /cmd_vel only through the stall gate:
+@@ -274,7 +267,7 @@
+                 PythonLaunchDescriptionSource(os.path.join(pkg_nav2, 'launch', 'navigation_launch.py')),
+                 launch_arguments={
+                     'use_sim_time': use_sim_time,
+-                    'params_file': nav2_params_file,
++                    'params_file': config_nav2,
+                     'autostart': 'true'
+                 }.items()
+             )

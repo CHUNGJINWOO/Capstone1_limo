@@ -1,0 +1,9 @@
+robot map pose=(0.00,0.00) yaw=0 deg
+world(-1.76,-1.80): goal=(-2.92,1.92) status=4 (4=ok) path_len=4.36 m
+world(2.88,1.73): goal=(-0.07,-3.16) status=4 (4=ok) path_len=4.20 m
+world(-4.95,0.44): goal=(-0.26,4.77) status=4 (4=ok) path_len=5.52 m
+world(1.29,3.60): goal=(2.00,-1.85) status=4 (4=ok) path_len=3.76 m
+world(-3.66,3.91): goal=(3.00,3.01) status=4 (4=ok) path_len=6.11 m
+world(4.62,1.96): goal=(-0.08,-4.92) status=4 (4=ok) path_len=6.69 m
+world(-1.00,0.00): goal=(-1.24,0.92) status=4 (4=ok) path_len=1.59 m
+world(-0.30,0.40): goal=(-0.95,0.17) status=4 (4=ok) path_len=1.06 m

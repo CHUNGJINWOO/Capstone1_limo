@@ -1,0 +1,154 @@
+{
+ "tag": "Q3",
+ "stop_reason": "gate_failsafe_held",
+ "wall_s": 96.0,
+ "sim_s": 89.0,
+ "gate_transitions": [
+  [
+   0.16,
+   "INITIALIZING"
+  ],
+  [
+   19.16,
+   "NORMAL"
+  ],
+  [
+   75.23,
+   "FAILSAFE_SENSOR_TIMEOUT"
+  ]
+ ],
+ "gate_counters": {
+  "failsafe_events": 1,
+  "stall_events": 0,
+  "icp_degraded_events": 0,
+  "operator_unlatch_count": 0
+ },
+ "gate_last_flags": {
+  "state": "FAILSAFE_SENSOR_TIMEOUT",
+  "depth_stale": false,
+  "wheel_odom_stale": false,
+  "est_odom_stale": false,
+  "depth_code": "DEPTH_READY"
+ },
+ "cmd_vel_publishers": [
+  "stall_detector_node"
+ ],
+ "cmd_raw_nonzero": "0/0",
+ "cmd_out_nonzero": "0/3319",
+ "map": {},
+ "map_updates": 0,
+ "map_growth_sim": [],
+ "gt_path_m": 0.0,
+ "slam_err_xy_m": null,
+ "goals": {
+  "succeeded": 0,
+  "canceled": 0,
+  "aborted": 0,
+  "total_seen": 0,
+  "max_abort_streak": 0,
+  "active_now": 0
+ },
+ "goal_log": [],
+ "stream_gaps_sim": {
+  "/scan": {
+   "n": 662,
+   "max": 13.001,
+   "over_0p38": 3,
+   "over_1p0": 3
+  },
+  "/odometry/lidar_odom": {
+   "n": 649,
+   "max": 13.003,
+   "over_0p38": 3,
+   "over_1p0": 3
+  },
+  "/odom": {
+   "n": 3312,
+   "max": 12.904,
+   "over_0p38": 3,
+   "over_1p0": 3
+  },
+  "/odom_nav2": {
+   "n": 649,
+   "max": 13.003,
+   "over_0p38": 3,
+   "over_1p0": 3
+  },
+  "/depth_obstacles/points": {
+   "n": 638,
+   "max": 13.133,
+   "over_0p38": 3,
+   "over_1p0": 3
+  }
+ },
+ "min_scan_m": 0.797,
+ "rtf": {
+  "mean": 0.937,
+  "min": 0.062,
+  "p10": 0.066
+ },
+ "cpu_pct_of_one_core": {
+  "gazebo": {
+   "mean": 143.26,
+   "max": 161.8
+  },
+  "slam_toolbox": {
+   "mean": 0.31,
+   "max": 0.8
+  },
+  "nav2": {
+   "mean": 40.97,
+   "max": 57.1
+  },
+  "explore_lite": {
+   "mean": 8.26,
+   "max": 11.4
+  },
+  "safety_gate": {
+   "mean": 47.29,
+   "max": 64.3
+  },
+  "estimator_f4": {
+   "mean": 36.71,
+   "max": 50.6
+  },
+  "depth_filter": {
+   "mean": 78.26,
+   "max": 107.2
+  },
+  "ros_gz_bridge": {
+   "mean": 56.76,
+   "max": 76.0
+  },
+  "other_ros": {
+   "mean": 131.44,
+   "max": 177.5
+  }
+ },
+ "cpu_system_pct": {
+  "mean": 28.06,
+  "max": 35.9
+ },
+ "n_cores": 24,
+ "align": null,
+ "log_counts": {
+  "goals_sent (Begin navigating)": 0,
+  "goal_preemptions": 0,
+  "controller_failed_to_make_progress": 0,
+  "planner_no_valid_path": 0,
+  "collision_ahead": 0,
+  "behavior_recovery_run": 0,
+  "navigation_succeeded_log": 0,
+  "fail_safe_log_lines": 1,
+  "stall_latched_log_lines": 0,
+  "tf_wait_timeouts": 154,
+  "message_filter_drops": 2,
+  "tf_extrapolation_errors": 0,
+  "explore_no_frontiers_stop": 0,
+  "explore_returned_to_initial_pose": 0,
+  "depth_filter_errors": 2,
+  "depth_sensor_stale": 3,
+  "costmap_errors": 0,
+  "process_died": 0
+ }
+}

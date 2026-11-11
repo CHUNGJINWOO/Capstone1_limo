@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="glass_test_world">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="libignition-gazebo-physics-system.so" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="libignition-gazebo-user-commands-system.so" name="ignition::gazebo::systems::UserCommands"/>
+    <plugin filename="libignition-gazebo-scene-broadcaster-system.so" name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="libignition-gazebo-sensors-system.so" name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="ground_link">
+        <collision name="c"><geometry><plane><normal>0 0 1</normal><size>20 20</size></plane></geometry></collision>
+        <visual name="v"><geometry><plane><normal>0 0 1</normal><size>20 20</size></plane></geometry><material><ambient>0.8 0.8 0.8 1</ambient></material></visual>
+      </link>
+    </model>
+
+    <!-- Background solid wall at y = 5.0m to catch penetrating rays -->
+    <model name="background_wall">
+      <static>true</static>
+      <link name="bg_link">
+        <collision name="c"><pose>0 5.0 1.0 0 0 0</pose><geometry><box><size>10.0 0.2 2.0</size></box></geometry></collision>
+        <visual name="v"><pose>0 5.0 1.0 0 0 0</pose><geometry><box><size>10.0 0.2 2.0</size></box></geometry><material><ambient>0.2 0.3 0.4 1</ambient></material></visual>
+      </link>
+    </model>
+
+    <!-- Target Wall at y = 1.5m (Distance from robot = 1.5m) -->
+    <model name="test_wall">
+      <static>true</static>
+      <link name="wall_link">
+        <collision name="c_wall">
+          <pose>0 1.5 0.9 0 0 0</pose>
+          <geometry><box><size>4.0 0.05 1.8</size></box></geometry>
+        </collision>
+        
+        <visual name="v_wall">
+          <pose>0 1.5 0.9 0 0 0</pose>
+          <geometry><box><size>4.0 0.02 1.8</size></box></geometry>
+          <material><ambient>0.4 0.7 0.9 0.25</ambient><diffuse>0.4 0.7 0.9 0.25</diffuse></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

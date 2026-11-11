@@ -1,0 +1,902 @@
+diff --git a/capstone_ws/src/limo_capstone/config/integrated_explore_params.yaml b/capstone_ws/src/limo_capstone/config/integrated_explore_params.yaml
+index fa4d72f..28845fa 100644
+--- a/capstone_ws/src/limo_capstone/config/integrated_explore_params.yaml
++++ b/capstone_ws/src/limo_capstone/config/integrated_explore_params.yaml
+@@ -8,11 +8,11 @@ explore_node:
+     costmap_topic: /global_costmap/costmap
+     costmap_updates_topic: /global_costmap/costmap_updates
+     visualize: true
+-    planner_frequency: 0.33      # 3.0 seconds per frontier evaluation cycle
+-    progress_timeout: 25.0       # 25 seconds movement allowance before selecting new frontier
++    planner_frequency: 0.5       # 2.0 seconds per frontier evaluation cycle
++    progress_timeout: 30.0       # 30 seconds movement allowance before selecting new frontier
+     potential_scale: 3.0         # Prefers closer frontiers to minimize unnecessary travel
+     orientation_scale: 0.0
+     gain_scale: 1.0
+-    transform_tolerance: 0.6     # Generous tolerance to absorb simulation clock jitter
+-    min_frontier_size: 0.20      # Sensitive detection of small doorway openings and room corridors
+-    use_sim_time: true
++    transform_tolerance: 0.6     # Generous tolerance to absorb clock jitter
++    min_frontier_size: 0.35      # Meaningful frontier size (avoids 20cm micro-goals)
++    use_sim_time: false
+diff --git a/capstone_ws/src/limo_capstone/config/integrated_nav2_params.yaml b/capstone_ws/src/limo_capstone/config/integrated_nav2_params.yaml
+index 2f8d129..7518d65 100644
+--- a/capstone_ws/src/limo_capstone/config/integrated_nav2_params.yaml
++++ b/capstone_ws/src/limo_capstone/config/integrated_nav2_params.yaml
+@@ -11,6 +11,9 @@ bt_navigator:
+     bt_loop_duration: 20
+     default_server_timeout: 20
+     wait_for_service_timeout: 1000
++    # Placeholder = Nav2's stock tree (identical to the built-in default). Ackermann launches
++    # rewrite this key to config/navigate_to_pose_ackermann_no_reverse.xml (Spin/BackUp removed).
++    default_nav_to_pose_bt_xml: "/opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml"
+     plugin_lib_names:
+       - nav2_compute_path_to_pose_action_bt_node
+       - nav2_compute_path_through_poses_action_bt_node
+@@ -74,27 +77,27 @@ controller_server:
+     general_goal_checker:
+       stateful: True
+       plugin: "nav2_controller::SimpleGoalChecker"
+-      xy_goal_tolerance: 0.25
++      xy_goal_tolerance: 0.12
+       yaw_goal_tolerance: 0.60
+ 
+     FollowPath:
+       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+-      desired_linear_vel: 0.26
+-      lookahead_dist: 0.50
+-      min_lookahead_dist: 0.30
+-      max_lookahead_dist: 0.80
+-      lookahead_time: 1.5
++      desired_linear_vel: 0.32
++      lookahead_dist: 0.40
++      min_lookahead_dist: 0.20
++      max_lookahead_dist: 0.70
++      lookahead_time: 1.2
+       rotate_to_heading_angular_vel: 0.5
+       transform_tolerance: 0.5
+       use_velocity_scaled_lookahead_dist: false
+-      min_approach_linear_velocity: 0.10
+-      approach_velocity_scaling_dist: 0.4
++      min_approach_linear_velocity: 0.15
++      approach_velocity_scaling_dist: 0.30
+       use_collision_detection: false
+       max_allowed_time_to_collision_up_to_carrot: 1.0
+       use_regulated_linear_velocity_scaling: true
+       use_cost_regulated_linear_velocity_scaling: false
+-      regulated_linear_scaling_min_radius: 0.8
+-      regulated_linear_scaling_min_speed: 0.15
++      regulated_linear_scaling_min_radius: 0.6
++      regulated_linear_scaling_min_speed: 0.18
+       use_rotate_to_heading: false
+       allow_reversing: false
+       max_angular_accel: 2.5
+diff --git a/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_real.launch.py b/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_real.launch.py
+index dd7d3a6..663d2df 100644
+--- a/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_real.launch.py
++++ b/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_real.launch.py
+@@ -27,6 +27,7 @@ from launch.conditions import IfCondition, UnlessCondition
+ from launch.launch_description_sources import PythonLaunchDescriptionSource
+ from launch.substitutions import LaunchConfiguration, PythonExpression
+ from launch_ros.actions import Node, SetRemap
++from nav2_common.launch import RewrittenYaml
+ 
+ 
+ def generate_launch_description():
+@@ -40,13 +41,17 @@ def generate_launch_description():
+     pkg_slam = get_package_share_directory('slam_toolbox')
+ 
+     config_slam = os.path.join(pkg_limo_capstone, 'config', 'integrated_slam_params.yaml')
+-    config_nav2 = os.path.join(pkg_limo_capstone, 'config', 'integrated_nav2_params.yaml')
++    config_nav2_depth = os.path.join(pkg_limo_capstone, 'config', 'integrated_nav2_params.yaml')
++    config_nav2_lidar = os.path.join(pkg_limo_capstone, 'config', 'integrated_nav2_lidar_only_params.yaml')
+     config_explore = os.path.join(pkg_limo_capstone, 'config', 'integrated_explore_params.yaml')
+-    config_ekf = os.path.join(pkg_limo_capstone, 'config', 'fusion_f5_improved.yaml')
++    config_ekf_f5 = os.path.join(pkg_limo_capstone, 'config', 'fusion_f5_improved.yaml')
++    config_ekf_f1b = os.path.join(pkg_limo_capstone, 'config', 'ekf_tuned.yaml')
+ 
+     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
+     estimator_type = LaunchConfiguration('estimator_type', default='f4')
+-    start_explore = LaunchConfiguration('start_explore', default='true')
++    run_icp_observer = LaunchConfiguration('run_icp_observer', default='true')
++    start_explore = LaunchConfiguration('start_explore', default='false')
++    use_depth_camera = LaunchConfiguration('use_depth_camera', default='false')
+     depth_mode = LaunchConfiguration('depth_mode', default='required')
+     sensor_timeout_sec = LaunchConfiguration('sensor_timeout_sec', default='0.38')
+     allow_motor_drive = LaunchConfiguration('allow_motor_drive', default='false')
+@@ -54,17 +59,96 @@ def generate_launch_description():
+     declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='false')
+     declare_estimator_type = DeclareLaunchArgument(
+         'estimator_type', default_value='f4',
+-        choices=['f4', 'f5_improved'],
+-        description='Selected state estimator: f4 (LiDAR ICP) or f5_improved (ICP+IMU EKF)'
++        choices=['b0', 'f1b', 'f3b', 'f4', 'f5_improved'],
++        description='Selected state estimator: b0 (Wheel Odom), f1b (Tuned EKF), f3b (Comp+SlipGate), f4 (LiDAR ICP), or f5_improved (ICP+IMU EKF)'
++    )
++    declare_run_icp_observer = DeclareLaunchArgument(
++        'run_icp_observer', default_value='true',
++        description='Run F4 LiDAR ICP as background observer for stall detection/diagnostic comparison in B0/F1b/F3b modes'
++    )
++    declare_start_explore = DeclareLaunchArgument(
++        'start_explore', default_value='false',
++        description='Start explore_lite frontier exploration (disabled by default for initial test)'
++    )
++    declare_use_depth_camera = DeclareLaunchArgument(
++        'use_depth_camera', default_value='false',
++        description='Whether to enable Orbbec DaBai camera driver, TF, depth filter, and costmap layer'
++    )
++    declare_depth_mode = DeclareLaunchArgument(
++        'depth_mode', default_value='required',
++        description='Depth camera fail-safe mode for stall detector: required, optional, disabled'
+     )
+-    declare_start_explore = DeclareLaunchArgument('start_explore', default_value='true')
+-    declare_depth_mode = DeclareLaunchArgument('depth_mode', default_value='required',
+-                                               description='Depth camera fail-safe mode: required, optional, disabled')
+     declare_sensor_timeout = DeclareLaunchArgument('sensor_timeout_sec', default_value='0.38')
+     declare_allow_motor = DeclareLaunchArgument(
+         'allow_motor_drive', default_value='false',
+         description='SAFETY LOCK: Set true only after MCU watchdog & physical E-Stop bench check!'
+     )
++    declare_enable_stall_detector = DeclareLaunchArgument(
++        'enable_stall_detector', default_value='true',
++        description='DEPRECATED / IGNORED: the stall gate is always in the command path '
++                    '(Nav2 -> /cmd_vel_raw -> stall_detector_node -> /cmd_vel or /cmd_vel_locked). '
++                    'Kept only so existing command lines that pass it still work.'
++    )
++
++    # Static TF & Extrinsics Configuration Arguments
++    declare_base_footprint_z = DeclareLaunchArgument(
++        'base_footprint_z', default_value='0.0',
++        description='Z offset between base_footprint and base_link (0.0 for physical 4WD chassis)'
++    )
++    declare_publish_camera_tf = DeclareLaunchArgument(
++        'publish_camera_tf', default_value='true',
++        description='Whether to publish static TF for DaBai depth camera'
++    )
++    declare_camera_parent = DeclareLaunchArgument('camera_parent_frame', default_value='base_link')
++    declare_camera_optical = DeclareLaunchArgument('camera_optical_frame', default_value='camera_link',
++                                                 description='Root camera frame to attach to base_link (camera_link connects to astra_camera TF tree)')
++    declare_camera_x = DeclareLaunchArgument('camera_x', default_value='0.084',
++                                           description='Camera X mounting offset [UNVERIFIED: CAD reference 0.084m]')
++    declare_camera_y = DeclareLaunchArgument('camera_y', default_value='0.0',
++                                           description='Camera Y mounting offset [UNVERIFIED: CAD reference 0.0m]')
++    declare_camera_z = DeclareLaunchArgument('camera_z', default_value='0.03',
++                                           description='Camera Z mounting offset [UNVERIFIED: CAD reference 0.03m]')
++    declare_camera_roll = DeclareLaunchArgument('camera_roll', default_value='0.0',
++                                              description='Camera Roll mounting angle [Robot FLU to camera_link FLU: 0.0 rad]')
++    declare_camera_pitch = DeclareLaunchArgument('camera_pitch', default_value='0.0',
++                                               description='Camera Pitch mounting angle [Robot FLU to camera_link FLU: 0.0 rad]')
++    declare_camera_yaw = DeclareLaunchArgument('camera_yaw', default_value='0.0',
++                                             description='Camera Yaw mounting angle [Robot FLU to camera_link FLU: 0.0 rad]')
++
++    # Static TF: base_footprint (Parent) -> base_link (Child)
++    base_footprint_tf = Node(
++        package='tf2_ros',
++        executable='static_transform_publisher',
++        name='static_tf_base_footprint_to_base_link',
++        output='screen',
++        arguments=[
++            '--x', '0', '--y', '0', '--z', LaunchConfiguration('base_footprint_z'),
++            '--yaw', '0', '--pitch', '0', '--roll', '0',
++            '--frame-id', 'base_footprint',
++            '--child-frame-id', 'base_link'
++        ]
++    )
++
++    # Static TF: base_link -> DaBai camera optical frame (Configurable Extrinsics, published only when Depth is ON)
++    camera_tf_node = Node(
++        package='tf2_ros',
++        executable='static_transform_publisher',
++        name='static_tf_base_to_camera',
++        output='screen',
++        arguments=[
++            '--x', LaunchConfiguration('camera_x'),
++            '--y', LaunchConfiguration('camera_y'),
++            '--z', LaunchConfiguration('camera_z'),
++            '--roll', LaunchConfiguration('camera_roll'),
++            '--pitch', LaunchConfiguration('camera_pitch'),
++            '--yaw', LaunchConfiguration('camera_yaw'),
++            '--frame-id', LaunchConfiguration('camera_parent_frame'),
++            '--child-frame-id', LaunchConfiguration('camera_optical_frame')
++        ],
++        condition=IfCondition(PythonExpression([
++            "'", use_depth_camera, "' == 'true' and '", LaunchConfiguration('publish_camera_tf'), "' == 'true'"
++        ]))
++    )
+ 
+     # 1. Real Robot Hardware Drivers
+     # A. LIMO Base Serial Driver (pub_odom_tf=false to avoid TF clash)
+@@ -78,9 +162,10 @@ def generate_launch_description():
+         PythonLaunchDescriptionSource(os.path.join(pkg_ydlidar, 'launch', 'ydlidar.launch.py'))
+     )
+ 
+-    # C. Orbbec DaBai Depth Camera Driver
++    # C. Orbbec DaBai Depth Camera Driver (Launched only when use_depth_camera is true)
+     dabai_launch = IncludeLaunchDescription(
+-        PythonLaunchDescriptionSource(os.path.join(pkg_camera, 'launch', 'dabai.launch.py'))
++        PythonLaunchDescriptionSource(os.path.join(pkg_camera, 'launch', 'dabai.launch.py')),
++        condition=IfCondition(use_depth_camera)
+     )
+ 
+     # D. Robot State Publisher (URDF)
+@@ -88,7 +173,7 @@ def generate_launch_description():
+         PythonLaunchDescriptionSource(os.path.join(pkg_limo_desc, 'launch', 'load_urdf.launch.py'))
+     )
+ 
+-    # 2. Depth Obstacle Filter
++    # 2. Depth Obstacle Filter (Active only when use_depth_camera is true)
+     depth_filter_node = Node(
+         package='limo_depth_obstacles',
+         executable='depth_obstacle_filter_node',
+@@ -97,33 +182,115 @@ def generate_launch_description():
+         parameters=[{
+             'use_sim_time': use_sim_time,
+             'height_frame': 'base_footprint',
+-            'input_topic': '/camera/depth/points'
+-        }]
++            'input_topic': '/camera/depth/points',
++            'point_stride': 4,
++            'processing_hz': 4.0,
++            'data_timeout_sec': 0.75,
++        }],
++        condition=IfCondition(use_depth_camera)
+     )
+ 
+-    # 3. State Estimators: F4 vs F5_improved
++    # 3. State Estimators: B0, F1b, F3b, F4, F5_improved
++    is_b0 = PythonExpression(["'", estimator_type, "' == 'b0'"])
++    is_f1b = PythonExpression(["'", estimator_type, "' == 'f1b'"])
++    is_f3b = PythonExpression(["'", estimator_type, "' == 'f3b'"])
++    is_f4 = PythonExpression(["'", estimator_type, "' == 'f4'"])
++    is_f5 = PythonExpression(["'", estimator_type, "' == 'f5_improved'"])
++    run_f4 = PythonExpression([
++        "'", estimator_type, "' in ['f4', 'f5_improved'] or '", run_icp_observer, "' == 'true'"
++    ])
++
++    # F1b: Tuned 2D EKF (Wheel linear velocity + IMU yaw/wz)
++    f1b_ekf_node = Node(
++        package='robot_localization',
++        executable='ekf_node',
++        name='ekf_f1b_node',
++        output='screen',
++        parameters=[config_ekf_f1b, {'use_sim_time': use_sim_time}],
++        remappings=[('odometry/filtered', '/odometry/ekf_tuned')],
++        condition=IfCondition(is_f1b)
++    )
++
++    # F3b: Complementary Filter + Physics-Informed Slip/Stall Gate
++    comp_filter_node = Node(
++        package='limo_capstone',
++        executable='complementary_filter_node',
++        name='complementary_filter_node',
++        output='screen',
++        parameters=[{'use_sim_time': use_sim_time}],
++        condition=IfCondition(is_f3b)
++    )
++
++    # F4: 2D LiDAR Scan-Matching Odometry (ICP)
++    # Launched when selected as estimator OR as diagnostic observer for B0/F1b/F3b
+     f4_node = Node(
+         package='limo_capstone',
+         executable='lidar_scan_matcher_odom_node',
+         name='lidar_scan_matcher_odom_node',
+         output='screen',
+-        parameters=[{'use_sim_time': use_sim_time}]
++        parameters=[{'use_sim_time': use_sim_time}],
++        condition=IfCondition(run_f4)
+     )
+ 
+-    is_f5 = PythonExpression(["'", estimator_type, "' == 'f5_improved'"])
+-    is_f4 = PythonExpression(["'", estimator_type, "' == 'f4'"])
+-
++    # F5_improved: Composite Sensor Fusion (F4 ICP Pose/Vel + IMU wz)
+     f5_ekf_node = Node(
+         package='robot_localization',
+         executable='ekf_node',
+         name='ekf_f5_improved_node',
+         output='screen',
+-        parameters=[config_ekf, {'use_sim_time': use_sim_time}],
++        parameters=[config_ekf_f5, {'use_sim_time': use_sim_time}],
+         remappings=[('odometry/filtered', '/odometry/f5_improved')],
+         condition=IfCondition(is_f5)
+     )
+ 
+     # 4. Single-Authority Odom TF Relay
++    # Subscribes to the active estimator topic, publishes odom -> base_footprint on /tf,
++    # and republishes /odom_nav2 for Nav2 stack. Exactly ONE relay is active.
++    relay_b0 = Node(
++        package='limo_capstone',
++        executable='odom_tf_relay_node',
++        name='odom_tf_relay_node',
++        output='screen',
++        parameters=[{
++            'active_odom_topic': '/odom',
++            'nav2_odom_topic': '/odom_nav2',
++            'odom_frame': 'odom',
++            'base_frame': 'base_footprint',
++            'use_sim_time': use_sim_time
++        }],
++        condition=IfCondition(is_b0)
++    )
++
++    relay_f1b = Node(
++        package='limo_capstone',
++        executable='odom_tf_relay_node',
++        name='odom_tf_relay_node',
++        output='screen',
++        parameters=[{
++            'active_odom_topic': '/odometry/ekf_tuned',
++            'nav2_odom_topic': '/odom_nav2',
++            'odom_frame': 'odom',
++            'base_frame': 'base_footprint',
++            'use_sim_time': use_sim_time
++        }],
++        condition=IfCondition(is_f1b)
++    )
++
++    relay_f3b = Node(
++        package='limo_capstone',
++        executable='odom_tf_relay_node',
++        name='odom_tf_relay_node',
++        output='screen',
++        parameters=[{
++            'active_odom_topic': '/odometry/comp_slip_gate',
++            'nav2_odom_topic': '/odom_nav2',
++            'odom_frame': 'odom',
++            'base_frame': 'base_footprint',
++            'use_sim_time': use_sim_time
++        }],
++        condition=IfCondition(is_f3b)
++    )
++
+     relay_f4 = Node(
+         package='limo_capstone',
+         executable='odom_tf_relay_node',
+@@ -163,18 +330,37 @@ def generate_launch_description():
+         }.items()
+     )
+ 
+-    # 6. Nav2 Navigation Stack (gated strictly to /cmd_vel_raw)
++    # 6. Nav2 Navigation Stack
++    enable_stall_detector = LaunchConfiguration('enable_stall_detector')
++    selected_nav2_params = PythonExpression([
++        "'", config_nav2_depth, "' if '", use_depth_camera, "' == 'true' else '", config_nav2_lidar, "'"
++    ])
++
++    # Command routing (fail-closed, no bypass):
++    # Every velocity command from Nav2 goes to /cmd_vel_raw. The stall gate is the only node
++    # that publishes the final command: /cmd_vel (motor driver) when allow_motor_drive == 'true',
++    # otherwise /cmd_vel_locked. enable_stall_detector is deprecated and has no effect.
++    #   controller_server -> cmd_vel_nav -> velocity_smoother -> cmd_vel_smoothed -> /cmd_vel_raw
++    #   behavior_server (spin/backup/drive_on_heading)       cmd_vel          -> /cmd_vel_raw
++    # Do NOT add a global SetRemap('cmd_vel'): it is applied before node-level remaps and would
++    # make velocity_smoother consume its own output (self-input loop) and publish straight to /cmd_vel.
++    ackermann_bt = os.path.join(pkg_limo_capstone, 'config', 'navigate_to_pose_ackermann_no_reverse.xml')
++    nav2_params_file = RewrittenYaml(
++        source_file=selected_nav2_params,
++        param_rewrites={'bt_navigator.ros__parameters.default_nav_to_pose_bt_xml': ackermann_bt},
++    )
++
+     nav2_launch = GroupAction(
+         actions=[
+-            SetRemap(src='cmd_vel', dst='/cmd_vel_raw'),
+-            SetRemap(src='/cmd_vel', dst='/cmd_vel_raw'),
++            SetRemap(src='cmd_vel_smoothed', dst='/cmd_vel_raw'),
++            SetRemap(src='behavior_server:cmd_vel', dst='/cmd_vel_raw'),
+             SetRemap(src='odom', dst='/odom_nav2'),
+             SetRemap(src='/odom', dst='/odom_nav2'),
+             IncludeLaunchDescription(
+                 PythonLaunchDescriptionSource(os.path.join(pkg_nav2, 'launch', 'navigation_launch.py')),
+                 launch_arguments={
+                     'use_sim_time': use_sim_time,
+-                    'params_file': config_nav2,
++                    'params_file': nav2_params_file,
+                     'autostart': 'true'
+                 }.items()
+             )
+@@ -192,8 +378,19 @@ def generate_launch_description():
+     )
+ 
+     # 8. Stall Safety Gate with Fail-Closed Motor Lock
+-    # If allow_motor_drive is True, commands are routed to /cmd_vel
+-    stall_gate_live = Node(
++    effective_depth_mode = PythonExpression([
++        "'disabled' if '", use_depth_camera, "' != 'true' else '", depth_mode, "'"
++    ])
++    effective_require_lidar = PythonExpression([
++        "'true' if ('", run_icp_observer, "' == 'true' or '", estimator_type, "' in ['f4', 'f5_improved']) else 'false'"
++    ])
++
++    # Single stall gate: /cmd_vel_raw -> (/cmd_vel | /cmd_vel_locked). Exactly one instance always runs.
++    # Output topic is fail-closed: only the exact string 'true' reaches the motor driver topic.
++    gate_out_topic = PythonExpression([
++        "'/cmd_vel' if '", allow_motor_drive, "' == 'true' else '/cmd_vel_locked'"
++    ])
++    stall_gate = Node(
+         package='limo_capstone',
+         executable='stall_detector_node',
+         name='stall_detector_node',
+@@ -202,32 +399,20 @@ def generate_launch_description():
+             'enabled': True,
+             'enable_auto_reverse': False,
+             'enable_auto_rotate_recovery': False,
+-            'require_operator_unlatch': True,
+-            'depth_mode': depth_mode,
++            'require_operator_unlatch': False,
++            'stall_confirm_duration_sec': 1.5,
++            'depth_mode': effective_depth_mode,
+             'sensor_timeout_sec': sensor_timeout_sec,
++            'require_lidar_odom': effective_require_lidar,
++            'estimator_odom_topic': '/odom_nav2',
+             'use_sim_time': use_sim_time
+         }],
+-        remappings=[('/cmd_vel', '/cmd_vel')],
+-        condition=IfCondition(allow_motor_drive)
++        remappings=[('/cmd_vel', gate_out_topic)]
+     )
+ 
+-    # If allow_motor_drive is False, output is redirected to /cmd_vel_locked
+-    stall_gate_locked = Node(
+-        package='limo_capstone',
+-        executable='stall_detector_node',
+-        name='stall_detector_node_locked',
+-        output='screen',
+-        parameters=[{
+-            'enabled': True,
+-            'enable_auto_reverse': False,
+-            'enable_auto_rotate_recovery': False,
+-            'require_operator_unlatch': True,
+-            'depth_mode': depth_mode,
+-            'sensor_timeout_sec': sensor_timeout_sec,
+-            'use_sim_time': use_sim_time
+-        }],
+-        remappings=[('/cmd_vel', '/cmd_vel_locked')],
+-        condition=UnlessCondition(allow_motor_drive)
++    log_deprecated_stall_arg = LogInfo(
++        condition=UnlessCondition(enable_stall_detector),
++        msg="[DEPRECATED] enable_stall_detector:=false is ignored: the stall gate is always in the command path."
+     )
+ 
+     log_lock_notice = LogInfo(
+@@ -238,23 +423,43 @@ def generate_launch_description():
+     return LaunchDescription([
+         declare_use_sim_time,
+         declare_estimator_type,
++        declare_run_icp_observer,
+         declare_start_explore,
++        declare_use_depth_camera,
+         declare_depth_mode,
+         declare_sensor_timeout,
+         declare_allow_motor,
++        declare_enable_stall_detector,
++        declare_base_footprint_z,
++        declare_publish_camera_tf,
++        declare_camera_parent,
++        declare_camera_optical,
++        declare_camera_x,
++        declare_camera_y,
++        declare_camera_z,
++        declare_camera_roll,
++        declare_camera_pitch,
++        declare_camera_yaw,
+         log_lock_notice,
++        log_deprecated_stall_arg,
+         limo_base_launch,
+         ydlidar_launch,
+         dabai_launch,
+         load_urdf_launch,
++        base_footprint_tf,
++        camera_tf_node,
+         depth_filter_node,
++        f1b_ekf_node,
++        comp_filter_node,
+         f4_node,
+         f5_ekf_node,
++        relay_b0,
++        relay_f1b,
++        relay_f3b,
+         relay_f4,
+         relay_f5,
+         slam_launch,
+         nav2_launch,
+         explore_node,
+-        stall_gate_live,
+-        stall_gate_locked
++        stall_gate
+     ])
+diff --git a/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py b/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py
+index 9d8e88e..ee55466 100644
+--- a/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py
++++ b/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py
+@@ -23,6 +23,7 @@ from launch.conditions import IfCondition
+ from launch.launch_description_sources import PythonLaunchDescriptionSource
+ from launch.substitutions import LaunchConfiguration, PythonExpression
+ from launch_ros.actions import Node, SetRemap
++from nav2_common.launch import RewrittenYaml
+ 
+ 
+ def generate_launch_description():
+@@ -252,17 +253,28 @@ def generate_launch_description():
+     )
+ 
+     # 7. Nav2 Navigation Stack (gated strictly to /cmd_vel_raw)
++    # Ackermann chassis cannot rotate in place and reverse is blocked by the gate:
++    # use a recovery tree without Spin/BackUp (key exists as a placeholder in the yaml).
++    ackermann_bt = os.path.join(pkg_limo_capstone, 'config', 'navigate_to_pose_ackermann_no_reverse.xml')
++    nav2_params_file = RewrittenYaml(
++        source_file=config_nav2,
++        param_rewrites={'bt_navigator.ros__parameters.default_nav_to_pose_bt_xml': ackermann_bt},
++    )
++
+     nav2_launch = GroupAction(
+         actions=[
+-            SetRemap(src='cmd_vel', dst='/cmd_vel_raw'),
+-            SetRemap(src='/cmd_vel', dst='/cmd_vel_raw'),
++            # Every Nav2 velocity command must reach /cmd_vel only through the stall gate:
++            # controller_server -> cmd_vel_nav (Nav2 default) -> velocity_smoother -> /cmd_vel_raw
++            SetRemap(src='cmd_vel_smoothed', dst='/cmd_vel_raw'),
++            # behavior_server (spin/backup/drive_on_heading) publishes 'cmd_vel' directly
++            SetRemap(src='behavior_server:cmd_vel', dst='/cmd_vel_raw'),
+             SetRemap(src='odom', dst='/odom_nav2'),
+             SetRemap(src='/odom', dst='/odom_nav2'),
+             IncludeLaunchDescription(
+                 PythonLaunchDescriptionSource(os.path.join(pkg_nav2, 'launch', 'navigation_launch.py')),
+                 launch_arguments={
+                     'use_sim_time': use_sim_time,
+-                    'params_file': config_nav2,
++                    'params_file': nav2_params_file,
+                     'autostart': 'true'
+                 }.items()
+             )
+@@ -292,6 +304,7 @@ def generate_launch_description():
+             'require_operator_unlatch': True,
+             'depth_mode': depth_mode,
+             'sensor_timeout_sec': sensor_timeout_sec,
++            'estimator_odom_topic': '/odom_nav2',
+             'use_sim_time': use_sim_time
+         }]
+     )
+diff --git a/capstone_ws/src/limo_capstone/limo_capstone/lidar_scan_matcher_odom_node.py b/capstone_ws/src/limo_capstone/limo_capstone/lidar_scan_matcher_odom_node.py
+index d99f471..b19d2d7 100644
+--- a/capstone_ws/src/limo_capstone/limo_capstone/lidar_scan_matcher_odom_node.py
++++ b/capstone_ws/src/limo_capstone/limo_capstone/lidar_scan_matcher_odom_node.py
+@@ -17,6 +17,7 @@ import time
+ import numpy as np
+ import rclpy
+ from rclpy.node import Node
++from rclpy.qos import qos_profile_sensor_data
+ from sensor_msgs.msg import LaserScan
+ from nav_msgs.msg import Odometry
+ from geometry_msgs.msg import Quaternion
+@@ -74,7 +75,7 @@ class LidarScanMatcherOdomNode(Node):
+         self.wz = 0.0
+         self.last_inliers = 350.0
+ 
+-        self.sub_scan = self.create_subscription(LaserScan, '/scan', self.on_scan, 10)
++        self.sub_scan = self.create_subscription(LaserScan, '/scan', self.on_scan, qos_profile_sensor_data)
+         self.pub_odom = self.create_publisher(Odometry, '/odometry/lidar_odom', 20)
+         self.pub_lat = self.create_publisher(Float32MultiArray, '/diagnostics/f4_latency', 20)
+ 
+@@ -238,8 +239,10 @@ def main(args=None):
+         rclpy.spin(node)
+     except KeyboardInterrupt:
+         pass
+-    node.destroy_node()
+-    rclpy.shutdown()
++    finally:
++        node.destroy_node()
++        if rclpy.ok():
++            rclpy.shutdown()
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py b/capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py
+index a73b54a..a935029 100755
+--- a/capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py
++++ b/capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py
+@@ -15,6 +15,9 @@ Key Pre-Deployment Safety Rules:
+ 3. Fail-Safe on Missing/Degraded Sensors:
+    - FAILSAFE_SENSOR_TIMEOUT: triggers if /scan or /odometry/lidar_odom is stale (> 0.45s) or missing.
+    - FAILSAFE_ICP_DEGRADED: triggers if ICP inlier count drops < min_inliers (100) or error > max_error (0.15m).
++   - INITIALIZING (startup and after /stall_detector/reset_latch): output is held at 0 until every
++     required input (scan, lidar odom, depth, wheel odom, estimator odom, per configuration) is fresh
++     for startup_ready_hold_sec with no motion commanded; otherwise FAILSAFE after startup_timeout_sec.
+ 4. Software Stop vs Hardware Emergency Stop Separation:
+    Software command zeroing is explicitly distinguished from physical hardware E-Stop (relay/power cut).
+ 5. Virtual Bumper PointCloud2:
+@@ -27,6 +30,7 @@ from collections import deque
+ import numpy as np
+ import rclpy
+ from rclpy.node import Node
++from rclpy.qos import qos_profile_sensor_data
+ from rclpy.parameter import Parameter
+ from geometry_msgs.msg import Twist
+ from nav_msgs.msg import Odometry
+@@ -40,8 +44,10 @@ STATE_STALL_LATCHED = 2
+ STATE_FAILSAFE_SENSOR_TIMEOUT = 3
+ STATE_FAILSAFE_ICP_DEGRADED = 4
+ STATE_RECOVERING_REVERSE = 5
++STATE_INITIALIZING = 6
+ 
+ STATE_NAMES = {
++    STATE_INITIALIZING: 'INITIALIZING',
+     STATE_NORMAL: 'NORMAL',
+     STATE_STALL_PENDING: 'STALL_PENDING',
+     STATE_STALL_LATCHED: 'STALL_LATCHED',
+@@ -57,17 +63,30 @@ class StallDetectorNode(Node):
+         self.declare_parameter('enabled', True)
+         self.declare_parameter('enable_auto_reverse', False)  # AUDIT RULE: False by default!
+         self.declare_parameter('enable_auto_rotate_recovery', False)  # AUDIT RULE: False by default!
+-        self.declare_parameter('require_operator_unlatch', True)  # AUDIT RULE: True by default!
++        self.declare_parameter('require_operator_unlatch', False)
+         self.declare_parameter('cmd_vel_threshold', 0.075)
+         self.declare_parameter('wheel_vel_threshold', 0.060)
+         self.declare_parameter('lidar_vel_stall_threshold', 0.025)
+-        self.declare_parameter('stall_confirm_duration_sec', 0.22)
++        self.declare_parameter('stall_confirm_duration_sec', 1.5)
+         self.declare_parameter('sensor_timeout_sec', 0.38)
+         self.declare_parameter('depth_mode', 'required')  # Options: 'required', 'optional', 'disabled'
+         self.declare_parameter('publish_virtual_bumper', True)
+         self.declare_parameter('bumper_distance_m', 0.24)
+         self.declare_parameter('min_icp_inlier_count', 100.0)
+         self.declare_parameter('max_icp_error_m', 0.15)
++        self.declare_parameter('require_lidar_odom', True)
++        # Startup arming: output stays 0 until every required sensor is healthy for
++        # startup_ready_hold_sec; not armed within startup_timeout_sec -> FAILSAFE.
++        self.declare_parameter('startup_ready_hold_sec', 0.5)
++        self.declare_parameter('startup_timeout_sec', 30.0)
++        # Startup-only readiness inputs (runtime FAILSAFE checks are unchanged):
++        # wheel /odom feeds stall detection for every estimator; estimator_odom_topic
++        # (e.g. /odom_nav2 from odom_tf_relay_node) is the active estimator's output.
++        self.declare_parameter('require_wheel_odom', True)
++        self.declare_parameter('estimator_odom_topic', '')
++        # Runtime freshness limit for /odom and estimator_odom_topic once armed
++        # (<= 0 -> use sensor_timeout_sec).
++        self.declare_parameter('odom_timeout_sec', 0.0)
+ 
+         self.enabled = bool(self.get_parameter('enabled').value)
+         self.enable_auto_reverse = bool(self.get_parameter('enable_auto_reverse').value)
+@@ -83,8 +102,18 @@ class StallDetectorNode(Node):
+         self.bumper_dist = float(self.get_parameter('bumper_distance_m').value)
+         self.min_inliers = float(self.get_parameter('min_icp_inlier_count').value)
+         self.max_icp_err = float(self.get_parameter('max_icp_error_m').value)
+-
+-        self.state = STATE_NORMAL
++        self.require_lidar_odom = bool(self.get_parameter('require_lidar_odom').value)
++        self.startup_hold = float(self.get_parameter('startup_ready_hold_sec').value)
++        self.startup_timeout = float(self.get_parameter('startup_timeout_sec').value)
++        self.require_wheel_odom = bool(self.get_parameter('require_wheel_odom').value)
++        self.estimator_odom_topic = str(self.get_parameter('estimator_odom_topic').value).strip()
++        self.last_est_odom_sim_t = None
++        odom_timeout = float(self.get_parameter('odom_timeout_sec').value)
++        self.odom_timeout = odom_timeout if odom_timeout > 0.0 else self.sensor_timeout
++        self.ready_since_sim_t = None
++        self.init_start_sim_t = None
++
++        self.state = STATE_INITIALIZING
+         self.pending_start_sim_t = None
+         self.latched_sim_t = None
+         self.zero_cmd_start_sim_t = None
+@@ -129,10 +158,13 @@ class StallDetectorNode(Node):
+         self.sub_cmd_raw = self.create_subscription(Twist, '/cmd_vel_raw', self.cb_cmd_raw, 10)
+         self.sub_odom = self.create_subscription(Odometry, '/odom', self.cb_odom, 20)
+         self.sub_lidar_odom = self.create_subscription(Odometry, '/odometry/lidar_odom', self.cb_lidar_odom, 20)
+-        self.sub_scan = self.create_subscription(LaserScan, '/scan', self.cb_scan, 10)
++        self.sub_scan = self.create_subscription(LaserScan, '/scan', self.cb_scan, qos_profile_sensor_data)
+         self.sub_f4_diag = self.create_subscription(Float32MultiArray, '/diagnostics/f4_latency', self.cb_f4_diag, 10)
+         self.sub_depth_status = self.create_subscription(String, '/auto_mapping/depth_status', self.cb_depth_status, 10)
+-        self.sub_depth_points = self.create_subscription(PointCloud2, '/depth_obstacles/points', self.cb_depth_points, 10)
++        self.sub_depth_points = self.create_subscription(PointCloud2, '/depth_obstacles/points', self.cb_depth_points, qos_profile_sensor_data)
++        if self.estimator_odom_topic:
++            self.sub_est_odom = self.create_subscription(
++                Odometry, self.estimator_odom_topic, self.cb_est_odom, 20)
+ 
+         # Publishers
+         self.pub_cmd_vel = self.create_publisher(Twist, '/cmd_vel', 10)
+@@ -163,6 +195,9 @@ class StallDetectorNode(Node):
+         self.wheel_wz = float(msg.twist.twist.angular.z)
+         self.last_odom_sim_t = self.get_clock().now().nanoseconds * 1e-9
+ 
++    def cb_est_odom(self, msg: Odometry):
++        self.last_est_odom_sim_t = self.get_clock().now().nanoseconds * 1e-9
++
+     def cb_lidar_odom(self, msg: Odometry):
+         t_sec = self.get_clock().now().nanoseconds * 1e-9
+         self.last_lidar_sim_t = t_sec
+@@ -209,14 +244,21 @@ class StallDetectorNode(Node):
+         self.depth_msg_count += 1
+ 
+     def cb_reset_latch(self, req: Trigger.Request, resp: Trigger.Response):
++        if self.state == STATE_INITIALIZING:
++            resp.success = False
++            resp.message = "Still INITIALIZING (sensors not yet healthy); reset refused."
++            return resp
+         prev_state_name = STATE_NAMES.get(self.state, 'UNKNOWN')
+-        self.state = STATE_NORMAL
++        # Re-arm through the same readiness check instead of jumping to NORMAL.
++        self.state = STATE_INITIALIZING
++        self.init_start_sim_t = None
++        self.ready_since_sim_t = None
+         self.pending_start_sim_t = None
+         self.latched_sim_t = None
+         self.zero_cmd_start_sim_t = None
+         self.operator_unlatch_count += 1
+         resp.success = True
+-        resp.message = f"Stall latch cleared by operator (transitioned from {prev_state_name} to NORMAL)."
++        resp.message = f"Latch cleared by operator ({prev_state_name} -> INITIALIZING; re-arms when sensors are healthy)."
+         self.get_logger().info(f"[OPERATOR RESET] {resp.message}")
+         return resp
+ 
+@@ -240,11 +282,15 @@ class StallDetectorNode(Node):
+         # 1. Health checks
+         # Sensor staleness applies if sensor stream was established and lost, or if motion is commanded
+         scan_stale = (self.last_scan_sim_t is not None and (t_now - self.last_scan_sim_t) > self.sensor_timeout)
+-        lidar_stale = (self.last_lidar_sim_t is not None and (t_now - self.last_lidar_sim_t) > self.sensor_timeout)
++        lidar_stale = (
++            self.require_lidar_odom
++            and self.last_lidar_sim_t is not None
++            and (t_now - self.last_lidar_sim_t) > self.sensor_timeout
++        )
+         if want_motion:
+             if self.last_scan_sim_t is None:
+                 scan_stale = True
+-            if self.last_lidar_sim_t is None:
++            if self.require_lidar_odom and self.last_lidar_sim_t is None:
+                 lidar_stale = True
+ 
+         # Depth Camera Health Evaluation
+@@ -264,18 +310,76 @@ class StallDetectorNode(Node):
+ 
+         depth_fault = (self.depth_mode == 'required' and (depth_stale or depth_invalid))
+ 
+-        icp_diag_stale = (self.last_icp_diag_sim_t is not None and (t_now - self.last_icp_diag_sim_t) > (self.sensor_timeout * 3.0))
++        # Odometry freshness (runtime). Same convention as scan/lidar: a stream that was
++        # established and then lost is stale; a stream that never arrived only counts while
++        # motion is commanded. Not evaluated while INITIALIZING (handled by the arming check).
++        def odom_lost(t_last):
++            return t_last is not None and (t_now - t_last) > self.odom_timeout
++        wheel_odom_stale = self.require_wheel_odom and odom_lost(self.last_odom_sim_t)
++        est_odom_stale = bool(self.estimator_odom_topic) and odom_lost(self.last_est_odom_sim_t)
++        if want_motion:
++            if self.require_wheel_odom and self.last_odom_sim_t is None:
++                wheel_odom_stale = True
++            if self.estimator_odom_topic and self.last_est_odom_sim_t is None:
++                est_odom_stale = True
++        odom_fault = wheel_odom_stale or est_odom_stale
++
++        icp_diag_stale = (
++            self.require_lidar_odom
++            and self.last_icp_diag_sim_t is not None
++            and (t_now - self.last_icp_diag_sim_t) > (self.sensor_timeout * 3.0)
++        )
+         icp_degraded = (
+-            self.last_icp_diag_sim_t is not None
++            self.require_lidar_odom
++            and self.last_icp_diag_sim_t is not None
+             and (self.last_icp_inliers < self.min_inliers or icp_diag_stale)
+         )
+ 
+-        if scan_stale or lidar_stale or depth_fault:
++        def fresh(t_last):
++            return t_last is not None and (t_now - t_last) <= self.sensor_timeout
++        # Readiness of every input the current configuration actually uses. A stream that has
++        # never arrived is NOT ready (unlike the stale flags, which only fire once motion is
++        # commanded). Used to arm from INITIALIZING and to leave an auto-clearing FAILSAFE.
++        checks = {
++            'scan': fresh(self.last_scan_sim_t),
++            'lidar_odom': (not self.require_lidar_odom) or fresh(self.last_lidar_sim_t),
++            'icp': not icp_degraded,
++            'depth': self.depth_mode != 'required' or (fresh(self.last_depth_sim_t) and not depth_fault),
++            'wheel_odom': (not self.require_wheel_odom) or fresh(self.last_odom_sim_t),
++            'estimator_odom': (not self.estimator_odom_topic) or fresh(self.last_est_odom_sim_t),
++        }
++
++        if self.state == STATE_INITIALIZING:
++            # Arm only once, when all required inputs exist, are fresh and healthy,
++            # and no motion is being commanded. Output stays 0 meanwhile (section 3).
++            if self.init_start_sim_t is None:
++                self.init_start_sim_t = t_now
++            ready = all(checks.values())
++            if not ready:
++                self.ready_since_sim_t = None
++            elif self.ready_since_sim_t is None:
++                self.ready_since_sim_t = t_now
++            if ready and not want_motion and (t_now - self.ready_since_sim_t) >= self.startup_hold:
++                self.state = STATE_NORMAL
++                self.get_logger().info(
++                    f"[ARMED] All required sensors healthy for {t_now - self.ready_since_sim_t:.2f}s; "
++                    f"INITIALIZING -> NORMAL after {t_now - self.init_start_sim_t:.2f}s."
++                )
++            elif self.startup_timeout > 0.0 and (t_now - self.init_start_sim_t) > self.startup_timeout:
++                self.state = STATE_FAILSAFE_SENSOR_TIMEOUT
++                self.failsafe_event_count += 1
++                self.get_logger().error(
++                    f"[FAIL-SAFE STARTUP TIMEOUT] not ready after {self.startup_timeout:.1f}s: "
++                    f"not_ready={[k for k, ok in checks.items() if not ok]}, "
++                    f"depth_code={self.depth_code}, want_motion={want_motion}. Blocking all motion."
++                )
++        elif scan_stale or lidar_stale or depth_fault or odom_fault:
+             if self.state != STATE_FAILSAFE_SENSOR_TIMEOUT:
+                 self.state = STATE_FAILSAFE_SENSOR_TIMEOUT
+                 self.failsafe_event_count += 1
+                 self.get_logger().error(
+                     f"[FAIL-SAFE SENSOR TIMEOUT] scan_stale={scan_stale}, lidar_stale={lidar_stale}, "
++                    f"wheel_odom_stale={wheel_odom_stale}, est_odom_stale={est_odom_stale}, "
+                     f"depth_fault={depth_fault} (depth_mode={self.depth_mode}, code={self.depth_code})! Blocking all motion."
+                 )
+         elif icp_degraded:
+@@ -290,7 +394,7 @@ class StallDetectorNode(Node):
+             depth_ok = True
+             if self.depth_mode == 'required':
+                 depth_ok = (not depth_stale and not depth_invalid)
+-            if not scan_stale and not lidar_stale and not icp_degraded and depth_ok:
++            if all(checks.values()) and not scan_stale and not lidar_stale and not odom_fault and not icp_degraded and depth_ok:
+                 if not self.require_operator_unlatch:
+                     if abs(cmd_vx) < 0.02 and abs(cmd_wz) < 0.02:
+                         self.state = STATE_NORMAL
+@@ -298,11 +402,18 @@ class StallDetectorNode(Node):
+ 
+         # 2. Evaluate Physical Stall Condition
+         if self.state not in (STATE_FAILSAFE_SENSOR_TIMEOUT, STATE_FAILSAFE_ICP_DEGRADED):
+-            is_discrepant = (
+-                abs(cmd_vx) >= self.cmd_thresh
+-                and abs(self.wheel_vx) >= self.wheel_thresh
+-                and self.lidar_speed_short < self.lidar_stall_thresh
+-            )
++            if self.require_lidar_odom:
++                is_discrepant = (
++                    abs(cmd_vx) >= self.cmd_thresh
++                    and abs(self.wheel_vx) >= self.wheel_thresh
++                    and self.lidar_speed_short < self.lidar_stall_thresh
++                )
++            else:
++                is_discrepant = (
++                    cmd_vx >= self.cmd_thresh
++                    and abs(self.wheel_vx) >= self.wheel_thresh
++                    and self.min_front_scan < self.bumper_dist
++                )
+ 
+             if self.state == STATE_NORMAL:
+                 if is_discrepant:
+@@ -364,7 +475,7 @@ class StallDetectorNode(Node):
+         out = Twist()
+         self.cmd_blocked = False
+         if self.enabled:
+-            if self.state in (STATE_FAILSAFE_SENSOR_TIMEOUT, STATE_FAILSAFE_ICP_DEGRADED):
++            if self.state in (STATE_INITIALIZING, STATE_FAILSAFE_SENSOR_TIMEOUT, STATE_FAILSAFE_ICP_DEGRADED):
+                 out.linear.x = 0.0
+                 out.linear.y = 0.0
+                 out.angular.z = 0.0
+@@ -420,6 +531,8 @@ class StallDetectorNode(Node):
+                 'depth_state': self.depth_state,
+                 'depth_code': self.depth_code,
+                 'depth_stale': bool(depth_stale),
++                'wheel_odom_stale': bool(wheel_odom_stale),
++                'est_odom_stale': bool(est_odom_stale),
+                 'stall_events': self.stall_event_count,
+                 'failsafe_events': self.failsafe_event_count,
+                 'icp_degraded_events': self.icp_degraded_event_count,
+diff --git a/capstone_ws/src/limo_capstone/setup.py b/capstone_ws/src/limo_capstone/setup.py
+index 626362b..bb286bf 100644
+--- a/capstone_ws/src/limo_capstone/setup.py
++++ b/capstone_ws/src/limo_capstone/setup.py
+@@ -19,9 +19,11 @@ setup(
+         (os.path.join('share', package_name, 'worlds'), [f for f in glob('worlds/*') if os.path.isfile(f)]),
+         (os.path.join('share', package_name, 'urdf'), [f for f in glob('urdf/*') if os.path.isfile(f)]),
+         (os.path.join('share', package_name, 'models', 'limo_eval'), glob('models/limo_eval/*')),
++        (os.path.join('share', package_name, 'models', 'limo_eval_diff'), glob('models/limo_eval_diff/*')),
+         (os.path.join('share', package_name, 'models', 'glass_partition'), glob('models/glass_partition/*')),
+         (os.path.join('share', package_name, 'models', 'lounge_chair_sled'), glob('models/lounge_chair_sled/*')),
+         (os.path.join('share', package_name, 'models', 'lounge_table'), glob('models/lounge_table/*')),
++        (os.path.join('share', package_name, 'rviz'), [f for f in glob('rviz/*') if os.path.isfile(f)]),
+         (os.path.join('share', package_name, 'scripts'), [f for f in glob('scripts/*') if os.path.isfile(f)]),
+     ],
+     install_requires=['setuptools'],
+@@ -41,6 +43,7 @@ setup(
+             'sensor_normalizer_node = limo_capstone.sensor_normalizer_node:main',
+             'nav2_action_monitor_node = limo_capstone.nav2_action_monitor_node:main',
+             'integrated_recorder_node = limo_capstone.integrated_recorder_node:main',
++            'complementary_filter_node = limo_capstone.complementary_filter_node:main',
+         ],
+     },
+ )

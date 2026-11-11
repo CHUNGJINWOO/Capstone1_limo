@@ -1,0 +1,14 @@
+{
+  "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/state_estimation/S2_trial_01_identical.mp4",
+  "file_size_bytes": 3902027,
+  "written_frames": 211,
+  "decoded_frames_verified": 212,
+  "non_black_frames_verified": 212,
+  "resolution": "1920x960",
+  "fps": 15.0,
+  "sim_time_start": 4.84,
+  "sim_time_end": 18.865,
+  "sim_duration_s": 14.024999999999999,
+  "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/state_estimation/S2_trial_01_identical_mid_frame.png",
+  "playable": true
+}

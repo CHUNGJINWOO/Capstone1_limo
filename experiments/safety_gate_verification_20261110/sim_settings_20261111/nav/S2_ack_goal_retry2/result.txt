@@ -1,0 +1,13 @@
+gate: {"sim_time": 51.0, "state": "NORMAL", "state_code": 0, "cmd_blocked": 
+---
+/cmd_vel PUB:       1 stall_detector_node 
+/cmd_vel_raw PUB:       3 behavior_server       1 velocity_smoother 
+BT: navigate_to_pose_ackermann_no_reverse.xml
+gate state at start: NORMAL
+goal map=(0.50,-0.00) yaw=-0 dist=0.50
+goal accepted: True
+nav status=4 (4=SUCCEEDED); GT path=0.43 m, net=0.43 m; map pose end=(0.42,0.00) goal err=0.08 m
+/cmd_vel nonzero=83/206; state transitions=[(1794326235.52, 'NORMAL'), (1794326237.63, 'STALL_PENDING'), (1794326237.73, 'NORMAL')]
+gate after: {"sim_time": 59.6, "state": "NORMAL", "state_code": 0, "cmd_blocked": 
+---
+gate log: 

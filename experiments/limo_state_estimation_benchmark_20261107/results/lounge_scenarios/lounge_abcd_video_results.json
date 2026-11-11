@@ -1,0 +1,477 @@
+{
+  "generated_at": "2026-11-07 21:19:46",
+  "scenarios": {
+    "A_baseline": {
+      "scenario_key": "A_baseline",
+      "scenario_id": "Scenario_A_Desk_Baseline",
+      "mode": "BASELINE",
+      "spawn": {
+        "x": -2.5,
+        "y": 3.1,
+        "z": 0.05,
+        "yaw": -1.5708
+      },
+      "goal_world": [
+        -2.5,
+        0.5
+      ],
+      "gt_final_world_xy": [
+        -2.5,
+        2.553
+      ],
+      "b0_final_world_xy": [
+        -2.5,
+        -0.647
+      ],
+      "f3b_final_world_xy": [
+        -2.5,
+        2.164
+      ],
+      "f5_final_world_xy": [
+        -2.502,
+        2.579
+      ],
+      "gt_distance_to_goal_m": 2.053,
+      "b0_distance_to_goal_m": 1.147,
+      "true_goal_reached": false,
+      "false_odom_goal_reached": false,
+      "min_lidar_range_m": 0.227,
+      "events_logged": [
+        {
+          "sim_time": 8.59,
+          "event": "PHYSICAL_STALL_AND_WHEEL_SLIP_DETECTED"
+        }
+      ],
+      "video_verification": {
+        "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_A_baseline.mp4",
+        "file_size_bytes": 3805819,
+        "written_frames": 260,
+        "decoded_frames_verified": 260,
+        "non_black_frames_verified": 260,
+        "resolution": "1920x960",
+        "fps": 15.0,
+        "sim_time_start": 6.69,
+        "sim_time_end": 24.42,
+        "sim_duration_s": 17.73,
+        "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_A_baseline_mid_frame.png",
+        "playable": true
+      }
+    },
+    "A_improved": {
+      "scenario_key": "A_improved",
+      "scenario_id": "Scenario_A_Desk_Improved",
+      "mode": "IMPROVED",
+      "spawn": {
+        "x": -2.5,
+        "y": 3.3,
+        "z": 0.05,
+        "yaw": 0.0
+      },
+      "goal_world": [
+        -1.1,
+        0.6
+      ],
+      "gt_final_world_xy": [
+        -1.115,
+        0.809
+      ],
+      "b0_final_world_xy": [
+        -1.904,
+        1.191
+      ],
+      "f3b_final_world_xy": [
+        -0.989,
+        0.943
+      ],
+      "f5_final_world_xy": [
+        -1.058,
+        0.832
+      ],
+      "gt_distance_to_goal_m": 0.209,
+      "b0_distance_to_goal_m": 0.998,
+      "true_goal_reached": true,
+      "false_odom_goal_reached": false,
+      "min_lidar_range_m": 0.813,
+      "events_logged": [
+        {
+          "sim_time": 18.59,
+          "event": "PHYSICAL_STALL_AND_WHEEL_SLIP_DETECTED"
+        }
+      ],
+      "video_verification": {
+        "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_A_improved.mp4",
+        "file_size_bytes": 6334395,
+        "written_frames": 295,
+        "decoded_frames_verified": 295,
+        "non_black_frames_verified": 295,
+        "resolution": "1920x960",
+        "fps": 15.0,
+        "sim_time_start": 6.6,
+        "sim_time_end": 26.28,
+        "sim_duration_s": 19.68,
+        "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_A_improved_mid_frame.png",
+        "playable": true
+      }
+    },
+    "B_baseline": {
+      "scenario_key": "B_baseline",
+      "scenario_id": "Scenario_B_ChairSled_Baseline",
+      "mode": "BASELINE",
+      "spawn": {
+        "x": 4.2,
+        "y": 0.5,
+        "z": 0.05,
+        "yaw": 1.5708
+      },
+      "goal_world": [
+        4.2,
+        3.3
+      ],
+      "gt_final_world_xy": [
+        4.2,
+        1.674
+      ],
+      "b0_final_world_xy": [
+        4.2,
+        4.22
+      ],
+      "f3b_final_world_xy": [
+        4.2,
+        2.008
+      ],
+      "f5_final_world_xy": [
+        4.214,
+        1.649
+      ],
+      "gt_distance_to_goal_m": 1.626,
+      "b0_distance_to_goal_m": 0.92,
+      "true_goal_reached": false,
+      "false_odom_goal_reached": false,
+      "min_lidar_range_m": 0.166,
+      "events_logged": [
+        {
+          "sim_time": 8.48,
+          "event": "PHYSICAL_STALL_AND_WHEEL_SLIP_DETECTED"
+        }
+      ],
+      "video_verification": {
+        "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_B_baseline.mp4",
+        "file_size_bytes": 3984290,
+        "written_frames": 264,
+        "decoded_frames_verified": 264,
+        "non_black_frames_verified": 264,
+        "resolution": "1920x960",
+        "fps": 15.0,
+        "sim_time_start": 6.61,
+        "sim_time_end": 24.169,
+        "sim_duration_s": 17.559,
+        "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_B_baseline_mid_frame.png",
+        "playable": true
+      }
+    },
+    "B_improved": {
+      "scenario_key": "B_improved",
+      "scenario_id": "Scenario_B_ChairSled_Improved",
+      "mode": "IMPROVED",
+      "spawn": {
+        "x": 4.2,
+        "y": 0.5,
+        "z": 0.05,
+        "yaw": 1.5708
+      },
+      "goal_world": [
+        4.1,
+        3.2
+      ],
+      "gt_final_world_xy": [
+        3.988,
+        3.023
+      ],
+      "b0_final_world_xy": [
+        3.242,
+        2.865
+      ],
+      "f3b_final_world_xy": [
+        3.831,
+        3.017
+      ],
+      "f5_final_world_xy": [
+        3.977,
+        3.027
+      ],
+      "gt_distance_to_goal_m": 0.21,
+      "b0_distance_to_goal_m": 0.921,
+      "true_goal_reached": true,
+      "false_odom_goal_reached": false,
+      "min_lidar_range_m": 0.914,
+      "events_logged": [
+        {
+          "sim_time": 8.54,
+          "event": "PHYSICAL_STALL_AND_WHEEL_SLIP_DETECTED"
+        }
+      ],
+      "video_verification": {
+        "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_B_improved.mp4",
+        "file_size_bytes": 5370313,
+        "written_frames": 232,
+        "decoded_frames_verified": 232,
+        "non_black_frames_verified": 232,
+        "resolution": "1920x960",
+        "fps": 15.0,
+        "sim_time_start": 6.569,
+        "sim_time_end": 21.99,
+        "sim_duration_s": 15.421,
+        "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_B_improved_mid_frame.png",
+        "playable": true
+      }
+    },
+    "C_baseline": {
+      "scenario_key": "C_baseline",
+      "scenario_id": "Scenario_C_GlassWall_Baseline",
+      "mode": "BASELINE",
+      "spawn": {
+        "x": 1.0,
+        "y": 0.5,
+        "z": 0.05,
+        "yaw": -1.5708
+      },
+      "goal_world": [
+        1.0,
+        -2.5
+      ],
+      "gt_final_world_xy": [
+        1.0,
+        -1.345
+      ],
+      "b0_final_world_xy": [
+        1.0,
+        -2.306
+      ],
+      "f3b_final_world_xy": [
+        1.0,
+        -1.55
+      ],
+      "f5_final_world_xy": [
+        1.087,
+        -1.218
+      ],
+      "gt_distance_to_goal_m": 1.155,
+      "b0_distance_to_goal_m": 0.194,
+      "true_goal_reached": false,
+      "false_odom_goal_reached": true,
+      "min_lidar_range_m": 0.101,
+      "events_logged": [
+        {
+          "sim_time": 8.48,
+          "event": "PHYSICAL_STALL_AND_WHEEL_SLIP_DETECTED"
+        },
+        {
+          "sim_time": 18.48,
+          "event": "FALSE_NAV_SUCCEEDED_BY_WHEEL_SLIP_ODOM",
+          "b0_world_xy": [
+            1.0,
+            -2.304
+          ],
+          "gt_world_xy": [
+            1.0,
+            -1.345
+          ]
+        }
+      ],
+      "video_verification": {
+        "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_C_baseline.mp4",
+        "file_size_bytes": 3249731,
+        "written_frames": 199,
+        "decoded_frames_verified": 200,
+        "non_black_frames_verified": 200,
+        "resolution": "1920x960",
+        "fps": 15.0,
+        "sim_time_start": 6.671,
+        "sim_time_end": 19.927,
+        "sim_duration_s": 13.256,
+        "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_C_baseline_mid_frame.png",
+        "playable": true
+      }
+    },
+    "C_improved": {
+      "scenario_key": "C_improved",
+      "scenario_id": "Scenario_C_GlassWall_Improved",
+      "mode": "IMPROVED",
+      "spawn": {
+        "x": 1.0,
+        "y": 0.5,
+        "z": 0.05,
+        "yaw": 3.1416
+      },
+      "goal_world": [
+        -2.12,
+        -2.15
+      ],
+      "gt_final_world_xy": [
+        -2.076,
+        -1.948
+      ],
+      "b0_final_world_xy": [
+        -2.075,
+        -1.953
+      ],
+      "f3b_final_world_xy": [
+        -2.173,
+        -1.853
+      ],
+      "f5_final_world_xy": [
+        -2.096,
+        -1.907
+      ],
+      "gt_distance_to_goal_m": 0.206,
+      "b0_distance_to_goal_m": 0.202,
+      "true_goal_reached": true,
+      "false_odom_goal_reached": false,
+      "min_lidar_range_m": 0.626,
+      "events_logged": [],
+      "video_verification": {
+        "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_C_improved.mp4",
+        "file_size_bytes": 7268686,
+        "written_frames": 301,
+        "decoded_frames_verified": 301,
+        "non_black_frames_verified": 301,
+        "resolution": "1920x960",
+        "fps": 15.0,
+        "sim_time_start": 6.677,
+        "sim_time_end": 26.66,
+        "sim_duration_s": 19.983,
+        "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_C_improved_mid_frame.png",
+        "playable": true
+      }
+    },
+    "D_baseline": {
+      "scenario_key": "D_baseline",
+      "scenario_id": "Scenario_D_Composite_Baseline",
+      "mode": "BASELINE",
+      "spawn": {
+        "x": -3.8,
+        "y": 3.1,
+        "z": 0.05,
+        "yaw": -0.7854
+      },
+      "goal_world": [
+        -1.85,
+        -2.2
+      ],
+      "gt_final_world_xy": [
+        -3.228,
+        2.272
+      ],
+      "b0_final_world_xy": [
+        -2.41,
+        2.874
+      ],
+      "f3b_final_world_xy": [
+        -3.196,
+        2.053
+      ],
+      "f5_final_world_xy": [
+        -3.248,
+        2.295
+      ],
+      "gt_distance_to_goal_m": 4.679,
+      "b0_distance_to_goal_m": 5.105,
+      "true_goal_reached": false,
+      "false_odom_goal_reached": false,
+      "min_lidar_range_m": 0.114,
+      "events_logged": [
+        {
+          "sim_time": 11.61,
+          "event": "PHYSICAL_STALL_AND_WHEEL_SLIP_DETECTED"
+        }
+      ],
+      "video_verification": {
+        "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_D_baseline.mp4",
+        "file_size_bytes": 4917878,
+        "written_frames": 261,
+        "decoded_frames_verified": 261,
+        "non_black_frames_verified": 261,
+        "resolution": "1920x960",
+        "fps": 15.0,
+        "sim_time_start": 6.6,
+        "sim_time_end": 24.047,
+        "sim_duration_s": 17.447000000000003,
+        "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_D_baseline_mid_frame.png",
+        "playable": true
+      }
+    },
+    "D_improved": {
+      "scenario_key": "D_improved",
+      "scenario_id": "Scenario_D_Composite_Improved",
+      "mode": "IMPROVED",
+      "spawn": {
+        "x": -3.6,
+        "y": 3.2,
+        "z": 0.05,
+        "yaw": 0.0
+      },
+      "goal_world": [
+        -2.12,
+        -2.15
+      ],
+      "gt_final_world_xy": [
+        -2.009,
+        -1.934
+      ],
+      "b0_final_world_xy": [
+        -2.239,
+        -1.824
+      ],
+      "f3b_final_world_xy": [
+        -1.949,
+        -1.949
+      ],
+      "f5_final_world_xy": [
+        -1.59,
+        -2.085
+      ],
+      "gt_distance_to_goal_m": 0.243,
+      "b0_distance_to_goal_m": 0.347,
+      "true_goal_reached": true,
+      "false_odom_goal_reached": false,
+      "min_lidar_range_m": 0.609,
+      "events_logged": [],
+      "video_verification": {
+        "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_D_improved.mp4",
+        "file_size_bytes": 13836049,
+        "written_frames": 594,
+        "decoded_frames_verified": 594,
+        "non_black_frames_verified": 594,
+        "resolution": "1920x960",
+        "fps": 15.0,
+        "sim_time_start": 6.66,
+        "sim_time_end": 46.33,
+        "sim_duration_s": 39.67,
+        "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_D_improved_mid_frame.png",
+        "playable": true
+      }
+    }
+  },
+  "comparison_videos": {
+    "A": {
+      "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_A_comparison.mp4",
+      "frames": 295,
+      "file_size_bytes": 6401879
+    },
+    "B": {
+      "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_B_comparison.mp4",
+      "frames": 264,
+      "file_size_bytes": 5713046
+    },
+    "C": {
+      "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_C_comparison.mp4",
+      "frames": 301,
+      "file_size_bytes": 6578554
+    },
+    "D": {
+      "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/lounge_scenarios/scenario_D_comparison.mp4",
+      "frames": 594,
+      "file_size_bytes": 12927910
+    }
+  }
+}

@@ -1,0 +1,60 @@
+[
+  {
+    "run_id": "glass_normal_031124",
+    "world_type": "normal",
+    "world_sdf": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/worlds/c103_glass_normal.sdf",
+    "spawn_pose": [
+      0.5,
+      -1.2,
+      0.05,
+      1.57
+    ],
+    "door_opening": [
+      -2.0,
+      -1.0
+    ],
+    "glass_section": [
+      -0.9,
+      4.0
+    ],
+    "success": false,
+    "physical_contact": "\ubbf8\uce21\uc815(not_measured)",
+    "lidar_front_range_m": 1.0846336841583253,
+    "map_x_min": -2.520000681178921e-13,
+    "map_y_max": 2.0466820384941394e-05,
+    "door_crossed": false,
+    "distance_traveled_m": 0.029420399845176744,
+    "cmd_vel_count": 727,
+    "conclusion": "LiDAR detected glass wall, navigated towards/through open door"
+  },
+  {
+    "run_id": "glass_invisible_c663e3",
+    "world_type": "invisible",
+    "world_sdf": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/worlds/c103_glass_invisible.sdf",
+    "spawn_pose": [
+      0.5,
+      -1.2,
+      0.05,
+      1.57
+    ],
+    "door_opening": [
+      -2.0,
+      -1.0
+    ],
+    "glass_section": [
+      -0.9,
+      4.0
+    ],
+    "success": false,
+    "physical_contact": "\ubbf8\uce21\uc815(not_measured)",
+    "lidar_front_range_m": 2.6276057243347166,
+    "map_x_min": -2.5200006762665155e-13,
+    "map_y_max": 0.20184388444233056,
+    "door_crossed": false,
+    "distance_traveled_m": 0.9096943467072973,
+    "cmd_vel_count": 716,
+    "lidar_penetrated": true,
+    "stalled_at_glass_collision": false,
+    "conclusion": "LiDAR penetrated glass partition; robot attempted straight crossing and physically stalled against glass collision mesh"
+  }
+]

@@ -1,0 +1,47 @@
+{
+  "run_id": "e897f0ac-0642-4bbf-a2b8-acba7c766930",
+  "command": "python3 /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_resume_verification/scripts/test_handoff_and_action.py",
+  "code_hash": "git:67fbb4d69b27a089d9d16de7f1eaf1b87e42cd73 | script_sha256:523a0a2acbd7fb546a2f7128e4e7db75ca44f539c3f0d8070d35586aad1217d4",
+  "raw_log_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_resume_verification/logs/component_handoff_action.raw.log",
+  "test_type": "component_handoff_and_action_injected",
+  "spawn_world": [
+    -6.2,
+    -2.0,
+    0.0
+  ],
+  "ground_truth_map": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "start_pose_injected": true,
+  "ready_gate_bypassed": true,
+  "localization_ready_emitted": "\ubbf8\uce21\uc815 (\uac8c\uc774\ud2b8 \ud574\uc81c\ub428)",
+  "localization_time_sec": "\ubbf8\uce21\uc815 (AMCL \ubbf8\uc2e4\ud589)",
+  "pre_handoff_amcl_pose": "\ubbf8\uce21\uc815 (AMCL \ubbf8\uc2e4\ud589, \uc88c\ud45c \uc9c1\uc811 \uc8fc\uc785)",
+  "amcl_position_error_m": "\ubbf8\uce21\uc815 (AMCL \ubbf8\uc2e4\ud589)",
+  "amcl_yaw_error_rad": "\ubbf8\uce21\uc815 (AMCL \ubbf8\uc2e4\ud589)",
+  "post_handoff_slam_pose": [
+    -0.0,
+    0.0,
+    -0.0
+  ],
+  "pose_delta_position_m": 0.0,
+  "pose_delta_yaw_rad": 0.0,
+  "amcl_node_terminated": "\ubbf8\uce21\uc815 (AMCL \ubbf8\uc2e4\ud589)",
+  "slam_node_active": true,
+  "tf_duplicated": false,
+  "min_obstacle_distance_m": 1.703,
+  "collision_detected": false,
+  "action_goal_accepted": true,
+  "action_status": "STATUS_ABORTED (6)",
+  "action_feedback_received": true,
+  "action_cmd_vel_count": 152,
+  "feedback_samples_count": 39,
+  "new_serialized_files": {
+    ".pgm": 48687,
+    ".yaml": 136,
+    ".posegraph": 5898380,
+    ".data": 885054
+  }
+}

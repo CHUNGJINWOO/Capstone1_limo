@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>limo_depth_obstacles</name><version>0.1.0</version>
+  <description>Depth observation filtering and separate Nav2 camera layer for LIMO.</description>
+  <maintainer email="maintainer@example.invalid">Capstone maintainers</maintainer>
+  <license>Apache-2.0</license>
+  <exec_depend>rclpy</exec_depend><exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>sensor_msgs_py</exec_depend><exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf2_ros_py</exec_depend><exec_depend>tf2_ros</exec_depend>
+  <exec_depend>python3-numpy</exec_depend><exec_depend>python3-yaml</exec_depend>
+  <exec_depend>launch_ros</exec_depend><exec_depend>ament_index_python</exec_depend>
+  <exec_depend>launch</exec_depend><exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>astra_camera</exec_depend><exec_depend>nav2_costmap_2d</exec_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

@@ -1,0 +1,231 @@
+##### /home/pcu/capstone_ws
+total 116
+drwxrwxr-x 24 pcu pcu  4096 2026-11-11 10:27 .
+drwxrwxr-x  8 pcu pcu  4096 2026-11-06 09:49 ..
+drwxrwxr-x 19 pcu pcu  4096 2026-11-11 10:32 build
+drwxrwxr-x  2 pcu pcu  4096 2026-11-11 10:08 docs
+drwxrwxr-x  8 pcu pcu  4096 2026-11-11 10:29 .git
+-rw-rw-r--  1 pcu pcu   341 2026-11-11 10:08 .gitignore
+drwxrwxr-x 12 pcu pcu  4096 2026-11-11 10:32 install
+drwxrwxr-x  8 pcu pcu  4096 2026-11-06 09:48 libuvc
+drwxrwxr-x  6 pcu pcu  4096 2026-11-06 09:48 limo_auto_mapping
+drwxrwxr-x  8 pcu pcu  4096 2026-11-11 10:29 limo_capstone
+drwxrwxr-x  4 pcu pcu  4096 2026-11-11 10:08 limo_depth_obstacles
+drwxrwxr-x  3 pcu pcu  4096 2026-11-06 09:48 limo_mapping_explore_msgs
+drwxrwxr-x  3 pcu pcu  4096 2026-11-06 09:48 limo_mapping_interfaces
+drwxrwxr-x  6 pcu pcu  4096 2026-11-06 09:48 limo_onboard_trials
+drwxrwxr-x  6 pcu pcu  4096 2026-11-06 09:48 limo_ros2
+drwxrwxr-x  9 pcu pcu  4096 2026-11-06 09:48 limo_ros2_application
+drwxrwxr-x  4 pcu pcu  4096 2026-11-11 10:31 log
+drwxrwxr-x  9 pcu pcu  4096 2026-11-06 09:48 magic_enum
+drwxrwxr-x  7 pcu pcu  4096 2026-11-06 09:48 m-explore-ros2
+-rw-rw-r--  1 pcu pcu 14812 2026-11-11 10:08 README.md
+drwxrwxr-x  9 pcu pcu  4096 2026-11-06 09:48 robot_localization
+drwxrwxr-x  4 pcu pcu  4096 2026-11-06 09:48 ros2_astra_camera
+drwxrwxr-x  5 pcu pcu  4096 2026-11-06 09:48 wego
+drwxrwxr-x  5 pcu pcu  4096 2026-11-06 09:48 wego_2d_nav
+drwxrwxr-x  3 pcu pcu  4096 2026-11-06 09:48 wego_msgs
+drwxrwxr-x  8 pcu pcu  4096 2026-11-06 09:48 ydlidar_ros2_driver
+pkg build: files=4283 git=no
+pkg docs: files=5 git=no
+pkg install: files=241 git=no
+pkg libuvc: files=42 git=no
+pkg limo_auto_mapping: files=12 git=no
+pkg limo_capstone: files=38 git=no
+pkg limo_depth_obstacles: files=8 git=no
+pkg limo_mapping_explore_msgs: files=4 git=no
+pkg limo_mapping_interfaces: files=3 git=no
+pkg limo_onboard_trials: files=15 git=no
+pkg limo_ros2: files=33 git=no
+pkg limo_ros2_application: files=23 git=no
+pkg log: files=95 git=no
+pkg magic_enum: files=83 git=no
+pkg m-explore-ros2: files=59 git=no
+pkg robot_localization: files=105 git=no
+pkg ros2_astra_camera: files=157 git=no
+pkg wego: files=13 git=no
+pkg wego_2d_nav: files=8 git=no
+pkg wego_msgs: files=3 git=no
+pkg ydlidar_ros2_driver: files=20 git=no
+-- git state
+fatal: not a git repository (or any of the parent directories): .git
+fatal: not a git repository (or any of the parent directories): .git
+-- install/ present: astra_camera astra_camera_msgs COLCON_IGNORE explore_lite explore_lite_msgs limo_auto_mapping limo_base limo_capstone limo_description limo_mapping_explore_msgs limo_mapping_interfaces limo_msgs limo_onboard_trials limo_ros2_application local_setup.bash local_setup.ps1 local_setup.sh _local_setup_util_ps1.py _local_setup_util_sh.py local_setup.zsh magic_enum multirobot_map_merge robot_localization setup.bash setup.ps1 setup.sh setup.zsh wego wego_2d_nav wego_msgs ydlidar_ros2_driver 
+##### /home/pcu/capstone_experiment_ws
+total 16
+drwxrwxr-x  4 pcu pcu 4096 2026-11-09 18:24 .
+drwxrwxr-x  6 pcu pcu 4096 2026-11-09 21:40 ..
+drwxr-xr-x 13 pcu pcu 4096 2026-11-09 22:07 limo_capstone
+drwxr-xr-x  4 pcu pcu 4096 2026-11-09 12:46 limo_depth_obstacles
+pkg limo_capstone: files=86 git=no
+pkg limo_depth_obstacles: files=7 git=no
+-- git state
+fatal: not a git repository (or any of the parent directories): .git
+fatal: not a git repository (or any of the parent directories): .git
+-- install/ present: COLCON_IGNORE limo_capstone limo_depth_obstacles local_setup.bash local_setup.ps1 local_setup.sh _local_setup_util_ps1.py _local_setup_util_sh.py local_setup.zsh setup.bash setup.ps1 setup.sh setup.zsh 
+##### file hashes (sha256, first 16) for the planned T1 set in BOTH workspaces (missing = not present)
+== /home/pcu/capstone_ws
+d0768b94420a838f  limo_capstone/package.xml
+9b4b40b0c1333202  limo_capstone/setup.py
+e3b0c44298fc1c14  limo_capstone/limo_capstone/__init__.py
+a8004450f0a27102  limo_capstone/limo_capstone/stall_detector_node.py
+f218cc6bcb50b77e  limo_capstone/launch/limo_auto_mapping.launch.py
+ec16e47097a4d01f  limo_capstone/launch/limo_light.launch.py
+45d5ba2a05faca5b  limo_capstone/launch/limo_nav2.launch.py
+383ad212082a884a  limo_capstone/launch/limo_rtabmap.launch.py
+f7376b8e07fd533c  limo_capstone/config/explore.yaml
+342d3e198f41c2f9  limo_capstone/config/nav2_explore_params.yaml
+1f2bc1e4e7db8ee2  limo_capstone/config/slam_params.yaml
+657bbeba4d94ceb5  limo_depth_obstacles/limo_depth_obstacles/depth_obstacle_filter_node.py
+b622ec7768e90f37  limo_depth_obstacles/limo_depth_obstacles/filtering.py
+4b24fc6c48ef5682  limo_depth_obstacles/limo_depth_obstacles/__init__.py
+== /home/pcu/capstone_experiment_ws
+8eafc64f69878ff1  limo_capstone/package.xml
+1a658fdf51b70264  limo_capstone/setup.py
+db773c027977606a  limo_capstone/limo_capstone/complementary_filter_node.py
+561c582397099095  limo_capstone/limo_capstone/depth_to_pointcloud_fixed_node.py
+41ccd86871969b63  limo_capstone/limo_capstone/ground_truth_publisher_node.py
+e3b0c44298fc1c14  limo_capstone/limo_capstone/__init__.py
+dbe125f1124e95a8  limo_capstone/limo_capstone/integrated_recorder_node.py
+6e8246a7c72cc48c  limo_capstone/limo_capstone/lidar_scan_matcher_odom_node.py
+0ca3d3cf109ac6c5  limo_capstone/limo_capstone/nav2_action_monitor_node.py
+79c40d0c20c24696  limo_capstone/limo_capstone/odom_tf_relay_node.py
+efaa9dbe83a79906  limo_capstone/limo_capstone/sensor_normalizer_node.py
+391841989c346c80  limo_capstone/limo_capstone/stall_detector_node.py
+1548a21f43a8d934  limo_capstone/launch/limo_auto_mapping.launch.py
+b14476a0baf9b6c8  limo_capstone/launch/limo_auto_mapping_sim.launch.py
+655cf207e4b7a7c8  limo_capstone/launch/limo_integrated_auto_mapping_real.launch.py
+2a7d381a1813b9f2  limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py
+97e185a6106fc378  limo_capstone/launch/limo_light.launch.py
+4220ae5700d7d5e7  limo_capstone/launch/limo_mc3f_sim.launch.py
+a20296dd28e04e6e  limo_capstone/launch/limo_nav2.launch.py
+8e181fe9e51e205a  limo_capstone/launch/limo_nav2_sim.launch.py
+5839c4ac5167b91a  limo_capstone/config/ekf_tuned.yaml
+6b6d072f73287ca0  limo_capstone/config/explore.yaml
+c76ce6009023180f  limo_capstone/config/fusion_f5_improved.yaml
+0e75eadb6cf3aff5  limo_capstone/config/integrated_explore_params.yaml
+4476e8e9e8cb1865  limo_capstone/config/integrated_nav2_lidar_only_params.yaml
+67ad29461897d7ba  limo_capstone/config/integrated_nav2_params.yaml
+54a7e7005ca0fa89  limo_capstone/config/integrated_slam_params.yaml
+7840f84cdc2ee1dc  limo_capstone/config/nav2_explore_params.yaml
+c71076d28a84a74f  limo_capstone/config/nav2_sim_ackermann_params.yaml
+779303ed17e86e79  limo_capstone/config/nav2_sim_params.yaml
+db173a863e8d74a3  limo_capstone/config/navigate_to_pose_ackermann_backup30.xml
+f4d960094d9cff4a  limo_capstone/config/navigate_to_pose_ackermann.xml
+c6d980c866f5505b  limo_capstone/config/rosbag2_qos_overrides.yaml
+9613c43a78974497  limo_capstone/config/slam_params.yaml
+aedeae9a4a576d43  limo_capstone/config/ukf_tuned.yaml
+657bbeba4d94ceb5  limo_depth_obstacles/limo_depth_obstacles/depth_obstacle_filter_node.py
+b622ec7768e90f37  limo_depth_obstacles/limo_depth_obstacles/filtering.py
+4b24fc6c48ef5682  limo_depth_obstacles/limo_depth_obstacles/__init__.py
+##### system
+Ubuntu 22.04.5 LTS
+x86_64
+ROS_DISTRO=unset
+humble
+numpy 1.26.4
+scipy 1.8.0
+ros-humble-camera-info-manager 3.1.13-1jammy.20260907.223124
+ros-humble-cv-bridge 3.2.1-1jammy.20260907.220118
+ros-humble-image-publisher 3.0.9-1jammy.20260907.231934
+ros-humble-image-transport 3.1.13-1jammy.20260907.224758
+ros-humble-image-transport-plugins 2.5.5-1jammy.20260908.011646
+ros-humble-joint-state-publisher 2.4.0-1jammy.20260907.215925
+ros-humble-joint-state-publisher-gui 2.4.0-1jammy.20260907.220733
+ros-humble-nav2-amcl 1.1.20-1jammy.20260915.212107
+ros-humble-nav2-behavior-tree 1.1.20-1jammy.20260915.212118
+ros-humble-nav2-behaviors 1.1.20-1jammy.20260915.232147
+ros-humble-nav2-bringup 1.1.20-1jammy.20260916.005516
+ros-humble-nav2-bt-navigator 1.1.20-1jammy.20260915.232207
+ros-humble-nav2-collision-monitor 1.1.20-1jammy.20260915.231815
+ros-humble-nav2-common 1.1.20-1jammy.20260907.215155
+ros-humble-nav2-constrained-smoother 1.1.20-1jammy.20260915.232237
+ros-humble-nav2-controller 1.1.20-1jammy.20260915.232401
+ros-humble-nav2-core 1.1.20-1jammy.20260915.231847
+ros-humble-nav2-costmap-2d 1.1.20-1jammy.20260915.225814
+ros-humble-nav2-dwb-controller 1.1.20-1jammy.20260915.234238
+ros-humble-nav2-lifecycle-manager 1.1.20-1jammy.20260915.225403
+ros-humble-nav2-map-server 1.1.20-1jammy.20260915.212154
+ros-humble-nav2-mppi-controller 1.1.20-1jammy.20260915.232158
+ros-humble-nav2-msgs 1.1.20-1jammy.20260907.223327
+ros-humble-nav2-navfn-planner 1.1.20-1jammy.20260915.232217
+ros-humble-nav2-planner 1.1.20-1jammy.20260915.232217
+ros-humble-nav2-regulated-pure-pursuit-controller 1.1.20-1jammy.20260915.232155
+ros-humble-nav2-rotation-shim-controller 1.1.20-1jammy.20260915.233053
+ros-humble-nav2-route 1.1.20-1jammy.20260915.232223
+ros-humble-nav2-rviz-plugins 1.1.20-1jammy.20260916.003050
+ros-humble-nav2-simple-commander 1.1.20-1jammy.20260907.224519
+ros-humble-nav2-smac-planner 1.1.20-1jammy.20260915.232226
+ros-humble-nav2-smoother 1.1.20-1jammy.20260915.232411
+ros-humble-nav2-theta-star-planner 1.1.20-1jammy.20260915.232221
+ros-humble-nav2-util 1.1.20-1jammy.20260915.211149
+ros-humble-nav2-velocity-smoother 1.1.20-1jammy.20260915.230155
+ros-humble-nav2-voxel-grid 1.1.20-1jammy.20260908.002526
+ros-humble-nav2-waypoint-follower 1.1.20-1jammy.20260915.232231
+ros-humble-slam-toolbox 2.6.10-1jammy.20260916.003050
+ros-humble-tf2-ros 0.25.24-1jammy.20260915.204410
+ros-humble-tf2-ros-py 0.25.24-1jammy.20260915.204621
+ros-humble-xacro 2.1.1-1jammy.20260304.195513
+libboost-dev:amd64 1.74.0.3ubuntu7
+libeigen3-dev 3.4.0-2ubuntu2
+libgeographic-dev 1.52-1
+libgeographic19:amd64 1.52-1
+libgoogle-glog-dev 0.5.0+really0.4.0-2
+libgoogle-glog0v5 0.5.0+really0.4.0-2
+libopenni2-0:amd64 2.2.0.33+dfsg-15
+libopenni2-dev:amd64 2.2.0.33+dfsg-15
+libuvc-dev 0.0.6-1.1
+libuvc0 0.0.6-1.1
+python3-colcon-argcomplete 0.3.3+upstream-1
+python3-colcon-bash 0.5.0-100
+python3-colcon-cd 0.2.1-100
+python3-colcon-cmake 0.2.30+upstream-1
+python3-colcon-common-extensions 0.3.0-100
+python3-colcon-core 0.21.3+upstream-1
+python3-colcon-defaults 0.2.9+upstream-1
+python3-colcon-devtools 0.3.0-100
+python3-colcon-installed-package-information 0.2.1-100
+python3-colcon-library-path 0.2.1-100
+python3-colcon-metadata 0.3.1+upstream-1
+python3-colcon-notification 0.3.3+upstream-1
+python3-colcon-output 0.2.15+upstream-1
+python3-colcon-override-check 0.0.1-100
+python3-colcon-package-information 0.4.1+upstream-1
+python3-colcon-package-selection 0.2.10-100
+python3-colcon-parallel-executor 0.3.0-100
+python3-colcon-pkg-config 0.1.0-100
+python3-colcon-powershell 0.5.0+upstream-1
+python3-colcon-python-setup-py 0.2.9-100
+python3-colcon-recursive-crawl 0.2.3-100
+python3-colcon-ros 0.5.0+upstream-1
+python3-colcon-test-result 0.3.8-100
+python3-colcon-zsh 0.5.0-100
+libuvc.a
+libuvc.so
+libuvc.so.0
+libuvc.so.0.0.8
+libydlidar_sdk.a
+ydlidar_config.h
+##### devices / udev
+lrwxrwxrwx  1 root root      7 Nov 11 12:03 /dev/ttylimo -> ttyUSB1
+crw-rw----+ 1 root video 81, 0 Nov 11 12:02 /dev/video0
+crw-rw----+ 1 root video 81, 1 Nov 11 12:02 /dev/video1
+lrwxrwxrwx  1 root root      7 Nov 11 12:02 /dev/ydlidar -> ttyUSB0
+56-orbbec-usb.rules
+70-snap.firefox.rules
+70-snap.snapd-desktop-integration.rules
+70-snap.snapd.rules
+70-snap.snap-store.rules
+99-disable-usb-autosuspend.rules
+99-limo-devices.rules
+##### disk/memory
+/dev/nvme0n1p2  117G   26G   86G  23% /
+Mem:           7.3Gi       1.2Gi       4.3Gi       220Mi       1.8Gi       5.6Gi
+16
+##### running ROS / motor-related processes (read-only)
+##### shell env hooks
+-rwxrwxr-x 1 pcu pcu 468 Nov  9 18:25 /home/pcu/load_experiment_env.sh
+110:# sources /etc/bash.bashrc).
+118:source /opt/ros/humble/setup.bash	#ros2 험블 
+119:source ~/capstone_ws/install/setup.bash	#2026 캡스톤디자인 4조
+120:export ROS_DOMAIN_ID=30			#통신 ID

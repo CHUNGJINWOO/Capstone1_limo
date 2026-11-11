@@ -1,0 +1,175 @@
+{
+ "tag": "C1_cap0_control",
+ "stop_reason": "gate_failsafe_held",
+ "wall_s": 22.6,
+ "sim_s": 21.0,
+ "gate_transitions": [
+  [
+   0.75,
+   "INITIALIZING"
+  ],
+  [
+   2.66,
+   "NORMAL"
+  ],
+  [
+   6.4,
+   "FAILSAFE_SENSOR_TIMEOUT"
+  ]
+ ],
+ "gate_counters": {
+  "failsafe_events": 1,
+  "stall_events": 0,
+  "icp_degraded_events": 0,
+  "operator_unlatch_count": 0
+ },
+ "gate_last_flags": {
+  "state": "FAILSAFE_SENSOR_TIMEOUT",
+  "depth_stale": false,
+  "wheel_odom_stale": false,
+  "est_odom_stale": false,
+  "depth_code": "DEPTH_READY"
+ },
+ "cmd_vel_publishers": null,
+ "cmd_raw_nonzero": "260/264",
+ "cmd_out_nonzero": "0/703",
+ "map": {
+  "known": 3.4700001034140593,
+  "free": 3.3375000994652515,
+  "occ": 0.13250000394880773,
+  "unknown": 101.40250302203002,
+  "w": 177,
+  "h": 237,
+  "res": 0.05000000074505806,
+  "ox": -3.8141975667067736,
+  "oy": -7.019479768550099
+ },
+ "map_updates": 15,
+ "map_growth_sim": [
+  [
+   10.0,
+   3.5
+  ],
+  [
+   15.0,
+   3.5
+  ],
+  [
+   19.0,
+   3.5
+  ]
+ ],
+ "gt_path_m": 0.0,
+ "slam_err_xy_m": null,
+ "goals": {
+  "succeeded": 0,
+  "canceled": 0,
+  "aborted": 0,
+  "total_seen": 1,
+  "max_abort_streak": 0,
+  "active_now": 1
+ },
+ "goal_log": [],
+ "stream_gaps_sim": {
+  "/scan": {
+   "n": 145,
+   "max": 3.786,
+   "over_0p38": 3,
+   "over_1p0": 3
+  },
+  "/odometry/lidar_odom": {
+   "n": 141,
+   "max": 3.785,
+   "over_0p38": 3,
+   "over_1p0": 3
+  },
+  "/odom": {
+   "n": 722,
+   "max": 3.739,
+   "over_0p38": 3,
+   "over_1p0": 3
+  },
+  "/odom_nav2": {
+   "n": 141,
+   "max": 3.785,
+   "over_0p38": 3,
+   "over_1p0": 3
+  },
+  "/depth_obstacles/points": {
+   "n": 137,
+   "max": 3.9,
+   "over_0p38": 3,
+   "over_1p0": 3
+  }
+ },
+ "min_scan_m": 0.797,
+ "rtf": {
+  "mean": 0.881,
+  "min": 0.452,
+  "p10": 0.49
+ },
+ "cpu_pct_of_one_core": {
+  "gazebo": {
+   "mean": 102.05,
+   "max": 140.7
+  },
+  "slam_toolbox": {
+   "mean": 11.85,
+   "max": 18.8
+  },
+  "nav2": {
+   "mean": 55.7,
+   "max": 79.8
+  },
+  "explore_lite": {
+   "mean": 0.0,
+   "max": 0.0
+  },
+  "safety_gate": {
+   "mean": 37.88,
+   "max": 57.1
+  },
+  "estimator_f4": {
+   "mean": 29.0,
+   "max": 43.6
+  },
+  "depth_filter": {
+   "mean": 63.0,
+   "max": 95.2
+  },
+  "ros_gz_bridge": {
+   "mean": 60.8,
+   "max": 90.2
+  },
+  "other_ros": {
+   "mean": 74.32,
+   "max": 111.1
+  }
+ },
+ "cpu_system_pct": {
+  "mean": 26.3,
+  "max": 31.3
+ },
+ "n_cores": 24,
+ "align": null,
+ "log_counts": {
+  "goals_sent (Begin navigating)": 1,
+  "goal_preemptions": 0,
+  "controller_failed_to_make_progress": 2,
+  "planner_no_valid_path": 0,
+  "collision_ahead": 0,
+  "behavior_recovery_run": 0,
+  "navigation_succeeded_log": 0,
+  "fail_safe_log_lines": 1,
+  "stall_latched_log_lines": 0,
+  "tf_wait_timeouts": 0,
+  "message_filter_drops": 3,
+  "tf_extrapolation_errors": 0,
+  "explore_no_frontiers_stop": 0,
+  "explore_returned_to_initial_pose": 0,
+  "depth_filter_errors": 4,
+  "depth_sensor_stale": 3,
+  "costmap_errors": 0,
+  "process_died": 0
+ }
+}

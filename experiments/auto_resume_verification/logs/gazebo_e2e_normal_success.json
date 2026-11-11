@@ -1,0 +1,51 @@
+{
+  "run_id": "32f86da9-5e7a-4678-86bd-4c96d84e2bc3",
+  "command": "python3 /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_resume_verification/scripts/run_e2e_success_test.py",
+  "code_hash": "git:67fbb4d69b27a089d9d16de7f1eaf1b87e42cd73 | script_sha256:28144403f343dff48ab3d51722da7caeec57d40a293f0903f591b89488a652fd",
+  "raw_log_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_resume_verification/logs/gazebo_e2e_normal_success.raw.log",
+  "test_type": "gazebo_e2e_normal_condition",
+  "spawn_world": [
+    -6.0,
+    0.0,
+    -1.57
+  ],
+  "ground_truth_map": [
+    0.20000000000000018,
+    2.0,
+    -1.57
+  ],
+  "start_pose_injected": false,
+  "ready_gate_bypassed": false,
+  "localization_ready_emitted": true,
+  "localization_time_sec": 144.03,
+  "pre_handoff_amcl_pose": [
+    0.16,
+    1.81,
+    -1.4876
+  ],
+  "amcl_position_error_m": 0.1942,
+  "amcl_yaw_error_rad": 0.0824,
+  "post_handoff_slam_pose": [
+    0.2904,
+    2.025,
+    -1.566
+  ],
+  "pose_delta_position_m": 0.2514,
+  "pose_delta_yaw_rad": 0.0785,
+  "amcl_node_terminated": true,
+  "slam_node_active": true,
+  "tf_duplicated": false,
+  "min_obstacle_distance_m": 0.703,
+  "collision_detected": false,
+  "action_goal_accepted": true,
+  "action_status": "STATUS_ABORTED (6)",
+  "action_feedback_received": true,
+  "action_cmd_vel_count": 154,
+  "feedback_samples_count": 41,
+  "new_serialized_files": {
+    ".pgm": 52312,
+    ".yaml": 144,
+    ".posegraph": 5854283,
+    ".data": 841977
+  }
+}

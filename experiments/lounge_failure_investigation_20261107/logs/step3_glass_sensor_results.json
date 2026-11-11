@@ -1,0 +1,32 @@
+[
+  {
+    "condition": "opaque",
+    "total_beams": 360,
+    "cone_valid_beams": 30,
+    "cone_inf_beams": 0,
+    "cone_min_range_m": 1.372,
+    "cone_mean_range_m": 1.388,
+    "target_detected_at_1_5m": true,
+    "penetrated_to_background": false
+  },
+  {
+    "condition": "reflective",
+    "total_beams": 360,
+    "cone_valid_beams": 30,
+    "cone_inf_beams": 0,
+    "cone_min_range_m": 1.387,
+    "cone_mean_range_m": 1.403,
+    "target_detected_at_1_5m": true,
+    "penetrated_to_background": false
+  },
+  {
+    "condition": "invisible",
+    "total_beams": 360,
+    "cone_valid_beams": 30,
+    "cone_inf_beams": 0,
+    "cone_min_range_m": 4.797,
+    "cone_mean_range_m": 4.854,
+    "target_detected_at_1_5m": false,
+    "penetrated_to_background": true
+  }
+]

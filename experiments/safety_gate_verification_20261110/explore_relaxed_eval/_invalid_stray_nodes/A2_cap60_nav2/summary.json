@@ -1,0 +1,656 @@
+{
+ "tag": "A2_cap60_nav2",
+ "stop_reason": "exploration_stopped",
+ "wall_s": 310.6,
+ "sim_s": 280.0,
+ "gate_transitions": [
+  [
+   0.02,
+   "INITIALIZING"
+  ],
+  [
+   0.56,
+   "NORMAL"
+  ],
+  [
+   7.78,
+   "STALL_PENDING"
+  ],
+  [
+   7.98,
+   "NORMAL"
+  ],
+  [
+   11.68,
+   "STALL_PENDING"
+  ],
+  [
+   11.78,
+   "NORMAL"
+  ],
+  [
+   13.22,
+   "STALL_PENDING"
+  ],
+  [
+   13.36,
+   "NORMAL"
+  ],
+  [
+   17.14,
+   "STALL_PENDING"
+  ],
+  [
+   17.26,
+   "NORMAL"
+  ],
+  [
+   22.78,
+   "STALL_PENDING"
+  ],
+  [
+   22.86,
+   "NORMAL"
+  ],
+  [
+   26.72,
+   "STALL_PENDING"
+  ],
+  [
+   26.9,
+   "NORMAL"
+  ],
+  [
+   69.48,
+   "STALL_PENDING"
+  ],
+  [
+   69.52,
+   "NORMAL"
+  ],
+  [
+   71.6,
+   "STALL_PENDING"
+  ],
+  [
+   71.76,
+   "NORMAL"
+  ],
+  [
+   103.38,
+   "STALL_PENDING"
+  ],
+  [
+   103.46,
+   "NORMAL"
+  ],
+  [
+   136.56,
+   "STALL_PENDING"
+  ],
+  [
+   136.58,
+   "NORMAL"
+  ]
+ ],
+ "gate_counters": {
+  "failsafe_events": 0,
+  "stall_events": 0,
+  "icp_degraded_events": 0,
+  "operator_unlatch_count": 0
+ },
+ "gate_last_flags": {
+  "state": "NORMAL",
+  "depth_stale": false,
+  "wheel_odom_stale": false,
+  "est_odom_stale": false,
+  "depth_code": "DEPTH_READY"
+ },
+ "cmd_vel_publishers": [
+  "stall_detector_node"
+ ],
+ "cmd_raw_nonzero": "2945/2988",
+ "cmd_out_nonzero": "6760/13999",
+ "map": {
+  "known": 104.24500310674313,
+  "free": 99.74750297270718,
+  "occ": 4.4975001340359455,
+  "unknown": 1.6650000496208672,
+  "w": 178,
+  "h": 238,
+  "res": 0.05000000074505806,
+  "ox": -3.8671764790474272,
+  "oy": -7.030212112125287
+ },
+ "map_updates": 309,
+ "map_growth_sim": [
+  [
+   5.0,
+   3.5
+  ],
+  [
+   10.0,
+   11.8
+  ],
+  [
+   15.0,
+   44.0
+  ],
+  [
+   20.0,
+   54.4
+  ],
+  [
+   25.0,
+   57.6
+  ],
+  [
+   30.0,
+   62.3
+  ],
+  [
+   35.0,
+   64.2
+  ],
+  [
+   40.0,
+   64.7
+  ],
+  [
+   45.0,
+   64.8
+  ],
+  [
+   50.0,
+   65.4
+  ],
+  [
+   55.0,
+   67.2
+  ],
+  [
+   60.0,
+   67.9
+  ],
+  [
+   65.0,
+   69.3
+  ],
+  [
+   70.0,
+   70.8
+  ],
+  [
+   75.0,
+   72.1
+  ],
+  [
+   80.0,
+   72.7
+  ],
+  [
+   85.0,
+   73.1
+  ],
+  [
+   90.0,
+   73.6
+  ],
+  [
+   95.0,
+   74.9
+  ],
+  [
+   100.0,
+   76.6
+  ],
+  [
+   105.0,
+   77.2
+  ],
+  [
+   110.0,
+   77.6
+  ],
+  [
+   115.0,
+   77.7
+  ],
+  [
+   120.0,
+   78.2
+  ],
+  [
+   125.0,
+   84.1
+  ],
+  [
+   130.0,
+   91.7
+  ],
+  [
+   135.0,
+   99.3
+  ],
+  [
+   140.0,
+   103.5
+  ],
+  [
+   145.0,
+   104.2
+  ],
+  [
+   150.0,
+   104.2
+  ],
+  [
+   155.0,
+   104.2
+  ],
+  [
+   160.0,
+   104.2
+  ],
+  [
+   165.0,
+   104.2
+  ],
+  [
+   170.0,
+   104.2
+  ],
+  [
+   175.0,
+   104.2
+  ],
+  [
+   180.0,
+   104.2
+  ],
+  [
+   185.0,
+   104.2
+  ],
+  [
+   190.0,
+   104.2
+  ],
+  [
+   195.0,
+   104.2
+  ],
+  [
+   200.0,
+   104.2
+  ],
+  [
+   205.0,
+   104.2
+  ],
+  [
+   210.0,
+   104.2
+  ],
+  [
+   215.0,
+   104.2
+  ],
+  [
+   220.0,
+   104.2
+  ],
+  [
+   225.0,
+   104.2
+  ],
+  [
+   230.0,
+   104.2
+  ],
+  [
+   235.0,
+   104.2
+  ],
+  [
+   240.0,
+   104.2
+  ],
+  [
+   245.0,
+   104.2
+  ],
+  [
+   250.0,
+   104.2
+  ],
+  [
+   255.0,
+   104.2
+  ],
+  [
+   260.0,
+   104.2
+  ],
+  [
+   265.0,
+   104.2
+  ],
+  [
+   270.0,
+   104.2
+  ],
+  [
+   275.0,
+   104.2
+  ]
+ ],
+ "gt_path_m": 26.8,
+ "slam_err_xy_m": {
+  "mean": 0.029,
+  "max": 0.084,
+  "last": 0.021
+ },
+ "goals": {
+  "succeeded": 0,
+  "canceled": 1,
+  "aborted": 30,
+  "total_seen": 31,
+  "max_abort_streak": 30,
+  "active_now": 0
+ },
+ "goal_log": [
+  [
+   9.0,
+   "aa024bdb",
+   "aborted",
+   1.3
+  ],
+  [
+   10.8,
+   "a6c166bf",
+   "aborted",
+   1.9
+  ],
+  [
+   12.7,
+   "58107435",
+   "aborted",
+   1.9
+  ],
+  [
+   14.5,
+   "ccc83f2f",
+   "aborted",
+   1.8
+  ],
+  [
+   18.1,
+   "610c638b",
+   "aborted",
+   3.6
+  ],
+  [
+   19.8,
+   "bcd1368b",
+   "aborted",
+   1.8
+  ],
+  [
+   25.2,
+   "66e26fca",
+   "aborted",
+   5.4
+  ],
+  [
+   27.2,
+   "c2f791e2",
+   "aborted",
+   1.9
+  ],
+  [
+   28.9,
+   "eb1006f6",
+   "aborted",
+   1.7
+  ],
+  [
+   30.7,
+   "b09ccda9",
+   "aborted",
+   1.8
+  ],
+  [
+   45.5,
+   "b8e075ba",
+   "aborted",
+   14.7
+  ],
+  [
+   52.7,
+   "309dd76f",
+   "aborted",
+   7.3
+  ],
+  [
+   63.5,
+   "a4ae4923",
+   "aborted",
+   10.8
+  ],
+  [
+   72.6,
+   "02772f65",
+   "aborted",
+   9.1
+  ],
+  [
+   76.2,
+   "f33626ab",
+   "aborted",
+   3.6
+  ],
+  [
+   79.8,
+   "f814073a",
+   "aborted",
+   3.6
+  ],
+  [
+   83.5,
+   "aaa6f631",
+   "aborted",
+   3.7
+  ],
+  [
+   85.3,
+   "b457459d",
+   "aborted",
+   1.8
+  ],
+  [
+   96.3,
+   "a4d2fcc7",
+   "aborted",
+   11.0
+  ],
+  [
+   121.8,
+   "a0473c17",
+   "aborted",
+   25.5
+  ],
+  [
+   123.7,
+   "5ff910b0",
+   "aborted",
+   1.8
+  ],
+  [
+   125.5,
+   "accff36c",
+   "aborted",
+   1.8
+  ],
+  [
+   127.2,
+   "808ed999",
+   "aborted",
+   1.8
+  ],
+  [
+   129.1,
+   "95688bbe",
+   "aborted",
+   1.8
+  ],
+  [
+   130.9,
+   "b8798bb4",
+   "aborted",
+   1.9
+  ],
+  [
+   132.8,
+   "08e60f06",
+   "aborted",
+   1.8
+  ],
+  [
+   134.6,
+   "c8c62219",
+   "aborted",
+   1.8
+  ],
+  [
+   136.4,
+   "edcc887b",
+   "aborted",
+   1.9
+  ],
+  [
+   138.1,
+   "c45d11fd",
+   "aborted",
+   1.8
+  ],
+  [
+   139.9,
+   "23a198e7",
+   "aborted",
+   1.8
+  ],
+  [
+   143.7,
+   "3b1bf315",
+   "canceled",
+   3.7
+  ]
+ ],
+ "stream_gaps_sim": {
+  "/scan": {
+   "n": 2799,
+   "max": 0.125,
+   "over_0p38": 0,
+   "over_1p0": 0
+  },
+  "/odometry/lidar_odom": {
+   "n": 2799,
+   "max": 0.188,
+   "over_0p38": 0,
+   "over_1p0": 0
+  },
+  "/odom": {
+   "n": 13998,
+   "max": 0.027,
+   "over_0p38": 0,
+   "over_1p0": 0
+  },
+  "/odom_nav2": {
+   "n": 2799,
+   "max": 0.189,
+   "over_0p38": 0,
+   "over_1p0": 0
+  },
+  "/depth_obstacles/points": {
+   "n": 2799,
+   "max": 0.145,
+   "over_0p38": 0,
+   "over_1p0": 0
+  }
+ },
+ "min_scan_m": 0.326,
+ "rtf": {
+  "mean": 0.906,
+  "min": 0.893,
+  "p10": 0.897
+ },
+ "cpu_pct_of_one_core": {
+  "gazebo": {
+   "mean": 142.98,
+   "max": 151.8
+  },
+  "slam_toolbox": {
+   "mean": 20.73,
+   "max": 26.5
+  },
+  "nav2": {
+   "mean": 78.31,
+   "max": 86.4
+  },
+  "explore_lite": {
+   "mean": 0.0,
+   "max": 0.0
+  },
+  "safety_gate": {
+   "mean": 59.12,
+   "max": 63.2
+  },
+  "estimator_f4": {
+   "mean": 60.19,
+   "max": 80.5
+  },
+  "depth_filter": {
+   "mean": 100.47,
+   "max": 106.7
+  },
+  "ros_gz_bridge": {
+   "mean": 93.78,
+   "max": 99.5
+  },
+  "other_ros": {
+   "mean": 161.38,
+   "max": 173.4
+  }
+ },
+ "cpu_system_pct": {
+  "mean": 35.19,
+  "max": 36.8
+ },
+ "n_cores": 24,
+ "align": {
+  "theta": 1.5708000000000009,
+  "tx": -1.0999999997340222,
+  "ty": -0.5999999999452844
+ },
+ "log_counts": {
+  "goals_sent (Begin navigating)": 31,
+  "goal_preemptions": 30,
+  "controller_failed_to_make_progress": 3,
+  "planner_no_valid_path": 6,
+  "collision_ahead": 0,
+  "behavior_recovery_run": 1,
+  "navigation_succeeded_log": 0,
+  "fail_safe_log_lines": 0,
+  "stall_latched_log_lines": 0,
+  "tf_wait_timeouts": 3,
+  "message_filter_drops": 22,
+  "tf_extrapolation_errors": 1,
+  "explore_no_frontiers_stop": 1,
+  "explore_returned_to_initial_pose": 0,
+  "depth_filter_errors": 0,
+  "depth_sensor_stale": 0,
+  "costmap_errors": 0,
+  "process_died": 0
+ }
+}

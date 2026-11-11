@@ -1,0 +1,52 @@
+diff --git a/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py b/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py
+index 9d8e88e..ee55466 100644
+--- a/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py
++++ b/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_sim.launch.py
+@@ -23,6 +23,7 @@ from launch.conditions import IfCondition
+ from launch.launch_description_sources import PythonLaunchDescriptionSource
+ from launch.substitutions import LaunchConfiguration, PythonExpression
+ from launch_ros.actions import Node, SetRemap
++from nav2_common.launch import RewrittenYaml
+ 
+ 
+ def generate_launch_description():
+@@ -252,17 +253,28 @@ def generate_launch_description():
+     )
+ 
+     # 7. Nav2 Navigation Stack (gated strictly to /cmd_vel_raw)
++    # Ackermann chassis cannot rotate in place and reverse is blocked by the gate:
++    # use a recovery tree without Spin/BackUp (key exists as a placeholder in the yaml).
++    ackermann_bt = os.path.join(pkg_limo_capstone, 'config', 'navigate_to_pose_ackermann_no_reverse.xml')
++    nav2_params_file = RewrittenYaml(
++        source_file=config_nav2,
++        param_rewrites={'bt_navigator.ros__parameters.default_nav_to_pose_bt_xml': ackermann_bt},
++    )
++
+     nav2_launch = GroupAction(
+         actions=[
+-            SetRemap(src='cmd_vel', dst='/cmd_vel_raw'),
+-            SetRemap(src='/cmd_vel', dst='/cmd_vel_raw'),
++            # Every Nav2 velocity command must reach /cmd_vel only through the stall gate:
++            # controller_server -> cmd_vel_nav (Nav2 default) -> velocity_smoother -> /cmd_vel_raw
++            SetRemap(src='cmd_vel_smoothed', dst='/cmd_vel_raw'),
++            # behavior_server (spin/backup/drive_on_heading) publishes 'cmd_vel' directly
++            SetRemap(src='behavior_server:cmd_vel', dst='/cmd_vel_raw'),
+             SetRemap(src='odom', dst='/odom_nav2'),
+             SetRemap(src='/odom', dst='/odom_nav2'),
+             IncludeLaunchDescription(
+                 PythonLaunchDescriptionSource(os.path.join(pkg_nav2, 'launch', 'navigation_launch.py')),
+                 launch_arguments={
+                     'use_sim_time': use_sim_time,
+-                    'params_file': config_nav2,
++                    'params_file': nav2_params_file,
+                     'autostart': 'true'
+                 }.items()
+             )
+@@ -292,6 +304,7 @@ def generate_launch_description():
+             'require_operator_unlatch': True,
+             'depth_mode': depth_mode,
+             'sensor_timeout_sec': sensor_timeout_sec,
++            'estimator_odom_topic': '/odom_nav2',
+             'use_sim_time': use_sim_time
+         }]
+     )

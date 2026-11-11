@@ -1,0 +1,42 @@
+random-map equivalence (cap=0): PASS 60/60
+== explore_relaxed_eval/dumps/attempt3_snap1_sim51.txt  robot=(-1.19,1.01)
+   original: kept=7 | relaxed(cap 0): kept=7 identical=YES
+   cap= 0 (internal   0): found=88 kept=7 reachable_kept=7 bfs_visited=5277 traversed_nonzero=0 max_cost_visited=0 
+   cap= 1 (internal   1): found=88 kept=7 reachable_kept=7 bfs_visited=5277 traversed_nonzero=0 max_cost_visited=0 
+   cap=10 (internal  24): found=88 kept=7 reachable_kept=7 bfs_visited=5277 traversed_nonzero=0 max_cost_visited=0 
+   cap=20 (internal  50): found=88 kept=7 reachable_kept=7 bfs_visited=5277 traversed_nonzero=0 max_cost_visited=0 
+   cap=40 (internal 101): found=88 kept=7 reachable_kept=7 bfs_visited=5277 traversed_nonzero=0 max_cost_visited=0 
+   cap=60 (internal 153): found=113 kept=9 reachable_kept=9 bfs_visited=24500 traversed_nonzero=2671 max_cost_visited=153 
+   cap=80 (internal 205): found=113 kept=9 reachable_kept=9 bfs_visited=24894 traversed_nonzero=3065 max_cost_visited=205 
+   cap=98 (internal 252): found=113 kept=9 reachable_kept=9 bfs_visited=26194 traversed_nonzero=4365 max_cost_visited=226 
+== explore_relaxed_eval/dumps/attempt3_snap2_sim52.txt  robot=(-1.21,1.00)
+   original: kept=2 | relaxed(cap 0): kept=2 identical=YES
+   cap= 0 (internal   0): found=11 kept=2 reachable_kept=2 bfs_visited=5647 traversed_nonzero=0 max_cost_visited=0 
+   cap= 1 (internal   1): found=11 kept=2 reachable_kept=2 bfs_visited=5647 traversed_nonzero=0 max_cost_visited=0 
+   cap=10 (internal  24): found=11 kept=2 reachable_kept=2 bfs_visited=5647 traversed_nonzero=0 max_cost_visited=0 
+   cap=20 (internal  50): found=11 kept=2 reachable_kept=2 bfs_visited=5647 traversed_nonzero=0 max_cost_visited=0 
+   cap=40 (internal 101): found=11 kept=2 reachable_kept=2 bfs_visited=5647 traversed_nonzero=0 max_cost_visited=0 
+   cap=60 (internal 153): found=20 kept=4 reachable_kept=4 bfs_visited=24720 traversed_nonzero=2780 max_cost_visited=153 
+   cap=80 (internal 205): found=20 kept=4 reachable_kept=4 bfs_visited=25151 traversed_nonzero=3211 max_cost_visited=205 
+   cap=98 (internal 252): found=21 kept=5 reachable_kept=5 bfs_visited=26449 traversed_nonzero=4509 max_cost_visited=226 
+== explore_relaxed_eval/dumps/attempt3_snap3_sim53.txt  robot=(-1.23,0.97)
+   original: kept=2 | relaxed(cap 0): kept=2 identical=YES
+   cap= 0 (internal   0): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap= 1 (internal   1): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=10 (internal  24): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=20 (internal  50): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=40 (internal 101): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=60 (internal 153): found=18 kept=4 reachable_kept=4 bfs_visited=24624 traversed_nonzero=2752 max_cost_visited=153 
+   cap=80 (internal 205): found=18 kept=4 reachable_kept=4 bfs_visited=25060 traversed_nonzero=3188 max_cost_visited=205 
+   cap=98 (internal 252): found=19 kept=5 reachable_kept=5 bfs_visited=26352 traversed_nonzero=4480 max_cost_visited=226 
+== explore_relaxed_eval/dumps/attempt3_snap4_sim54.txt  robot=(-1.23,0.97)
+   original: kept=2 | relaxed(cap 0): kept=2 identical=YES
+   cap= 0 (internal   0): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap= 1 (internal   1): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=10 (internal  24): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=20 (internal  50): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=40 (internal 101): found=9 kept=2 reachable_kept=2 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=60 (internal 153): found=18 kept=4 reachable_kept=4 bfs_visited=24624 traversed_nonzero=2752 max_cost_visited=153 
+   cap=80 (internal 205): found=18 kept=4 reachable_kept=4 bfs_visited=25060 traversed_nonzero=3188 max_cost_visited=205 
+   cap=98 (internal 252): found=19 kept=5 reachable_kept=5 bfs_visited=26352 traversed_nonzero=4480 max_cost_visited=226 
+TOTAL failures: 0

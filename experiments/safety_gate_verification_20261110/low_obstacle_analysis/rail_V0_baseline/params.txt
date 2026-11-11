@@ -1,0 +1,5 @@
+/depth_obstacle_filter min_height: Node not found 
+/depth_obstacle_filter max_height: Node not found 
+/depth_obstacle_filter processing_hz: Node not found 
+/local_costmap/local_costmap obstacle_layer.depth_obstacles.min_obstacle_height: Node not found 
+/global_costmap/global_costmap obstacle_layer.depth_obstacles.min_obstacle_height: Double value is: 0.02 

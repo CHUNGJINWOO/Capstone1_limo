@@ -1,0 +1,41 @@
+{
+  "timestamp": 1794044061.244445,
+  "topics": {
+    "/clock": {
+      "active": true,
+      "hz": 1000.3,
+      "samples": 8003
+    },
+    "/scan": {
+      "active": true,
+      "hz": 9.99,
+      "samples": 80,
+      "valid_beams": 360,
+      "min_range": 1.074
+    },
+    "/odom": {
+      "active": true,
+      "hz": 49.96,
+      "samples": 400
+    },
+    "/tf": {
+      "active": true,
+      "hz": 69.87,
+      "samples": 559
+    }
+  },
+  "locomotion": {
+    "initial_odom": [
+      4707.960817925,
+      -1.415082124605279e-20,
+      2.4830059951026398e-49
+    ],
+    "final_odom": [
+      4710.962029043,
+      0.7482499999980015,
+      2.786163450799923e-10
+    ],
+    "moved_distance_m": 0.748,
+    "locomotion_verified": true
+  }
+}

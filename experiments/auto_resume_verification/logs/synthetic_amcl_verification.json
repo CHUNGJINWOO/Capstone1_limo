@@ -1,0 +1,36 @@
+{
+  "run_id": "afe4548c-9e62-4c3a-aa33-f5688e90eb53",
+  "command": "python3 /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_resume_verification/scripts/run_synthetic_amcl_test.py",
+  "code_hash": "git:67fbb4d69b27a089d9d16de7f1eaf1b87e42cd73 | script_sha256:a75f3124873834587e1c1ca4884d084a6fd22e3f50408a59a393766a5e4d6e7f",
+  "raw_log_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_resume_verification/logs/synthetic_amcl_verification.raw.log",
+  "test_type": "synthetic_amcl_standalone",
+  "start_pose_injected": false,
+  "ready_gate_bypassed": false,
+  "localization_ready_emitted": true,
+  "localization_time_sec": 20.5,
+  "ground_truth_map": [
+    4.2,
+    3.1,
+    0.4
+  ],
+  "estimated_pose": [
+    4.3282,
+    3.1004,
+    0.4247
+  ],
+  "position_error_m": 0.1282,
+  "yaw_error_rad": 0.0247,
+  "amcl_node_terminated": true,
+  "slam_node_active": "\ubbf8\uce21\uc815 (\ud569\uc131 AMCL \ub2e8\ub3c5 \uc2dc\ud5d8)",
+  "tf_duplicated": "\ubbf8\uce21\uc815 (\ud569\uc131 AMCL \ub2e8\ub3c5 \uc2dc\ud5d8)",
+  "post_handoff_slam_pose": "\ubbf8\uce21\uc815 (\ud569\uc131 AMCL \ub2e8\ub3c5 \uc2dc\ud5d8)",
+  "pose_delta_position_m": "\ubbf8\uce21\uc815 (\ud569\uc131 AMCL \ub2e8\ub3c5 \uc2dc\ud5d8)",
+  "pose_delta_yaw_rad": "\ubbf8\uce21\uc815 (\ud569\uc131 AMCL \ub2e8\ub3c5 \uc2dc\ud5d8)",
+  "min_obstacle_distance_m": "\ubbf8\uce21\uc815 (Gazebo \ubbf8\uc2e4\ud589)",
+  "collision_detected": "\ubbf8\uce21\uc815 (Gazebo \ubbf8\uc2e4\ud589)",
+  "action_goal_accepted": "\ubbf8\uce21\uc815 (Action \ubbf8\uc2e4\ud589)",
+  "action_status": "\ubbf8\uce21\uc815 (Action \ubbf8\uc2e4\ud589)",
+  "action_feedback_received": "\ubbf8\uce21\uc815 (Action \ubbf8\uc2e4\ud589)",
+  "action_cmd_vel_count": "\ubbf8\uce21\uc815 (Action \ubbf8\uc2e4\ud589)",
+  "new_serialized_files": "\ubbf8\uce21\uc815 (\ud569\uc131 AMCL \ub2e8\ub3c5 \uc2dc\ud5d8)"
+}

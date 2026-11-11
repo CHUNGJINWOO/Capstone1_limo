@@ -1,0 +1,26 @@
+random-map equivalence (cap=0): PASS 60/60
+== explore_relaxed_eval/dumps/attempt3_snap1_sim51.txt  robot=(-1.19,1.01)
+   original: kept=7 | relaxed(cap 0): kept=7 identical=YES
+   cap= 0 (internal   0): found=88 kept=7 reachable_kept=7 NE_box_frontiers=0 bfs_visited=5277 traversed_nonzero=0 max_cost_visited=0 
+   cap=20 (internal  50): found=88 kept=7 reachable_kept=7 NE_box_frontiers=0 bfs_visited=5277 traversed_nonzero=0 max_cost_visited=0 
+   cap=40 (internal 101): found=88 kept=7 reachable_kept=7 NE_box_frontiers=0 bfs_visited=5277 traversed_nonzero=0 max_cost_visited=0 
+   cap=45 (internal 114): found=102 kept=7 reachable_kept=7 NE_box_frontiers=0 bfs_visited=5694 traversed_nonzero=242 max_cost_visited=112 
+   cap=50 (internal 127): found=102 kept=7 reachable_kept=7 NE_box_frontiers=0 bfs_visited=5712 traversed_nonzero=260 max_cost_visited=120 
+   cap=55 (internal 140): found=103 kept=7 reachable_kept=7 NE_box_frontiers=0 bfs_visited=5787 traversed_nonzero=321 max_cost_visited=132 
+   cap=60 (internal 153): found=113 kept=9 reachable_kept=9 NE_box_frontiers=1 bfs_visited=24500 traversed_nonzero=2671 max_cost_visited=153 
+   cap=70 (internal 179): found=113 kept=9 reachable_kept=9 NE_box_frontiers=1 bfs_visited=24500 traversed_nonzero=2671 max_cost_visited=153 
+   cap=80 (internal 205): found=113 kept=9 reachable_kept=9 NE_box_frontiers=1 bfs_visited=24894 traversed_nonzero=3065 max_cost_visited=205 
+   cap=98 (internal 252): found=113 kept=9 reachable_kept=9 NE_box_frontiers=1 bfs_visited=26194 traversed_nonzero=4365 max_cost_visited=226 
+== explore_relaxed_eval/dumps/attempt3_snap4_sim54.txt  robot=(-1.23,0.97)
+   original: kept=2 | relaxed(cap 0): kept=2 identical=YES
+   cap= 0 (internal   0): found=9 kept=2 reachable_kept=2 NE_box_frontiers=0 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=20 (internal  50): found=9 kept=2 reachable_kept=2 NE_box_frontiers=0 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=40 (internal 101): found=9 kept=2 reachable_kept=2 NE_box_frontiers=0 bfs_visited=5598 traversed_nonzero=0 max_cost_visited=0 
+   cap=45 (internal 114): found=9 kept=2 reachable_kept=2 NE_box_frontiers=0 bfs_visited=5866 traversed_nonzero=266 max_cost_visited=112 
+   cap=50 (internal 127): found=9 kept=2 reachable_kept=2 NE_box_frontiers=0 bfs_visited=5892 traversed_nonzero=292 max_cost_visited=120 
+   cap=55 (internal 140): found=9 kept=2 reachable_kept=2 NE_box_frontiers=0 bfs_visited=5978 traversed_nonzero=378 max_cost_visited=132 
+   cap=60 (internal 153): found=18 kept=4 reachable_kept=4 NE_box_frontiers=1 bfs_visited=24624 traversed_nonzero=2752 max_cost_visited=153 
+   cap=70 (internal 179): found=18 kept=4 reachable_kept=4 NE_box_frontiers=1 bfs_visited=24624 traversed_nonzero=2752 max_cost_visited=153 
+   cap=80 (internal 205): found=18 kept=4 reachable_kept=4 NE_box_frontiers=1 bfs_visited=25060 traversed_nonzero=3188 max_cost_visited=205 
+   cap=98 (internal 252): found=19 kept=5 reachable_kept=5 NE_box_frontiers=1 bfs_visited=26352 traversed_nonzero=4480 max_cost_visited=226 
+TOTAL failures: 0

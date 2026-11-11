@@ -1,0 +1,106 @@
+{
+ "camera_height_in_base_footprint_tf_m": 0.13,
+ "floor_level_z_in_filter_frame_m": -0.044,
+ "z_histogram_points_ahead(0.01m_bins_from_-0.10)": [
+  0,
+  0,
+  0,
+  0,
+  0,
+  2048,
+  0,
+  0,
+  168,
+  164,
+  134,
+  7,
+  6,
+  8,
+  6,
+  7,
+  7,
+  7,
+  7,
+  7,
+  7
+ ],
+ "depth_filter_params": {},
+ "clearing_points_near_rail": 4989,
+ "clearing_points_near_rail_z": {
+  "min": -0.044,
+  "p50": 0.13,
+  "max": 0.407
+ },
+ "clearing_points_near_rail_above_floor+12mm": {
+  "n": 3411,
+  "z_max": 0.407,
+  "height_above_floor_max_m": 0.451
+ },
+ "marked_points_total": 3638,
+ "marked_points_near_rail": 1735,
+ "marked_points_near_rail_z": {
+  "min": -0.02,
+  "max": 0.35
+ },
+ "local_costmap_frame": "odom",
+ "local_cost_on_rail_line": [
+  100,
+  99,
+  99,
+  99,
+  99,
+  99,
+  100
+ ],
+ "local_cost_0.10m_before_rail": [
+  99,
+  99,
+  99,
+  99,
+  99,
+  99,
+  99
+ ],
+ "local_cost_robot_center": 0,
+ "local_max_cost_in_rail_box(+-0.10m)": 100,
+ "global_costmap_frame": "map",
+ "global_cost_on_rail_line": [
+  100,
+  99,
+  99,
+  99,
+  99,
+  99,
+  100
+ ],
+ "global_cost_0.10m_before_rail": [
+  99,
+  99,
+  99,
+  99,
+  99,
+  99,
+  99
+ ],
+ "global_cost_robot_center": 0,
+ "global_max_cost_in_rail_box(+-0.10m)": 100,
+ "scan_sector_deg": [
+  -22.5,
+  15.1
+ ],
+ "scan_returns_in_sector": [
+  0.61,
+  0.63,
+  0.64,
+  0.65,
+  0.66,
+  0.96,
+  0.97,
+  0.98,
+  1.42,
+  1.44,
+  1.53,
+  1.79
+ ],
+ "scan_expected_rail_range_m": 0.73
+}

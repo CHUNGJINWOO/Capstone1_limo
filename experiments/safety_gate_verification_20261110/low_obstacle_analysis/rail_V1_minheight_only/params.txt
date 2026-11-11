@@ -1,0 +1,5 @@
+/depth_obstacle_filter min_height: Double value is: -0.02 
+/depth_obstacle_filter max_height: Double value is: 0.35 
+/depth_obstacle_filter processing_hz: Double value is: 10.0 
+/local_costmap/local_costmap obstacle_layer.depth_obstacles.min_obstacle_height: Double value is: 0.02 
+/global_costmap/global_costmap obstacle_layer.depth_obstacles.min_obstacle_height: Double value is: 0.02 

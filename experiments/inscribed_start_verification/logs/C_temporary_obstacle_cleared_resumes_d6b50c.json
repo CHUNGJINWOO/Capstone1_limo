@@ -1,0 +1,52 @@
+{
+  "run_id": "C_temporary_obstacle_cleared_resumes_d6b50c",
+  "condition_id": "C",
+  "label": "temporary_obstacle_cleared_resumes",
+  "verdict": "FAIL",
+  "verdict_reasons": [
+    "c1(cost>=99)=False",
+    "c2(detect_log)=False",
+    "c3(obstacle_removed)=True",
+    "c4(no_timeout)=True",
+    "c5(exploration_resumed)=True"
+  ],
+  "git_hash": "67fbb4d69b27a089d9d16de7f1eaf1b87e42cd73",
+  "package_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/inscribed_start_verification/ws/src/limo_auto_mapping",
+  "code_hashes": {
+    "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "explorer.py": "54ff9d2c7f2e77ffad638cc88d29cb61369839f443ea254be90577c3fa788c32",
+    "frontier.py": "2ae29b89a69bf12684c9af9503e9f5ac75ba2714d8b7b3ae2e80808e1f6b7ee6",
+    "localization.py": "fb584982646b9f5710aee4273940ed4bf26bff5271145fb580c182029b4b0864",
+    "policy.py": "1e6159e00bbfd7e2d693009b4b04c527b43b77ad55e7e62c2d135050def80d27",
+    "resume.py": "9c21eb74482f8561d678ea3e8352b4f7a3e594ac559f469a04db0f0d2560c77f",
+    "server.py": "c4d7eb9c23f729c630a9e0a37aaa40a81aaa2e491fe75e3180f1d43ed3b67b67"
+  },
+  "spawn_coords": {
+    "x": -7.0,
+    "y": 0.0,
+    "yaw": 0.0
+  },
+  "robot_map_tf_pose": [
+    -2.520001891603623e-13,
+    2.934668026149633e-47
+  ],
+  "start_center_cost": 0,
+  "grid_details": {
+    "gx": 16,
+    "gy": 116,
+    "resolution": 0.05000000074505806,
+    "origin_x": -0.8205520585535917,
+    "origin_y": -5.817447209935726
+  },
+  "wall_collision_state": "temporary_obstacle_adjacent",
+  "inflation_wait_detected": false,
+  "inflation_timeout_detected": false,
+  "wait_duration_sec": 0.0,
+  "dispatched_nav_goals": 2,
+  "action_terminal_status": null,
+  "action_result_success": false,
+  "action_result_message": "",
+  "cmd_vel_count": 598,
+  "dist_traveled_m": 0.7171,
+  "raw_mapping_log_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/inscribed_start_verification/logs/C_temporary_obstacle_cleared_resumes_d6b50c_mapping.log"
+}

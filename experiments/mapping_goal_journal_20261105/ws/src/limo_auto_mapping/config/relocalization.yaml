@@ -1,0 +1,19 @@
+auto_mapping_resume:
+  ros__parameters:
+    localization_timeout_sec: 120.0    # 위치를 못 찾으면 이 시간 후 실패. 맵핑 세션 제한과 별개다.
+    mapping_ready_timeout_sec: 45.0   # AMCL 종료 후 SLAM 정합을 기다리는 최대 시간
+    localization_attempts: 2          # 독립적인 전역 초기화 결과도 서로 가까워야 한다.
+    global_particles: 20000           # 지도 전체 탐색 후보 수. 기존 위치 근방 추정의 2000과 구분
+    stable_sec: 5.0                   # 새 관측들이 이 시간 이상 안정되어야 한다.
+    stable_samples: 5
+    max_xy_std: 0.20                  # AMCL 전체 XY 공분산의 최대 표준편차(m)
+    max_yaw_std: 0.15                 # yaw 표준편차(rad)
+    min_scan_beams: 30
+    min_hit_ratio: 0.75               # 유효 scan 끝점 중 기존 지도 벽과 맞는 비율
+    min_known_ratio: 0.80             # scan 광선 중 기존 지도에서 알려진 영역 비율
+    max_blocked_ratio: 0.05           # 알려진 벽을 관통하는 것으로 보이는 광선의 최대 비율
+    min_hit_sectors: 3                # 최소 3개 방향 구간에서 벽 정합 필요(구간당 45도)
+    wall_tolerance: 0.15              # 지도 벽과 scan 끝점 정합 허용 거리(m)
+    minimum_clearance: 0.05           # 설정된 robot_radius에 더해 확인할 지도 여유(m)
+    max_stationary_distance: 0.05     # 위치 추정·전환 중 허용 오도메트리 이동(m)
+    max_stationary_yaw: 0.05          # 같은 구간의 허용 회전(rad)

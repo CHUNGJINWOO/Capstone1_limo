@@ -1,0 +1,21 @@
+gate: {"sim_time": 50.8, "state": "NORMAL", "state_code": 0, "cmd_blocked": 
+---
+/cmd_vel PUB:       1 stall_detector_node 
+/cmd_vel_raw PUB:       3 behavior_server       1 velocity_smoother 
+BT: navigate_to_pose_ackermann_no_reverse.xml
+gate state at start: NORMAL
+Traceback (most recent call last):
+  File "/home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/scripts/nav_test.py", line 163, in <module>
+    main()
+  File "/home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/scripts/nav_test.py", line 132, in main
+    best = n.pick_goal(dist)
+  File "/home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/scripts/nav_test.py", line 73, in pick_goal
+    rx, ry, ryaw = self.robot_in_map()
+  File "/home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/scripts/nav_test.py", line 66, in robot_in_map
+    t = self.tfb.lookup_transform('map', 'base_footprint', rclpy.time.Time())
+  File "/opt/ros/humble/lib/python3.10/site-packages/tf2_ros/buffer.py", line 136, in lookup_transform
+    return self.lookup_transform_core(target_frame, source_frame, time)
+tf2.ExtrapolationException: Lookup would require extrapolation into the past.  Requested time 56.800000 but the earliest data is at time 57.000000, when looking up transform from frame [base_footprint] to frame [map]
+gate after: {"sim_time": 58.0, "state": "NORMAL", "state_code": 0, "cmd_blocked": 
+---
+gate log: 

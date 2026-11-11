@@ -1,0 +1,55 @@
+{
+ "run": ".",
+ "resolution_m": 0.05000000074505806,
+ "interior_area_m2": 103.84,
+ "known_in_interior_m2": 3.47,
+ "free_in_interior_m2": 3.34,
+ "occupied_in_interior_m2": 0.13,
+ "interior_known_fraction": 0.033,
+ "known_outside_interior_m2": 0.0,
+ "note_outside": "known cells outside the outer walls = leaked rays (e.g. through glass) or wall thickness",
+ "walls": [
+  {
+   "wall": "north (y=4.4)",
+   "occupied_cells_in_band": 0,
+   "along_coverage": 0.0
+  },
+  {
+   "wall": "south (y=-4.4)",
+   "occupied_cells_in_band": 0,
+   "along_coverage": 0.0
+  },
+  {
+   "wall": "west (x=-5.9)",
+   "occupied_cells_in_band": 0,
+   "along_coverage": 0.0
+  },
+  {
+   "wall": "east (x=5.9)",
+   "occupied_cells_in_band": 0,
+   "along_coverage": 0.0
+  },
+  {
+   "wall": "glass wall (y=-1.5)",
+   "occupied_cells_in_band": 33,
+   "offset_mean_m": 0.02,
+   "offset_std_m": 0.026,
+   "offset_p95_abs_m": 0.081,
+   "along_coverage": 0.271
+  }
+ ],
+ "outer_wall_mean_coverage": 0.0,
+ "outer_wall_mean_abs_offset_m": null,
+ "outer_wall_mean_std_m": null,
+ "occupied_away_from_walls_m2": 0.03,
+ "unknown_inside_clusters_ge_0p25m2": [
+  {
+   "area_m2": 100.08,
+   "centroid_world": [
+    0.06,
+    0.0
+   ]
+  }
+ ],
+ "unknown_inside_total_m2": 100.37
+}

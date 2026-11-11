@@ -1,0 +1,110 @@
+--- limo_capstone/stall_detector_node.py	2026-11-09 21:10:21.816106066 +0900
++++ <scratch>/fe2c625b-b45f-43a9-986a-46b18e86cc4c/scratchpad/exp2/stall_detector_init.py	2026-11-10 20:33:31.487706157 +0900
+@@ -41,8 +41,10 @@
+ STATE_FAILSAFE_SENSOR_TIMEOUT = 3
+ STATE_FAILSAFE_ICP_DEGRADED = 4
+ STATE_RECOVERING_REVERSE = 5
++STATE_INITIALIZING = 6
+ 
+ STATE_NAMES = {
++    STATE_INITIALIZING: 'INITIALIZING',
+     STATE_NORMAL: 'NORMAL',
+     STATE_STALL_PENDING: 'STALL_PENDING',
+     STATE_STALL_LATCHED: 'STALL_LATCHED',
+@@ -70,6 +72,10 @@
+         self.declare_parameter('min_icp_inlier_count', 100.0)
+         self.declare_parameter('max_icp_error_m', 0.15)
+         self.declare_parameter('require_lidar_odom', True)
++        # Startup arming: output stays 0 until every required sensor is healthy for
++        # startup_ready_hold_sec; not armed within startup_timeout_sec -> FAILSAFE.
++        self.declare_parameter('startup_ready_hold_sec', 0.5)
++        self.declare_parameter('startup_timeout_sec', 30.0)
+ 
+         self.enabled = bool(self.get_parameter('enabled').value)
+         self.enable_auto_reverse = bool(self.get_parameter('enable_auto_reverse').value)
+@@ -86,8 +92,12 @@
+         self.min_inliers = float(self.get_parameter('min_icp_inlier_count').value)
+         self.max_icp_err = float(self.get_parameter('max_icp_error_m').value)
+         self.require_lidar_odom = bool(self.get_parameter('require_lidar_odom').value)
++        self.startup_hold = float(self.get_parameter('startup_ready_hold_sec').value)
++        self.startup_timeout = float(self.get_parameter('startup_timeout_sec').value)
++        self.ready_since_sim_t = None
++        self.init_start_sim_t = None
+ 
+-        self.state = STATE_NORMAL
++        self.state = STATE_INITIALIZING
+         self.pending_start_sim_t = None
+         self.latched_sim_t = None
+         self.zero_cmd_start_sim_t = None
+@@ -212,14 +222,21 @@
+         self.depth_msg_count += 1
+ 
+     def cb_reset_latch(self, req: Trigger.Request, resp: Trigger.Response):
++        if self.state == STATE_INITIALIZING:
++            resp.success = False
++            resp.message = "Still INITIALIZING (sensors not yet healthy); reset refused."
++            return resp
+         prev_state_name = STATE_NAMES.get(self.state, 'UNKNOWN')
+-        self.state = STATE_NORMAL
++        # Re-arm through the same readiness check instead of jumping to NORMAL.
++        self.state = STATE_INITIALIZING
++        self.init_start_sim_t = None
++        self.ready_since_sim_t = None
+         self.pending_start_sim_t = None
+         self.latched_sim_t = None
+         self.zero_cmd_start_sim_t = None
+         self.operator_unlatch_count += 1
+         resp.success = True
+-        resp.message = f"Stall latch cleared by operator (transitioned from {prev_state_name} to NORMAL)."
++        resp.message = f"Latch cleared by operator ({prev_state_name} -> INITIALIZING; re-arms when sensors are healthy)."
+         self.get_logger().info(f"[OPERATOR RESET] {resp.message}")
+         return resp
+ 
+@@ -282,7 +299,37 @@
+             and (self.last_icp_inliers < self.min_inliers or icp_diag_stale)
+         )
+ 
+-        if scan_stale or lidar_stale or depth_fault:
++        if self.state == STATE_INITIALIZING:
++            # Arm only once, when all required inputs exist, are fresh and healthy,
++            # and no motion is being commanded. Output stays 0 meanwhile (section 3).
++            if self.init_start_sim_t is None:
++                self.init_start_sim_t = t_now
++            ready = (
++                self.last_scan_sim_t is not None and not scan_stale
++                and (not self.require_lidar_odom or (self.last_lidar_sim_t is not None and not lidar_stale))
++                and (self.depth_mode != 'required' or (self.last_depth_sim_t is not None and not depth_fault))
++                and not icp_degraded
++            )
++            if not ready:
++                self.ready_since_sim_t = None
++            elif self.ready_since_sim_t is None:
++                self.ready_since_sim_t = t_now
++            if ready and not want_motion and (t_now - self.ready_since_sim_t) >= self.startup_hold:
++                self.state = STATE_NORMAL
++                self.get_logger().info(
++                    f"[ARMED] All required sensors healthy for {t_now - self.ready_since_sim_t:.2f}s; "
++                    f"INITIALIZING -> NORMAL after {t_now - self.init_start_sim_t:.2f}s."
++                )
++            elif self.startup_timeout > 0.0 and (t_now - self.init_start_sim_t) > self.startup_timeout:
++                self.state = STATE_FAILSAFE_SENSOR_TIMEOUT
++                self.failsafe_event_count += 1
++                self.get_logger().error(
++                    f"[FAIL-SAFE STARTUP TIMEOUT] not ready after {self.startup_timeout:.1f}s: "
++                    f"scan={self.last_scan_sim_t is not None and not scan_stale}, "
++                    f"lidar={self.last_lidar_sim_t is not None and not lidar_stale}, "
++                    f"depth_code={self.depth_code}, want_motion={want_motion}. Blocking all motion."
++                )
++        elif scan_stale or lidar_stale or depth_fault:
+             if self.state != STATE_FAILSAFE_SENSOR_TIMEOUT:
+                 self.state = STATE_FAILSAFE_SENSOR_TIMEOUT
+                 self.failsafe_event_count += 1
+@@ -383,7 +430,7 @@
+         out = Twist()
+         self.cmd_blocked = False
+         if self.enabled:
+-            if self.state in (STATE_FAILSAFE_SENSOR_TIMEOUT, STATE_FAILSAFE_ICP_DEGRADED):
++            if self.state in (STATE_INITIALIZING, STATE_FAILSAFE_SENSOR_TIMEOUT, STATE_FAILSAFE_ICP_DEGRADED):
+                 out.linear.x = 0.0
+                 out.linear.y = 0.0
+                 out.angular.z = 0.0

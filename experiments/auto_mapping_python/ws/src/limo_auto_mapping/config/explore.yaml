@@ -1,0 +1,12 @@
+explore_node:
+  ros__parameters:
+    robot_base_frame: base_link                  # TF에서 로봇 위치를 읽을 차체 프레임
+    costmap_topic: /global_costmap/costmap       # inflation이 적용된 전체 costmap
+    planner_frequency: 0.33                     # 목표가 없을 때 약 3초마다 후보 탐색
+    progress_timeout: 25.0                      # 25초 동안 목표에 가까워지지 못하면 취소
+    potential_scale: 3.0                        # 가까운 목표를 우선하는 가중치
+    gain_scale: 1.0                             # 큰 미탐색 경계를 우선하는 가중치
+    min_frontier_size: 0.20                     # 이보다 작은 경계 그룹은 후보에서 제외(m)
+    blacklist_radius: 0.20                      # 실패한 위치 주변을 제외하는 반경(m)
+    min_progress_distance: 0.05                 # 진행으로 인정할 목표 거리 감소량(m)
+    transform_tolerance: 0.6                    # 로봇 TF의 최대 허용 지연(s)

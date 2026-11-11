@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-11-04T23:14:45+0900",
+  "code_hashes": {
+    "server": "c4d7eb9c23f729c630a9e0a37aaa40a81aaa2e491fe75e3180f1d43ed3b67b67",
+    "explorer": "929c5a6316abcbbc0897d446fc1c7a3ac26c7970508c56b2f60fac26028414cf",
+    "frontier": "bdb71c0a1a1f9b7f85bcc4be7a126a6bbce428225a6825ba26863d8236a2e28d",
+    "resume": "b0ee13572d20140a513561ff38adc618cb7be4cb3c5434941591607a73e7fd91"
+  },
+  "raw_log_path": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/gazebo_obstacle_mapping/logs/baseline_live_reproduction.raw.log",
+  "results": [
+    {
+      "run_id": "84c59d12-f258-486b-baeb-117d671edd9f",
+      "condition": "C2_start_in_inflation_zone",
+      "reproduced": true,
+      "cause": "Python explorer reported an error; inspect explorer log",
+      "traceback_log": "[mapping_server-10] [ERROR] [1793801684.572806275] [explore_node]: Robot outside known traversable costmap",
+      "distance_traveled_m": 1.2516068326236406e-13,
+      "feedbacks": [
+        "waiting_for_inputs",
+        "exploring",
+        "exploring",
+        "exploring",
+        "exploring",
+        "exploring",
+        "exploring",
+        "exploring"
+      ],
+      "action_status": 6,
+      "contact_measured": "not_measured"
+    }
+  ]
+}

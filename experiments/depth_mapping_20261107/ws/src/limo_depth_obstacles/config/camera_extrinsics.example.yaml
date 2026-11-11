@@ -1,0 +1,10 @@
+# 실측한 경우에만 별도 사본을 작성한다. 이 예시 자체는 실행에 사용할 수 없다.
+calibrated: false
+parent_frame: base_link
+child_frame: camera_link
+x: null
+y: null
+z: null
+roll: null
+pitch: null
+yaw: null

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/scripts/frontier_probe.py", line 41, in <module>
+    tr = tfb.lookup_transform('map', 'base_footprint', rclpy.time.Time()).transform
+  File "/opt/ros/humble/lib/python3.10/site-packages/tf2_ros/buffer.py", line 136, in lookup_transform
+    return self.lookup_transform_core(target_frame, source_frame, time)
+tf2.LookupException: "map" passed to lookupTransform argument target_frame does not exist. 

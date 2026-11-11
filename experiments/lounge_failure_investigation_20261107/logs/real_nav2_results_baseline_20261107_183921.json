@@ -1,0 +1,38 @@
+[
+  {
+    "scenario_id": "D",
+    "name": "Complex Lounge Navigation Test",
+    "is_improved": false,
+    "verdict": "INCONCLUSIVE",
+    "action_status": "GOAL_REJECTED",
+    "failure_reason": "Navigation ended with status: GOAL_REJECTED",
+    "odom": {
+      "samples": 1,
+      "initial": {
+        "time": 1794044376.7380002,
+        "x": -9.454391206919065e-21,
+        "y": 1.813871685895269e-49,
+        "yaw": -7.137134214476178e-30
+      },
+      "final": {
+        "time": 1794044376.7380002,
+        "x": -9.454391206919065e-21,
+        "y": 1.813871685895269e-49,
+        "yaw": -7.137134214476178e-30
+      },
+      "net_displacement_m": 0.0
+    },
+    "cmd_vel": {
+      "samples": 0
+    },
+    "global_paths_planned": 0,
+    "local_paths_planned": 0,
+    "costmap_metadata": "NOT_MEASURED",
+    "scan_data": {
+      "total_messages": 1,
+      "beams_per_scan": 360,
+      "valid_beams_last": 351,
+      "min_range_last": 1.4
+    }
+  }
+]

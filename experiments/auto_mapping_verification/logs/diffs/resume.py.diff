@@ -1,0 +1,70 @@
+--- "/home/cjinw/school/2026-2/Capstone1_limo/notebook/2026_11_04/01_\354\236\220\353\217\231\353\247\265\355\225\221/LIMO_COPY/capstone_ws/src/limo_auto_mapping/limo_auto_mapping/resume.py"	2026-11-04 17:21:28.202276653 +0900
++++ /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/ws/src/limo_auto_mapping/limo_auto_mapping/resume.py	2026-11-04 22:53:47.136898515 +0900
+@@ -234,10 +234,12 @@
+         started_stamp = self.now()
+         stable = StablePose(self.p('stable_sec'), self.p('stable_samples'))
+         last_request = last_report = 0.
++        mismatch_count = 0
++        last_mismatch_scan_stamp = 0.0
+         while time.monotonic() < self.localization_end:
+             self.spin()
+             self.stationary()
+-            if time.monotonic()-last_request >= 1.0:
++            if time.monotonic()-last_request >= 0.5:
+                 # 움직이지 않아도 새 scan으로 AMCL을 갱신한다. 속도 명령은 아니다.
+                 self.call(self.no_motion, Empty.Request())
+                 last_request = time.monotonic()
+@@ -247,7 +249,7 @@
+                     raise ValueError('Waiting for map-frame localization')
+                 if stable.last_stamp is not None and self.stamp(msg) <= stable.last_stamp:
+                     continue  # 같은 pose를 여러 번 검사해 안정 관측 수를 부풀리지 않는다.
+-                if self.stamp(msg) <= started_stamp or abs(self.stamp(msg)-self.stamp(scan)) > .5:
++                if self.stamp(msg) <= started_stamp or abs(self.stamp(msg)-self.stamp(scan)) > 1.5:
+                     raise ValueError('Waiting for synchronized new pose/scan')
+                 pose = planar_pose(msg.pose.pose)
+                 if not covariance_ok(msg.pose.covariance, self.p('max_xy_std'), self.p('max_yaw_std')):
+@@ -258,21 +260,44 @@
+                 laser, _ = self.transform('base_link', scan.header.frame_id, scan.header.stamp)
+                 pose = self.matcher.refine_pose(pose, scan, laser)
+                 self.scan_matches(pose, scan)
++                mismatch_count = 0
++                last_mismatch_scan_stamp = 0.0
+                 if stable.observe(time.monotonic(), self.stamp(msg), pose, True):
+                     return pose
+             except ValueError as exc:
+                 stable.observe(time.monotonic(), 0, (0, 0, 0), False)
++                if 'Scan/map mismatch' in str(exc):
++                    # 동일 메시지가 빠른 루프에서 중복 조회된 경우 횟수를 부풀리지 않고,
++                    # 새로운 LaserScan 메시지가 도착했을 때만 불일치 횟수를 증가시킨다.
++                    try:
++                        scan_stamp = self.stamp(scan)
++                        if scan_stamp > last_mismatch_scan_stamp:
++                            last_mismatch_scan_stamp = scan_stamp
++                            mismatch_count += 1
++                    except Exception:
++                        pass
++                    if mismatch_count >= 8:
++                        self.set_status('localizing', 'False mode rejected by map matcher; reinitializing global localization')
++                        self.call(self.reset_global, Empty.Request())
++                        self.samples.pop('pose', None)
++                        started_stamp = self.now()
++                        mismatch_count = 0
++                        last_mismatch_scan_stamp = 0.0
++                else:
++                    mismatch_count = 0
+                 if time.monotonic()-last_report > 3:
+                     self.set_status('localizing', str(exc))
+                     last_report = time.monotonic()
+             except Exception as exc:
+                 # TF가 아직 준비되지 않은 동안은 주행 없이 제한 시간 내에서 기다린다.
+                 stable.reset()
++                mismatch_count = 0
+                 if time.monotonic()-last_report > 3:
+                     self.set_status('localizing', str(exc))
+                     last_report = time.monotonic()
+         raise TimeoutError('Localization not reliable before timeout; use manual start_pose or retry elsewhere')
+ 
++
+     def launch(self, arguments):
+         self.check()
+         if self.child is not None:

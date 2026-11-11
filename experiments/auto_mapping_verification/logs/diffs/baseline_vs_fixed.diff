@@ -1,0 +1,410 @@
+diff -u -r "/home/cjinw/school/2026-2/Capstone1_limo/notebook/2026_11_04/01_\354\236\220\353\217\231\353\247\265\355\225\221/LIMO_COPY/capstone_ws/src/limo_auto_mapping/limo_auto_mapping/explorer.py" /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/ws/src/limo_auto_mapping/limo_auto_mapping/explorer.py
+--- "/home/cjinw/school/2026-2/Capstone1_limo/notebook/2026_11_04/01_\354\236\220\353\217\231\353\247\265\355\225\221/LIMO_COPY/capstone_ws/src/limo_auto_mapping/limo_auto_mapping/explorer.py"	2026-11-03 21:36:11.957038220 +0900
++++ /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/ws/src/limo_auto_mapping/limo_auto_mapping/explorer.py	2026-11-04 22:53:27.006836382 +0900
+@@ -12,7 +12,7 @@
+ from std_msgs.msg import String
+ from tf2_ros import Buffer, TransformListener
+ 
+-from .frontier import blacklisted, choose_frontiers
++from .frontier import RobotInInflationError, blacklisted, choose_frontiers
+ 
+ 
+ class FrontierExplorer(Node):
+@@ -23,16 +23,23 @@
+                     'planner_frequency': 0.33, 'progress_timeout': 25.0,
+                     'potential_scale': 3.0, 'gain_scale': 1.0,
+                     'min_frontier_size': 0.20, 'blacklist_radius': 0.20,
+-                    'min_progress_distance': 0.05, 'transform_tolerance': 0.6}
++                    'min_progress_distance': 0.05, 'transform_tolerance': 0.6,
++                    'inflation_timeout': 10.0, 'cooldown_sec': 10.0,
++                    'max_goal_retries': 2}
+         for name, value in defaults.items():
+             self.declare_parameter(name, value)
+         self.grid = None
+         self.received_at = 0.0
+         self.started_at = time.monotonic()
+         self.have_pose = False
+-        self.excluded = []        # 이미 시도한 위치는 이번 회차에서 제외해 같은 목표 반복을 막는다.
++        # 실패/성공 이력을 세분화하여 일시적 차단과 영구 차단을 분리한다.
++        self.goal_history = {}    # {(rx, ry): {'fails': int, 'last_failed': float, 'permanent': bool}}
+         self.token = 0            # 이전 취소 응답이 새 목표에 영향을 주지 않게 구분한다.
+         self.target = None        # 전송 대기·주행·취소 중에는 다음 목표를 보내지 않는다.
++        self.goal_start_robot = None  # 주행 시작 시점의 로봇 위치를 기록해 실제 이동 변위를 측정한다.
++        self.total_dispatched_goals = 0
++        self.empty_candidate_count = 0
++        self.inflation_started = 0.0
+         self.nav_goal = None
+         self.canceling = False
+         self.cancel_started = 0.0
+@@ -75,6 +82,33 @@
+             raise ValueError('Robot TF is stale')
+         return transform.transform.translation.x, transform.transform.translation.y
+ 
++    def is_goal_excluded(self, point, radius):
++        """목표가 영구 제외되었거나 쿨다운(cooldown) 기간 내에 있는지 판정한다."""
++        now = time.monotonic()
++        cooldown = self.param('cooldown_sec')
++        for p, info in self.goal_history.items():
++            if math.hypot(point[0]-p[0], point[1]-p[1]) <= radius:
++                if info.get('permanent', False):
++                    return True
++                if now - info.get('last_failed', 0.0) < cooldown:
++                    return True
++        return False
++
++    def exclude_goal(self, point, permanent=False, cooldown=10.0):
++        """실패한 목표는 재시도 횟수를 누적하고, 한도 초과 시에만 영구 제외한다."""
++        key = (round(point[0], 2), round(point[1], 2))
++        info = self.goal_history.setdefault(key, {'fails': 0, 'last_failed': 0.0, 'permanent': False})
++        if permanent:
++            info['permanent'] = True
++        else:
++            info['fails'] += 1
++            info['last_failed'] = time.monotonic()
++            if info['fails'] >= self.param('max_goal_retries'):
++                info['permanent'] = True
++                self.get_logger().warn(f'통로 영구 차단 판정: 목표 {point} 최대 재시도({info["fails"]}회) 초과로 영구 제외')
++            else:
++                self.get_logger().info(f'통로 일시 차단 감지: 목표 {point} ({info["fails"]}회 실패, {cooldown:.1f}초 쿨다운 후 재평가 가능)')
++
+     def tick(self):
+         if self.finished or self.grid is None:
+             return
+@@ -91,6 +125,8 @@
+                     return  # 새 프로세스의 TF 버퍼가 처음 채워지는 시간을 허용한다.
+                 raise
+             self.have_pose = True
++
++            # 주행 중 또는 취소 진행 중인 경우 상태 감시
+             if self.target is not None:
+                 # 실제 TF로 목표까지 거리를 측정하고 일정 이상 가까워져야 진행으로 인정한다.
+                 distance = math.hypot(robot[0]-self.target[0], robot[1]-self.target[1])
+@@ -112,20 +148,66 @@
+                         self.nav_goal.cancel_goal_async().add_done_callback(
+                             lambda future, token=self.token: self.on_cancel(future, token))
+                 return
++
+             if now < self.next_search or not self.nav.server_is_ready():
+                 return
+             self.next_search = now + 1.0/self.param('planner_frequency')
+-            candidates = choose_frontiers(
+-                self.grid, robot, self.param('min_frontier_size'),
+-                self.param('potential_scale'), self.param('gain_scale'))
++
++            try:
++                candidates = choose_frontiers(
++                    self.grid, robot, self.param('min_frontier_size'),
++                    self.param('potential_scale'), self.param('gain_scale'),
++                    allow_fallback=True)
++                # 정상적으로 경계를 계산했으므로 인플레이션 대기 상태를 초기화한다.
++                self.inflation_started = 0.0
++            except RobotInInflationError as exc:
++                # 로봇이 시작 위치 주변 인플레이션 영역에 있는 경우 설정된 시간 동안 대기 및 재평가
++                if self.inflation_started == 0.0:
++                    self.inflation_started = now
++                elapsed = now - self.inflation_started
++                timeout = self.param('inflation_timeout')
++                if elapsed < timeout:
++                    self.get_logger().warn(
++                        f'로봇 주변 인플레이션(비용 99 이상) 감지: {exc} | 재평가 대기 중 ({elapsed:.1f}s / {timeout:.1f}s)'
++                    )
++                    self.next_search = now + 1.0
++                    return
++                else:
++                    self.get_logger().error(f'인플레이션 영역 대기 시간 초과 ({elapsed:.1f}s): {exc}')
++                    self.finish('exploration_error')
++                    return
++
+             if not candidates:
++                # 시작 직후 costmap 초기화 단계에서 경계 조각이 아직 형성되지 않은 경우 즉시 완료 방지
++                if self.total_dispatched_goals == 0 and (now - self.started_at < 5.0):
++                    self.get_logger().info('시작 초기 costmap 갱신 대기 중...')
++                    return
++                self.empty_candidate_count += 1
++                if self.empty_candidate_count < 3:
++                    # 3회 연속 빈 후보가 확인될 때까지 조기 종료를 유보한다.
++                    self.next_search = now + 1.0
++                    return
+                 self.finish('exploration_complete')
+                 return
+-            available = [f for f in candidates if not blacklisted(
+-                f.point, self.excluded, self.param('blacklist_radius'))]
++
++            self.empty_candidate_count = 0
++            available = [f for f in candidates if not self.is_goal_excluded(
++                f.point, self.param('blacklist_radius'))]
+             if not available:
++                # 모든 후보가 영구 제외되었는지, 아니면 일시 쿨다운 대기 중인지 확인한다.
++                has_cooldown_candidates = any(
++                    any(math.hypot(f.point[0]-p[0], f.point[1]-p[1]) <= self.param('blacklist_radius')
++                        and not info.get('permanent', False)
++                        for p, info in self.goal_history.items())
++                    for f in candidates
++                )
++                if has_cooldown_candidates:
++                    self.get_logger().info('일시 제외된 후보의 쿨다운 대기 중... 재평가 대기')
++                    self.next_search = now + 2.0
++                    return
+                 self.finish('frontiers_exhausted')
+                 return
++
+             self.send(available[0].point, robot)
+         except Exception as exc:
+             # TF 오류를 탐색 완료로 처리하지 않는다. 상위 Action이 정지·마진 복원을 맡는다.
+@@ -135,6 +217,8 @@
+     def send(self, point, robot):
+         self.token += 1
+         self.target = point
++        self.goal_start_robot = robot
++        self.total_dispatched_goals += 1
+         self.best_distance = math.hypot(point[0]-robot[0], point[1]-robot[1])
+         self.last_progress = time.monotonic()
+         self.canceling = False
+@@ -150,7 +234,7 @@
+         try:
+             handle = future.result()
+             if not handle.accepted:
+-                self.excluded.append(self.target)
++                self.exclude_goal(self.target, permanent=False)
+                 self.target = None
+                 return
+             self.nav_goal = handle
+@@ -165,10 +249,10 @@
+         if token != self.token:
+             return  # 이전 목표의 응답은 새 목표의 상태를 바꾸지 않는다.
+         try:
+-            if not future.result().goals_canceling:
+-                # 결과와 취소 응답의 순서는 바뀔 수 있다. 결과를 받았다면 이미 종료된 것이다.
+-                if self.target is not None:
+-                    self.finish('exploration_error')
++            # 취소 요청 수락 여부를 확인한다. 실제 종료 상태는 on_result가 처리한다.
++            cancel_response = future.result()
++            if not cancel_response.goals_canceling:
++                self.get_logger().warn('Nav2 목표 취소 요청이 거부되었거나 이미 완료 단계임')
+         except Exception as exc:
+             self.get_logger().error(str(exc))
+             self.finish('exploration_error')
+@@ -181,8 +265,36 @@
+             if result.status not in (GoalStatus.STATUS_SUCCEEDED, GoalStatus.STATUS_ABORTED,
+                                      GoalStatus.STATUS_CANCELED):
+                 raise RuntimeError('Unexpected NavigateToPose terminal status')
+-            self.excluded.append(self.target)
+-            # 성공 지점도 회차 안에서 재방문하지 않는다. 남은 경계는 상위가 부분 완료로 보고한다.
++
++            # 실제 로봇의 위치 변위를 측정하여 제자리 성공을 감지한다.
++            current_robot = None
++            try:
++                current_robot = self.pose()
++            except Exception:
++                pass
++
++            displacement = 0.0
++            if current_robot is not None and self.goal_start_robot is not None:
++                displacement = math.hypot(current_robot[0]-self.goal_start_robot[0],
++                                          current_robot[1]-self.goal_start_robot[1])
++
++            if result.status == GoalStatus.STATUS_SUCCEEDED:
++                if displacement < self.param('min_progress_distance'):
++                    self.get_logger().warn(
++                        f'목표 도착 보고되었으나 로봇 이동 거리({displacement:.3f}m)가 임계값 미만: 제자리 성공으로 분류, 쿨다운 제외'
++                    )
++                    self.exclude_goal(self.target, permanent=False, cooldown=15.0)
++                else:
++                    self.get_logger().info(f'목표 도달 성공 (실제 이동 거리: {displacement:.3f}m)')
++                    self.exclude_goal(self.target, permanent=True)
++            elif result.status == GoalStatus.STATUS_ABORTED:
++                # 일시적 장애물로 인한 abort일 수 있으므로 재시도 정책을 적용한다.
++                self.get_logger().warn(f'Nav2 주행 중단(ABORTED): 목표 {self.target}')
++                self.exclude_goal(self.target, permanent=False)
++            elif result.status == GoalStatus.STATUS_CANCELED:
++                self.get_logger().info(f'Nav2 주행 취소 완료(CANCELED): 목표 {self.target}')
++                self.exclude_goal(self.target, permanent=False)
++
+             self.next_search = time.monotonic() + 2.0  # SLAM/costmap의 후속 갱신을 잠시 기다린다.
+             self.target = None
+             self.nav_goal = None
+@@ -204,3 +316,4 @@
+         node.destroy_node()
+         if rclpy.ok():
+             rclpy.shutdown()
++
+diff -u -r "/home/cjinw/school/2026-2/Capstone1_limo/notebook/2026_11_04/01_\354\236\220\353\217\231\353\247\265\355\225\221/LIMO_COPY/capstone_ws/src/limo_auto_mapping/limo_auto_mapping/frontier.py" /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/ws/src/limo_auto_mapping/limo_auto_mapping/frontier.py
+--- "/home/cjinw/school/2026-2/Capstone1_limo/notebook/2026_11_04/01_\354\236\220\353\217\231\353\247\265\355\225\221/LIMO_COPY/capstone_ws/src/limo_auto_mapping/limo_auto_mapping/frontier.py"	2026-11-03 21:36:11.957038220 +0900
++++ /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/ws/src/limo_auto_mapping/limo_auto_mapping/frontier.py	2026-11-04 22:52:31.323674259 +0900
+@@ -11,6 +11,11 @@
+ from .policy import index, neighbors, valid_grid, world
+ 
+ 
++class RobotInInflationError(ValueError):
++    """로봇 시작 위치가 장애물 인플레이션 영역(cost >= 99)에 위치함을 명시하는 예외."""
++    pass
++
++
+ @dataclass(frozen=True)
+ class Frontier:
+     point: tuple       # Nav2에 보낼 지도 좌표 (x, y): unknown 셀이 아닌 free 셀이다.
+@@ -26,15 +31,47 @@
+                 yield (y+dy)*width+x+dx
+ 
+ 
+-def choose_frontiers(grid, robot, minimum_size=0.2, potential_scale=3.0, gain_scale=1.0):
+-    """전체 global costmap에서 연결된 free 경계를 묶고 목표 후보를 정렬한다."""
++def choose_frontiers(grid, robot, minimum_size=0.2, potential_scale=3.0, gain_scale=1.0, allow_fallback=False):
++    """전체 global costmap에서 연결된 free 경계를 묶고 목표 후보를 정렬한다.
++    
++    로봇이 inflation 영역(cost >= 99)에 있는 경우 원인을 명확히 진단하는 예외를 발생시키거나
++    인접 허용 범위 내에서 탈출 가능한 traversable 셀을 탐색한다.
++    """
+     if not valid_grid(grid):
+         raise ValueError('Invalid global costmap')
+     start = index(grid, *robot)
+-    if start is None or not 0 <= grid.data[start] < 99:
+-        raise ValueError('Robot outside known traversable costmap')
++    if start is None:
++        raise ValueError('Robot outside known costmap bounds')
++    
++    start_cost = grid.data[start]
++    if start_cost < 0:
++        raise ValueError('Robot in unknown area')
++        
+     width, height = grid.info.width, grid.info.height
+ 
++    # 시작 셀이 인플레이션(>=99)인 경우 처리:
++    if start_cost >= 99:
++        # 로봇 중심 주변 반경 0.35m(약 7셀) 내에서 가장 낮은 비용의 탈출 셀을 탐색
++        best_escape = None
++        min_cost = 1000
++        rx, ry = start % width, start // width
++        search_radius_cells = int(math.ceil(0.35 / grid.info.resolution))
++        for dy in range(-search_radius_cells, search_radius_cells + 1):
++            for dx in range(-search_radius_cells, search_radius_cells + 1):
++                nx, ny = rx + dx, ry + dy
++                if 0 <= nx < width and 0 <= ny < height:
++                    cell_idx = ny * width + nx
++                    c = grid.data[cell_idx]
++                    if 0 <= c < 99 and c < min_cost:
++                        min_cost = c
++                        best_escape = cell_idx
++        if best_escape is not None:
++            start = best_escape
++        else:
++            raise RobotInInflationError(
++                f'Robot at ({robot[0]:.2f}, {robot[1]:.2f}) is stuck in inflation/obstacle cell (cost={start_cost})'
++            )
++
+     # 로봇 중심이 낮은 inflation 비용 안에 있으면 연결된 영역에서 가까운 free 셀을 찾는다.
+     # inscribed(99), lethal(100), unknown(-1)을 가로질러 free 영역을 찾지는 않는다.
+     queue, seen = deque([start]), {start}
+@@ -65,6 +102,7 @@
+ 
+     # 경계 셀을 8방향 인접 그룹으로 묶어 작은 노이즈 후보를 거른다.
+     candidates = []
++    subthreshold_groups = []
+     while boundary:
+         seed = min(boundary)  # 같은 입력 지도에서는 같은 결과가 나오도록 시작점을 고정한다.
+         boundary.remove(seed)
+@@ -76,6 +114,7 @@
+                     group.append(n)
+                     queue.append(n)
+         if len(group) * grid.info.resolution < minimum_size:
++            subthreshold_groups.append(group)
+             continue
+         points = [world(grid, cell) for cell in group]
+         cx = sum(x for x, _ in points)/len(points)
+@@ -85,9 +124,24 @@
+         distance = math.hypot(target[0]-robot[0], target[1]-robot[1])
+         score = potential_scale*distance - gain_scale*len(group)*grid.info.resolution
+         candidates.append(Frontier(target, len(group), score))
++
++    # 장애물이 많은 시작 위치에서 경계가 잘게 쪼개져 모든 그룹이 minimum_size 미만인 경우,
++    # allow_fallback=True이면 가장 큰 조각을 후보로 제공하여 즉시 탐색 종료를 방지한다.
++    if not candidates and allow_fallback and subthreshold_groups:
++        subthreshold_groups.sort(key=lambda g: len(g), reverse=True)
++        largest_group = subthreshold_groups[0]
++        points = [world(grid, cell) for cell in largest_group]
++        cx = sum(x for x, _ in points)/len(points)
++        cy = sum(y for _, y in points)/len(points)
++        target = min(points, key=lambda p: ((p[0]-cx)**2+(p[1]-cy)**2, p))
++        distance = math.hypot(target[0]-robot[0], target[1]-robot[1])
++        score = potential_scale*distance - gain_scale*len(largest_group)*grid.info.resolution
++        candidates.append(Frontier(target, len(largest_group), score))
++
+     return sorted(candidates, key=lambda candidate: (candidate.score, candidate.point))
+ 
+ 
+ def blacklisted(point, excluded, radius):
+     # 실패 위치 주변을 다음 목표에서 잠시 제외한다. 새 탐색 회차에는 목록을 초기화한다.
+     return any(math.hypot(point[0]-x, point[1]-y) <= radius for x, y in excluded)
++
+Only in /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/ws/src/limo_auto_mapping/limo_auto_mapping: __pycache__
+diff -u -r "/home/cjinw/school/2026-2/Capstone1_limo/notebook/2026_11_04/01_\354\236\220\353\217\231\353\247\265\355\225\221/LIMO_COPY/capstone_ws/src/limo_auto_mapping/limo_auto_mapping/resume.py" /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/ws/src/limo_auto_mapping/limo_auto_mapping/resume.py
+--- "/home/cjinw/school/2026-2/Capstone1_limo/notebook/2026_11_04/01_\354\236\220\353\217\231\353\247\265\355\225\221/LIMO_COPY/capstone_ws/src/limo_auto_mapping/limo_auto_mapping/resume.py"	2026-11-04 17:21:28.202276653 +0900
++++ /home/cjinw/school/2026-2/Capstone1_limo/experiments/auto_mapping_verification/ws/src/limo_auto_mapping/limo_auto_mapping/resume.py	2026-11-04 22:53:47.136898515 +0900
+@@ -234,10 +234,12 @@
+         started_stamp = self.now()
+         stable = StablePose(self.p('stable_sec'), self.p('stable_samples'))
+         last_request = last_report = 0.
++        mismatch_count = 0
++        last_mismatch_scan_stamp = 0.0
+         while time.monotonic() < self.localization_end:
+             self.spin()
+             self.stationary()
+-            if time.monotonic()-last_request >= 1.0:
++            if time.monotonic()-last_request >= 0.5:
+                 # 움직이지 않아도 새 scan으로 AMCL을 갱신한다. 속도 명령은 아니다.
+                 self.call(self.no_motion, Empty.Request())
+                 last_request = time.monotonic()
+@@ -247,7 +249,7 @@
+                     raise ValueError('Waiting for map-frame localization')
+                 if stable.last_stamp is not None and self.stamp(msg) <= stable.last_stamp:
+                     continue  # 같은 pose를 여러 번 검사해 안정 관측 수를 부풀리지 않는다.
+-                if self.stamp(msg) <= started_stamp or abs(self.stamp(msg)-self.stamp(scan)) > .5:
++                if self.stamp(msg) <= started_stamp or abs(self.stamp(msg)-self.stamp(scan)) > 1.5:
+                     raise ValueError('Waiting for synchronized new pose/scan')
+                 pose = planar_pose(msg.pose.pose)
+                 if not covariance_ok(msg.pose.covariance, self.p('max_xy_std'), self.p('max_yaw_std')):
+@@ -258,21 +260,44 @@
+                 laser, _ = self.transform('base_link', scan.header.frame_id, scan.header.stamp)
+                 pose = self.matcher.refine_pose(pose, scan, laser)
+                 self.scan_matches(pose, scan)
++                mismatch_count = 0
++                last_mismatch_scan_stamp = 0.0
+                 if stable.observe(time.monotonic(), self.stamp(msg), pose, True):
+                     return pose
+             except ValueError as exc:
+                 stable.observe(time.monotonic(), 0, (0, 0, 0), False)
++                if 'Scan/map mismatch' in str(exc):
++                    # 동일 메시지가 빠른 루프에서 중복 조회된 경우 횟수를 부풀리지 않고,
++                    # 새로운 LaserScan 메시지가 도착했을 때만 불일치 횟수를 증가시킨다.
++                    try:
++                        scan_stamp = self.stamp(scan)
++                        if scan_stamp > last_mismatch_scan_stamp:
++                            last_mismatch_scan_stamp = scan_stamp
++                            mismatch_count += 1
++                    except Exception:
++                        pass
++                    if mismatch_count >= 8:
++                        self.set_status('localizing', 'False mode rejected by map matcher; reinitializing global localization')
++                        self.call(self.reset_global, Empty.Request())
++                        self.samples.pop('pose', None)
++                        started_stamp = self.now()
++                        mismatch_count = 0
++                        last_mismatch_scan_stamp = 0.0
++                else:
++                    mismatch_count = 0
+                 if time.monotonic()-last_report > 3:
+                     self.set_status('localizing', str(exc))
+                     last_report = time.monotonic()
+             except Exception as exc:
+                 # TF가 아직 준비되지 않은 동안은 주행 없이 제한 시간 내에서 기다린다.
+                 stable.reset()
++                mismatch_count = 0
+                 if time.monotonic()-last_report > 3:
+                     self.set_status('localizing', str(exc))
+                     last_report = time.monotonic()
+         raise TimeoutError('Localization not reliable before timeout; use manual start_pose or retry elsewhere')
+ 
++
+     def launch(self, arguments):
+         self.check()
+         if self.child is not None:

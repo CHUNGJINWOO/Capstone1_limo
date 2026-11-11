@@ -1,0 +1,176 @@
+[
+  {
+    "path": "limo_capstone/2026_10_21",
+    "usb_sha256": "ad48d77f98f21000c52a29dd0ebf8c7d1c86af974264253f3a9831baa6b1873c",
+    "laptop_sha256": null,
+    "status": "usb_only"
+  },
+  {
+    "path": "limo_capstone/MC3F_nav2/active.png",
+    "usb_sha256": "177070ff8c237f5431de974b8e846b82f944fcdd513db95d8a8c58c2553a94d9",
+    "laptop_sha256": null,
+    "status": "usb_only"
+  },
+  {
+    "path": "limo_capstone/MC3F_nav2/active_tf.png",
+    "usb_sha256": "84a618e0185bfbdf5e554e72bb63247ae09e6490232117d329b6d230cce1860b",
+    "laptop_sha256": null,
+    "status": "usb_only"
+  },
+  {
+    "path": "limo_capstone/MC3F_nav2/frames_2026-10-21_15.11.43.gv",
+    "usb_sha256": "763baf5383f908fab979f8ef00f87a7d42b7250e6e50a0a74a15d035de9a0bba",
+    "laptop_sha256": null,
+    "status": "usb_only"
+  },
+  {
+    "path": "limo_capstone/MC3F_nav2/frames_2026-10-21_15.11.43.pdf",
+    "usb_sha256": "632062f50197bbf6d6793660152bcbf91f99774f9e81b8732518c2b1a38ca239",
+    "laptop_sha256": null,
+    "status": "usb_only"
+  },
+  {
+    "path": "limo_capstone/MC3F_nav2/hide_tf.png",
+    "usb_sha256": "6f23fc6092c4ddf760518c487c35db410724ef13f06b14f6f36045a3e61d0258",
+    "laptop_sha256": null,
+    "status": "usb_only"
+  },
+  {
+    "path": "limo_capstone/MC3F_nav2/limo_tf_tree-1.png",
+    "usb_sha256": "6f1ff3f2f4de4a464512d699ce44b5f18c98107a5bf185200cd2dc63832b600f",
+    "laptop_sha256": null,
+    "status": "usb_only"
+  },
+  {
+    "path": "limo_capstone/MC3F_nav2/nav2_MC3F.png",
+    "usb_sha256": "b87f95ba793f3caec96530b2660031757ae605a7279bcaa63f3340c98201e89c",
+    "laptop_sha256": null,
+    "status": "usb_only"
+  },
+  {
+    "path": "limo_capstone/config/ablation/cfg1_original.yaml",
+    "usb_sha256": null,
+    "laptop_sha256": "779303ed17e86e7914933eb00055e65873f9a5025d7692634b1ba54a41a67471",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/config/ablation/cfg2_bt_only.yaml",
+    "usb_sha256": null,
+    "laptop_sha256": "bc8b7997ffff3d2722681572a0e32f314f292b581915fb1b1282c32360ca3250",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/config/ablation/cfg3_bt_carrot.yaml",
+    "usb_sha256": null,
+    "laptop_sha256": "d3bb04f3b779a40a2db09446860135c5cbaf6cab2a355c6d2a058cd098418b5a",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/config/ablation/cfg4_all_relaxed.yaml",
+    "usb_sha256": null,
+    "laptop_sha256": "41a60b21ded480ee1621ab77f88b90b9a7c12b4b598972d5387db6fc38b0d2b7",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/config/explore.yaml",
+    "usb_sha256": "eb3df8ad99c81e544973e2e9e7e8b5df071daa0d3f7764cfada9e3e54dd2e0ca",
+    "laptop_sha256": "6b6d072f73287ca0148cfc6771c3cda911af141dedcfc184b0d9e8d36e79c788",
+    "status": "different"
+  },
+  {
+    "path": "limo_capstone/config/nav2_explore_params.yaml",
+    "usb_sha256": "96eda6bb5155f9eb63777862b3eea22f4c3e051f679c8c2637f84b5f8b5c553f",
+    "laptop_sha256": "7840f84cdc2ee1dc7709eaaf65fd9edb76036f0082ce6d3a5c98ccac85d6d1c2",
+    "status": "different"
+  },
+  {
+    "path": "limo_capstone/config/nav2_sim_ackermann_params.yaml",
+    "usb_sha256": null,
+    "laptop_sha256": "8e97e75507b27259e09b43be51c471708f095e7a564fb792ade583df70228a24",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/config/nav2_sim_params.yaml",
+    "usb_sha256": null,
+    "laptop_sha256": "779303ed17e86e7914933eb00055e65873f9a5025d7692634b1ba54a41a67471",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/config/navigate_to_pose_ackermann.xml",
+    "usb_sha256": null,
+    "laptop_sha256": "f4d960094d9cff4af41fc23bdf1937eaff4d9716a832dc352e9dca85a0f7968e",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/config/navigate_to_pose_ackermann_backup30.xml",
+    "usb_sha256": null,
+    "laptop_sha256": "db173a863e8d74a3dbeb28c1a4a9224bb147e2babe777bda047b010e21cb563a",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/launch/limo_auto_mapping_sim.launch.py",
+    "usb_sha256": null,
+    "laptop_sha256": "b14476a0baf9b6c8046a4f8bcd17f0f08170c284538e9fbafeb7c5592149d8e8",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/launch/limo_mc3f_sim.launch.py",
+    "usb_sha256": null,
+    "laptop_sha256": "a904d0749bd6507bf1dc264081516ae875f4a8fabaaa3dceec09a88c48c2bb89",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/launch/limo_nav2.launch.py",
+    "usb_sha256": "665e29c9442d3c0a41a12bb1d9c79c52e3ff1a3213a263948f642038d943788c",
+    "laptop_sha256": "a20296dd28e04e6eb06b7b064f30dcbfb2c7893844dd3b1230dd28584e7880f0",
+    "status": "different"
+  },
+  {
+    "path": "limo_capstone/launch/limo_nav2_sim.launch.py",
+    "usb_sha256": null,
+    "laptop_sha256": "36989703ed020d5da90da1cb6cec3d74b96805b5b2f0d560080b9e5ad0ce06bd",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/maps/MC_2F_10_07.png",
+    "usb_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "laptop_sha256": "27b3b85b0c1643b38f3a239a012f2c30c5e6c5957a67dd7e051f61d9406dc773",
+    "status": "different"
+  },
+  {
+    "path": "limo_capstone/rosgraph.png",
+    "usb_sha256": "c9a4aea6e607f25bf66b82c64ea5b040476b61a72eae4f0468680aa9281dfce0",
+    "laptop_sha256": null,
+    "status": "usb_only"
+  },
+  {
+    "path": "limo_capstone/scripts/map_to_world.py",
+    "usb_sha256": null,
+    "laptop_sha256": "385c8fb48f73a2696f214ce28a26aeaa17888bb0ff435c3a31039daf6653a6f4",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/setup.py",
+    "usb_sha256": "ae3c98281de5e0a48736604b890fdef2b0e875b10e9f25c92031e68d514dfedc",
+    "laptop_sha256": "44991c08acce48c3286205bcd628d34be81c091fb8dcb8028504bfe3a23bf2c2",
+    "status": "different"
+  },
+  {
+    "path": "limo_capstone/worlds/mc3f_10_15.sdf",
+    "usb_sha256": null,
+    "laptop_sha256": "a57a43abc07e61920f1a2ab3b187cca695cf253bbde2e597a3e56f91a1e81f46",
+    "status": "laptop_only"
+  },
+  {
+    "path": "limo_capstone/worlds/mc3f_with_camera.sdf",
+    "usb_sha256": null,
+    "laptop_sha256": "e35125c6b862fddabacc50536276d7f9969ec6ca3cd5b1e8442734111957034d",
+    "status": "laptop_only"
+  },
+  {
+    "path": "m-explore-ros2/explore/src/explore.cpp",
+    "usb_sha256": "ac3342bc9962b81dbec697e5fbd4b8c621bbf0fd76601b5a1344677a04682e97",
+    "laptop_sha256": "abb2f9e1d2c226902a50d068a42c1cb0e7e9dcbf3a50918d9f65fe0cdfef58fd",
+    "status": "different"
+  }
+]

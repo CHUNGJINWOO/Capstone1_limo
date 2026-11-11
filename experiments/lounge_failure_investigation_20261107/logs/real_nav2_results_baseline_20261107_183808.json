@@ -1,0 +1,23 @@
+[
+  {
+    "scenario_id": "B",
+    "name": "Chair Sled-Base Skid Clearance Test",
+    "is_improved": false,
+    "verdict": "INCONCLUSIVE",
+    "action_status": "GOAL_REJECTED",
+    "failure_reason": "Navigation ended with status: GOAL_REJECTED",
+    "odom": {
+      "samples": 0,
+      "initial": "NOT_MEASURED",
+      "final": "NOT_MEASURED",
+      "net_displacement_m": 0.0
+    },
+    "cmd_vel": {
+      "samples": 0
+    },
+    "global_paths_planned": 0,
+    "local_paths_planned": 0,
+    "costmap_metadata": "NOT_MEASURED",
+    "scan_data": "NOT_MEASURED"
+  }
+]

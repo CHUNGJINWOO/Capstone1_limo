@@ -1,0 +1,50 @@
+{
+  "run_id": "e2e_resume_1ae7e5",
+  "spawn_pose": [
+    -6.0,
+    0.0,
+    -1.57
+  ],
+  "ground_truth_map_pose": [
+    0.20000000000000018,
+    2.0,
+    -1.57
+  ],
+  "ground_truth_usage": "evaluation_only",
+  "localization_timeout_sec": 180.0,
+  "runner_timeout_sec": 180.0,
+  "ready_reached": true,
+  "handoff_successful": true,
+  "action_goal_accepted": true,
+  "action_terminal_status": "STATUS_ABORTED",
+  "saved_files": {
+    ".yaml": {
+      "exists": false,
+      "size_bytes": 0
+    },
+    ".pgm": {
+      "exists": false,
+      "size_bytes": 0
+    },
+    ".posegraph": {
+      "exists": false,
+      "size_bytes": 0
+    },
+    ".data": {
+      "exists": false,
+      "size_bytes": 0
+    }
+  },
+  "localization_error": {
+    "estimated_pose": [
+      0.3100000290572613,
+      2.4100000931322456,
+      -1.6007964307541087
+    ],
+    "position_error_m": 0.42449980301650125,
+    "yaw_error_rad": 0.03079643075410865,
+    "evaluated_strictly_post_facto": true
+  },
+  "overall_success": false,
+  "distance_traveled_m": 2.394385927740407
+}

@@ -1,0 +1,288 @@
+{
+  "test_name": "Stage2_Foundation_and_S1_Smoke_Test",
+  "timestamp": "2026-11-07 20:24:16",
+  "spawn_pose": {
+    "x": -0.8,
+    "y": -0.3,
+    "z": 0.05,
+    "yaw": 0.0
+  },
+  "samples_collected": 215,
+  "tf_links_verified": {
+    "odom -> base_footprint": true,
+    "base_footprint -> base_link": true,
+    "base_link -> imu_link": true,
+    "base_link -> laser_link": true,
+    "base_link -> depth_camera_link": true,
+    "base_link -> depth_link": true
+  },
+  "tf_odom_messages_checked": 1193,
+  "tf_backwards_timestamp_jumps": 0,
+  "topic_reception_and_sync": {
+    "/clock": {
+      "messages_received": 23785,
+      "measured_rate_hz": 951.31,
+      "last_stamp_sec": 30.902,
+      "sim_time_sync_diff_sec": 0.0,
+      "frame_id": null
+    },
+    "/imu": {
+      "messages_received": 2387,
+      "measured_rate_hz": 95.47,
+      "last_stamp_sec": 30.91,
+      "sim_time_sync_diff_sec": 0.008,
+      "frame_id": "imu_link"
+    },
+    "/scan": {
+      "messages_received": 238,
+      "measured_rate_hz": 9.58,
+      "last_stamp_sec": 30.8,
+      "sim_time_sync_diff_sec": 0.02,
+      "frame_id": "laser_link"
+    },
+    "/camera/depth_image": {
+      "messages_received": 239,
+      "measured_rate_hz": 9.58,
+      "last_stamp_sec": 30.9,
+      "sim_time_sync_diff_sec": 0.002,
+      "frame_id": "depth_camera_link"
+    },
+    "/camera/depth/points": {
+      "messages_received": 238,
+      "measured_rate_hz": 9.71,
+      "last_stamp_sec": 30.8,
+      "sim_time_sync_diff_sec": 0.024,
+      "frame_id": "depth_camera_link"
+    },
+    "/lounge/overhead": {
+      "messages_received": 361,
+      "measured_rate_hz": 14.51,
+      "last_stamp_sec": 30.822,
+      "sim_time_sync_diff_sec": 0.032,
+      "frame_id": "overhead_camera_model/overhead_link/overhead"
+    },
+    "/ground_truth/odom": {
+      "messages_received": 1436,
+      "measured_rate_hz": 57.51,
+      "last_stamp_sec": 30.889,
+      "sim_time_sync_diff_sec": 0.001,
+      "frame_id": "odom"
+    },
+    "/ground_truth/world_odom": {
+      "messages_received": 1436,
+      "measured_rate_hz": 57.51,
+      "last_stamp_sec": 30.889,
+      "sim_time_sync_diff_sec": 0.001,
+      "frame_id": "map"
+    },
+    "/odom": {
+      "messages_received": 1193,
+      "measured_rate_hz": 47.77,
+      "last_stamp_sec": 30.9,
+      "sim_time_sync_diff_sec": 0.0,
+      "frame_id": "odom"
+    },
+    "/odometry/ekf_legacy": {
+      "messages_received": 716,
+      "measured_rate_hz": 28.68,
+      "last_stamp_sec": 30.89,
+      "sim_time_sync_diff_sec": 0.009,
+      "frame_id": "odom"
+    },
+    "/odometry/ekf_tuned": {
+      "messages_received": 1193,
+      "measured_rate_hz": 47.73,
+      "last_stamp_sec": 30.9,
+      "sim_time_sync_diff_sec": 0.002,
+      "frame_id": "odom"
+    },
+    "/odometry/ukf_tuned": {
+      "messages_received": 1185,
+      "measured_rate_hz": 48.16,
+      "last_stamp_sec": 30.9,
+      "sim_time_sync_diff_sec": 0.002,
+      "frame_id": "odom"
+    },
+    "/odometry/comp_filter": {
+      "messages_received": 1193,
+      "measured_rate_hz": 47.77,
+      "last_stamp_sec": 30.9,
+      "sim_time_sync_diff_sec": 0.0,
+      "frame_id": "odom"
+    },
+    "/odometry/comp_slip_gate": {
+      "messages_received": 1193,
+      "measured_rate_hz": 47.77,
+      "last_stamp_sec": 30.9,
+      "sim_time_sync_diff_sec": 0.0,
+      "frame_id": "odom"
+    },
+    "/odometry/lidar_odom": {
+      "messages_received": 238,
+      "measured_rate_hz": 9.58,
+      "last_stamp_sec": 30.8,
+      "sim_time_sync_diff_sec": 0.026,
+      "frame_id": "odom"
+    },
+    "/odometry/lidar_imu_wheel_ekf": {
+      "messages_received": 1192,
+      "measured_rate_hz": 47.73,
+      "last_stamp_sec": 30.89,
+      "sim_time_sync_diff_sec": 0.01,
+      "frame_id": "odom"
+    }
+  },
+  "estimator_metrics": {
+    "B0": {
+      "status": "OK",
+      "valid_samples": 215,
+      "ate_rmse_m": 0.2084,
+      "ate_mean_m": 0.1571,
+      "ate_median_m": 0.1047,
+      "ate_max_m": 0.3466,
+      "final_pos_err_m": 0.299,
+      "rpe_trans_rmse_m": 0.0187,
+      "rpe_rot_rmse_deg": 3.5245,
+      "yaw_err_rmse_deg": 8.0134,
+      "yaw_err_max_deg": 20.6432,
+      "final_yaw_err_deg": 5.361,
+      "topic": "/odom",
+      "description": "Wheel Odometry (Raw Ackermann)"
+    },
+    "F1a": {
+      "status": "OK",
+      "valid_samples": 215,
+      "ate_rmse_m": 0.0754,
+      "ate_mean_m": 0.0606,
+      "ate_median_m": 0.0644,
+      "ate_max_m": 0.1403,
+      "final_pos_err_m": 0.0941,
+      "rpe_trans_rmse_m": 0.0209,
+      "rpe_rot_rmse_deg": 0.2333,
+      "yaw_err_rmse_deg": 0.1837,
+      "yaw_err_max_deg": 0.6759,
+      "final_yaw_err_deg": 0.0001,
+      "topic": "/odometry/ekf_legacy",
+      "description": "EKF Legacy (limo_ekf.yaml repro)"
+    },
+    "F1b": {
+      "status": "OK",
+      "valid_samples": 215,
+      "ate_rmse_m": 0.0769,
+      "ate_mean_m": 0.0623,
+      "ate_median_m": 0.0654,
+      "ate_max_m": 0.1428,
+      "final_pos_err_m": 0.0951,
+      "rpe_trans_rmse_m": 0.0211,
+      "rpe_rot_rmse_deg": 0.1483,
+      "yaw_err_rmse_deg": 0.1117,
+      "yaw_err_max_deg": 0.421,
+      "final_yaw_err_deg": 0.0001,
+      "topic": "/odometry/ekf_tuned",
+      "description": "EKF Tuned (Wheel vx,vy + IMU yaw,wz)"
+    },
+    "F2": {
+      "status": "OK",
+      "valid_samples": 215,
+      "ate_rmse_m": 0.0771,
+      "ate_mean_m": 0.0627,
+      "ate_median_m": 0.0659,
+      "ate_max_m": 0.1429,
+      "final_pos_err_m": 0.0948,
+      "rpe_trans_rmse_m": 0.0211,
+      "rpe_rot_rmse_deg": 0.1472,
+      "yaw_err_rmse_deg": 0.1158,
+      "yaw_err_max_deg": 0.4544,
+      "final_yaw_err_deg": 0.0001,
+      "topic": "/odometry/ukf_tuned",
+      "description": "UKF Tuned (Wheel vx,vy + IMU yaw,wz)"
+    },
+    "F3a": {
+      "status": "OK",
+      "valid_samples": 215,
+      "ate_rmse_m": 0.0777,
+      "ate_mean_m": 0.0635,
+      "ate_median_m": 0.066,
+      "ate_max_m": 0.1431,
+      "final_pos_err_m": 0.0955,
+      "rpe_trans_rmse_m": 0.0207,
+      "rpe_rot_rmse_deg": 0.2072,
+      "yaw_err_rmse_deg": 0.1616,
+      "yaw_err_max_deg": 0.6553,
+      "final_yaw_err_deg": 0.0006,
+      "topic": "/odometry/comp_filter",
+      "description": "Complementary Filter Standalone"
+    },
+    "F3b": {
+      "status": "OK",
+      "valid_samples": 215,
+      "ate_rmse_m": 0.0776,
+      "ate_mean_m": 0.0635,
+      "ate_median_m": 0.066,
+      "ate_max_m": 0.1431,
+      "final_pos_err_m": 0.0955,
+      "rpe_trans_rmse_m": 0.0207,
+      "rpe_rot_rmse_deg": 0.2075,
+      "yaw_err_rmse_deg": 0.1634,
+      "yaw_err_max_deg": 0.6553,
+      "final_yaw_err_deg": 0.0006,
+      "topic": "/odometry/comp_slip_gate",
+      "description": "Complementary Filter + Slip/Stall Gate"
+    },
+    "F4": {
+      "status": "OK",
+      "valid_samples": 215,
+      "ate_rmse_m": 0.0697,
+      "ate_mean_m": 0.0626,
+      "ate_median_m": 0.0593,
+      "ate_max_m": 0.1178,
+      "final_pos_err_m": 0.0926,
+      "rpe_trans_rmse_m": 0.0204,
+      "rpe_rot_rmse_deg": 1.5766,
+      "yaw_err_rmse_deg": 2.3992,
+      "yaw_err_max_deg": 6.1994,
+      "final_yaw_err_deg": 0.4072,
+      "topic": "/odometry/lidar_odom",
+      "description": "2D LiDAR Scan Matching Odometry (ICP)"
+    },
+    "F5": {
+      "status": "OK",
+      "valid_samples": 215,
+      "ate_rmse_m": 0.0633,
+      "ate_mean_m": 0.0553,
+      "ate_median_m": 0.0535,
+      "ate_max_m": 0.1017,
+      "final_pos_err_m": 0.0926,
+      "rpe_trans_rmse_m": 0.016,
+      "rpe_rot_rmse_deg": 0.2066,
+      "yaw_err_rmse_deg": 0.1675,
+      "yaw_err_max_deg": 0.6841,
+      "final_yaw_err_deg": 0.0001,
+      "topic": "/odometry/lidar_imu_wheel_ekf",
+      "description": "LiDAR Odom + Slip-Gated Wheel + IMU EKF"
+    }
+  },
+  "video_verification": {
+    "output_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/smoke_test/s1_normal_multiturn_smoke_test.mp4",
+    "file_size_bytes": 7613273,
+    "written_frames": 350,
+    "decoded_frames_verified": 350,
+    "non_black_frames_verified": 350,
+    "resolution": "1920x960",
+    "fps": 15.0,
+    "sim_time_start": 7.587,
+    "sim_time_end": 30.905,
+    "sim_duration_s": 23.318,
+    "sample_keyframe_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/smoke_test/s1_normal_multiturn_smoke_test_mid_frame.png",
+    "playable": true
+  },
+  "rosbag2_verified": {
+    "bag_dir": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/results/smoke_test/rosbag2_s1_smoke_test",
+    "metadata_exists": true
+  },
+  "artifacts": {
+    "timeseries_csv": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/results/smoke_test/s1_smoke_test_timeseries.csv",
+    "comparison_plot_png": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/results/plots/s1_smoke_test_comparison.png",
+    "video_mp4": "/home/cjinw/school/2026-2/Capstone1_limo/experiments/limo_state_estimation_benchmark_20261107/videos/smoke_test/s1_normal_multiturn_smoke_test.mp4"
+  }
+}
