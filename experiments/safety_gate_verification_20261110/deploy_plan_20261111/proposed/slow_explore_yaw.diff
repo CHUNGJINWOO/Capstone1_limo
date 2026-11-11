@@ -1,0 +1,19 @@
+--- config/integrated_nav2_lidar_only_slow_params.yaml	2026-11-11 15:34:27.694068292 +0900
++++ <repo>/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/integrated_nav2_lidar_only_slow_params_explore.yaml	2026-11-11 16:01:31.103369777 +0900
+@@ -6,6 +6,7 @@
+ #   behavior_server.max_rotational_vel/min_rotational_vel/rotational_acc_lim (new): 0.5 / 0.2 / 1.5
+ #   velocity_smoother.max_velocity/min_velocity (new): hard cap on the Nav2 controller output path
+ #   general_goal_checker.yaw_goal_tolerance 0.60 -> 0.45 rad (about 34 deg -> 26 deg). 0.30 rad was tried first: it hunted for 21 s with 3 progress-check failures (see DRIVE_TEST_PLAN.md)
++#   EXPLORATION: yaw_goal_tolerance 0.45 -> 3.14 rad (goal heading ignored). explore_lite always sends goals with orientation w=1 (yaw 0 in map), so every frontier goal would otherwise force an in-place turn to yaw 0, and in-place heading control was erratic in D3b (hunting / overshoot).
+ # Selected by the real launch with speed_profile:=slow (lidar-only configuration only).
+ # integrated_nav2_params.yaml
+ # Production Nav2 Configuration for LIMO Pro Integrated Auto-Mapping System
+@@ -87,7 +88,7 @@
+       stateful: True
+       plugin: "nav2_controller::SimpleGoalChecker"
+       xy_goal_tolerance: 0.12
+-      yaw_goal_tolerance: 0.45
++      yaw_goal_tolerance: 3.14
+ 
+     FollowPath:
+       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"

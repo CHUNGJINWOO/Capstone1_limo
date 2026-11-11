@@ -1,0 +1,4 @@
+wall   window 4.3-5.7s gate_at_end=STALL_LATCHED  | GT 0.228  wheel 0.224  F4 0.000  scan-derived +0.229 (front +0.228, back +0.231) m | min range 0.55 m, front median 5.84 m
+wall2  window 2.2-3.7s gate_at_end=STALL_LATCHED  | GT 0.250  wheel 0.249  F4 0.000  scan-derived +0.251 (front +0.251, back +0.251) m | min range 0.55 m, front median 5.48 m
+block  window 3.0-4.5s gate_at_end=STALL_LATCHED  | GT 0.000  wheel 0.224  F4 0.000  scan-derived +0.000 (front +0.000, back +0.000) m | min range 0.10 m, front median 5.97 m
+ctrl   window 8.4-9.8s gate_at_end=NORMAL         | GT 0.260  wheel 0.256  F4 0.252  scan-derived +0.261 (front +0.261, back +0.262) m | min range 0.82 m, front median 3.21 m

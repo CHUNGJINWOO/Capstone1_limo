@@ -1,0 +1,66 @@
+--- launch/limo_integrated_auto_mapping_real.launch.py	2026-11-11 13:00:51.364901939 +0900
++++ <repo>/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/real_launch_scan_normalizer.py	2026-11-11 17:08:58.268964441 +0900
+@@ -58,6 +58,7 @@
+     sensor_timeout_sec = LaunchConfiguration('sensor_timeout_sec', default='0.38')
+     allow_motor_drive = LaunchConfiguration('allow_motor_drive', default='false')
+     drive_mode = LaunchConfiguration('drive_mode', default='diff')
++    scan_normalizer = LaunchConfiguration('scan_normalizer', default='false')
+ 
+     declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='false')
+     declare_estimator_type = DeclareLaunchArgument(
+@@ -86,6 +87,12 @@
+         'allow_motor_drive', default_value='false',
+         description='SAFETY LOCK: Set true only after MCU watchdog & physical E-Stop bench check!'
+     )
++    declare_scan_normalizer = DeclareLaunchArgument(
++        'scan_normalizer', default_value='false',
++        description="'true': republish /scan as /scan_slam with a fixed 244 beams and feed ONLY slam_toolbox from it. "
++                    "The YDLidar driver publishes 235..250 beams per revolution (fixed_resolution: false) and Karto rejects every "
++                    "scan whose length differs from the first one it saw. Nav2, F4 and the stall gate keep using the raw /scan."
++    )
+     declare_speed_profile = DeclareLaunchArgument(
+         'speed_profile', default_value='normal',
+         description="'normal' (current limits, desired_linear_vel 0.32 m/s) or 'slow' (first on-ground tests: "
+@@ -337,11 +344,25 @@
+     )
+ 
+     # 5. SLAM Toolbox (Real Clock)
++    # SLAM-only scan input: /scan_slam when the normalizer is on, otherwise the raw /scan exactly as before.
++    slam_params_file = RewrittenYaml(
++        source_file=config_slam,
++        param_rewrites={'slam_toolbox.ros__parameters.scan_topic': PythonExpression([
++            "'/scan_slam' if '", scan_normalizer, "' == 'true' else '/scan'"])},
++    )
++    scan_normalizer_node = Node(
++        package='limo_scan_normalizer',
++        executable='scan_normalizer_node',
++        name='scan_normalizer_node',
++        output='screen',
++        parameters=[{'use_sim_time': use_sim_time, 'input_topic': '/scan', 'output_topic': '/scan_slam', 'n_out': 244}],
++        condition=IfCondition(scan_normalizer)
++    )
+     slam_launch = IncludeLaunchDescription(
+         PythonLaunchDescriptionSource(os.path.join(pkg_slam, 'launch', 'online_async_launch.py')),
+         launch_arguments={
+             'use_sim_time': use_sim_time,
+-            'slam_params_file': config_slam
++            'slam_params_file': slam_params_file
+         }.items()
+     )
+ 
+@@ -460,6 +481,7 @@
+         declare_depth_mode,
+         declare_sensor_timeout,
+         declare_allow_motor,
++        declare_scan_normalizer,
+         declare_speed_profile,
+         declare_drive_mode,
+         declare_enable_stall_detector,
+@@ -492,6 +514,7 @@
+         relay_f3b,
+         relay_f4,
+         relay_f5,
++        scan_normalizer_node,
+         slam_launch,
+         nav2_launch,
+         explore_node,

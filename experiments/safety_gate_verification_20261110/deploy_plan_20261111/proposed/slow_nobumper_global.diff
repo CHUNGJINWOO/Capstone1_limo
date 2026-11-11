@@ -1,0 +1,38 @@
+--- config/integrated_nav2_lidar_only_slow_params.yaml	2026-11-11 16:02:57.212962163 +0900
++++ <repo>/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/integrated_nav2_lidar_only_slow_params_nobumper_global.yaml	2026-11-11 16:31:20.319325095 +0900
+@@ -7,6 +7,7 @@
+ #   velocity_smoother.max_velocity/min_velocity (new): hard cap on the Nav2 controller output path
+ #   general_goal_checker.yaw_goal_tolerance 0.60 -> 0.45 rad (about 34 deg -> 26 deg). 0.30 rad was tried first: it hunted for 21 s with 3 progress-check failures (see DRIVE_TEST_PLAN.md)
+ #   EXPLORATION: yaw_goal_tolerance 0.45 -> 3.14 rad (goal heading ignored). explore_lite always sends goals with orientation w=1 (yaw 0 in map), so every frontier goal would otherwise force an in-place turn to yaw 0, and in-place heading control was erratic in D3b (hunting / overshoot).
++#   global_costmap obstacle_layer: virtual_bumper observation source removed (local_costmap keeps it) - see DRIVE_TEST_PLAN.md, 'No frontiers found' analysis
+ # Selected by the real launch with speed_profile:=slow (lidar-only configuration only).
+ # integrated_nav2_params.yaml
+ # Production Nav2 Configuration for LIMO Pro Integrated Auto-Mapping System
+@@ -209,7 +210,10 @@
+       obstacle_layer:
+         plugin: "nav2_costmap_2d::ObstacleLayer"
+         enabled: True
+-        observation_sources: scan virtual_bumper
++        # virtual_bumper removed from the GLOBAL costmap only: the gate's bumper cloud (published in STALL_PENDING, e.g. at motion start while F4 lags)
++        # was marked with clearing: False and stayed as a lethal phantom 0.24 m ahead, which put the robot cell in the inflation zone and made
++        # explore_lite's BFS lose its frontiers. The local costmap keeps it.
++        observation_sources: scan
+         scan:
+           topic: /scan
+           max_obstacle_height: 2.0
+@@ -220,15 +224,6 @@
+           raytrace_min_range: 0.0
+           obstacle_max_range: 3.5
+           obstacle_min_range: 0.0
+-        virtual_bumper:
+-          topic: /stall_detector/virtual_bumper_cloud
+-          max_obstacle_height: 2.0
+-          min_obstacle_height: 0.01
+-          clearing: False
+-          marking: True
+-          data_type: "PointCloud2"
+-          obstacle_max_range: 2.5
+-          obstacle_min_range: 0.0
+       inflation_layer:
+         plugin: "nav2_costmap_2d::InflationLayer"
+         cost_scaling_factor: 7.5

@@ -1,0 +1,5 @@
+F4 timing per run (sim-time publish delay of lidar_odom vs scan stamp, scan period, ICP wall time) - delayed message vs missed motion
+wall   delay_ms mean 19 max 45 | scan period max 100 ms | icp wall ms mean 15.2 max 82.4 | scans 148
+wall2  delay_ms mean 18 max 46 | scan period max 100 ms | icp wall ms mean 14.5 max 113.1 | scans 151
+block  delay_ms mean 18 max 50 | scan period max 100 ms | icp wall ms mean 16.1 max 110.9 | scans 149
+ctrl   delay_ms mean 18 max 42 | scan period max 100 ms | icp wall ms mean 42.1 max 99.5 | scans 103

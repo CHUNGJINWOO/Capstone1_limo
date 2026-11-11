@@ -1,0 +1,13 @@
+gate: {"sim_time": 50.7, "state": "NORMAL", "state_code": 0, "cmd_blocked": 
+---
+/cmd_vel PUB:       1 stall_detector_node 
+/cmd_vel_raw PUB:       3 behavior_server       1 velocity_smoother 
+BT: navigate_to_pose_w_replanning_and_recovery.xml
+gate state at start: NORMAL
+goal map=(0.50,-0.00) yaw=-0 dist=0.50
+goal accepted: True
+nav status=4 (4=SUCCEEDED); GT path=0.32 m, net=0.33 m; map pose end=(0.33,0.01) goal err=0.17 m
+/cmd_vel nonzero=56/215; state transitions=[(1794324504.16, 'NORMAL'), (1794324507.21, 'STALL_PENDING'), (1794324507.37, 'NORMAL')]
+gate after: {"sim_time": 59.4, "state": "NORMAL", "state_code": 0, "cmd_blocked": 
+---
+gate log: 

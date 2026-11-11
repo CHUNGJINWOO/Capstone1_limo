@@ -1,0 +1,15 @@
+== estimator_study_20261111/runs/f4__wall
+   V0 F4 (as is)                  travel 0.222 m (GT 0.966) | final err 0.744 m, max 0.744 m
+   V1 F4 + wheel init             travel 0.805 m (GT 0.966) | final err 0.161 m, max 0.161 m
+   V2 point-to-line               travel 0.974 m (GT 0.966) | final err 0.012 m, max 0.015 m
+   V3 point-to-line + wheel init  travel 0.971 m (GT 0.966) | final err 0.011 m, max 0.013 m
+== estimator_study_20261111/runs/f4__wall2
+   V0 F4 (as is)                  travel 0.000 m (GT 0.624) | final err 0.624 m, max 0.624 m
+   V1 F4 + wheel init             travel 0.519 m (GT 0.624) | final err 0.105 m, max 0.127 m
+   V2 point-to-line               travel 0.624 m (GT 0.624) | final err 0.004 m, max 0.012 m
+   V3 point-to-line + wheel init  travel 0.624 m (GT 0.624) | final err 0.004 m, max 0.012 m
+== estimator_study_20261111/runs/f4__ctrl
+   V0 F4 (as is)                  travel 1.720 m (GT 1.800) | final err 0.101 m, max 0.105 m
+   V1 F4 + wheel init             travel 1.714 m (GT 1.800) | final err 0.111 m, max 0.116 m
+   V2 point-to-line               travel 1.791 m (GT 1.800) | final err 0.022 m, max 0.028 m
+   V3 point-to-line + wheel init  travel 1.791 m (GT 1.800) | final err 0.028 m, max 0.032 m

@@ -1,0 +1,75 @@
+--- launch/limo_integrated_auto_mapping_real.launch.py	2026-11-11 12:28:07.813695482 +0900
++++ <repo>/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/real_launch_speed_profile.py	2026-11-11 12:50:44.750485742 +0900
+@@ -22,7 +22,7 @@
+ import os
+ from ament_index_python.packages import get_package_share_directory
+ from launch import LaunchDescription
+-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, GroupAction
++from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, GroupAction, Shutdown
+ from launch.conditions import IfCondition, UnlessCondition
+ from launch.launch_description_sources import PythonLaunchDescriptionSource
+ from launch.substitutions import LaunchConfiguration, PythonExpression
+@@ -43,6 +43,7 @@
+     config_slam = os.path.join(pkg_limo_capstone, 'config', 'integrated_slam_params.yaml')
+     config_nav2_depth = os.path.join(pkg_limo_capstone, 'config', 'integrated_nav2_params.yaml')
+     config_nav2_lidar = os.path.join(pkg_limo_capstone, 'config', 'integrated_nav2_lidar_only_params.yaml')
++    config_nav2_lidar_slow = os.path.join(pkg_limo_capstone, 'config', 'integrated_nav2_lidar_only_slow_params.yaml')
+     config_explore = os.path.join(pkg_limo_capstone, 'config', 'integrated_explore_params.yaml')
+     config_ekf_f5 = os.path.join(pkg_limo_capstone, 'config', 'fusion_f5_improved.yaml')
+     config_ekf_f1b = os.path.join(pkg_limo_capstone, 'config', 'ekf_tuned.yaml')
+@@ -52,6 +53,7 @@
+     run_icp_observer = LaunchConfiguration('run_icp_observer', default='true')
+     start_explore = LaunchConfiguration('start_explore', default='false')
+     use_depth_camera = LaunchConfiguration('use_depth_camera', default='false')
++    speed_profile = LaunchConfiguration('speed_profile', default='normal')
+     depth_mode = LaunchConfiguration('depth_mode', default='required')
+     sensor_timeout_sec = LaunchConfiguration('sensor_timeout_sec', default='0.38')
+     allow_motor_drive = LaunchConfiguration('allow_motor_drive', default='false')
+@@ -84,6 +86,12 @@
+         'allow_motor_drive', default_value='false',
+         description='SAFETY LOCK: Set true only after MCU watchdog & physical E-Stop bench check!'
+     )
++    declare_speed_profile = DeclareLaunchArgument(
++        'speed_profile', default_value='normal',
++        description="'normal' (current limits, desired_linear_vel 0.32 m/s) or 'slow' (first on-ground tests: "
++                    "0.15 m/s, rotation <= 0.5 rad/s, hard cap in velocity_smoother). 'slow' exists for the "
++                    "lidar-only configuration only: with use_depth_camera:=true the launch shuts down."
++    )
+     declare_drive_mode = DeclareLaunchArgument(
+         'drive_mode', default_value='diff',
+         description="Nav2 kinematics profile: 'diff' (4WD differential; stock BT with Spin/BackUp, "
+@@ -340,8 +348,17 @@
+     # 6. Nav2 Navigation Stack
+     enable_stall_detector = LaunchConfiguration('enable_stall_detector')
+     selected_nav2_params = PythonExpression([
+-        "'", config_nav2_depth, "' if '", use_depth_camera, "' == 'true' else '", config_nav2_lidar, "'"
++        "'", config_nav2_depth, "' if '", use_depth_camera, "' == 'true' else ('", config_nav2_lidar_slow,
++        "' if '", speed_profile, "' == 'slow' else '", config_nav2_lidar, "')"
+     ])
++    # Fail closed: never run a "slow" request on a configuration that has no slow profile.
++    bad_speed_profile = Shutdown(
++        reason="speed_profile must be 'normal' or 'slow', and 'slow' needs use_depth_camera:=false",
++        condition=IfCondition(PythonExpression([
++            "('", speed_profile, "' not in ['normal', 'slow']) or ('", speed_profile, "' == 'slow' and '",
++            use_depth_camera, "' == 'true')"
++        ]))
++    )
+ 
+     # Command routing (fail-closed, no bypass):
+     # Every velocity command from Nav2 goes to /cmd_vel_raw. The stall gate is the only node
+@@ -443,6 +460,7 @@
+         declare_depth_mode,
+         declare_sensor_timeout,
+         declare_allow_motor,
++        declare_speed_profile,
+         declare_drive_mode,
+         declare_enable_stall_detector,
+         declare_base_footprint_z,
+@@ -456,6 +474,7 @@
+         declare_camera_pitch,
+         declare_camera_yaw,
+         log_lock_notice,
++        bad_speed_profile,
+         log_deprecated_stall_arg,
+         limo_base_launch,
+         ydlidar_launch,

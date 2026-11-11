@@ -1,0 +1,45 @@
+######## wall
+[1] n_scans=148  GT travel 0.966 m | live F4 0.222 m | offline replay of F4 0.222 m | replay-vs-live end diff 0.000 m
+    replay error vs GT: first >5 cm at scan 4 (GT travel then 0.077 m), max 0.744 m
+[2] points 360 | translation Hessian eig 44.4 (dir [-1.    0.08]) / 315.6 (dir [0.08 1.  ]), cond 7.1
+    Sum n_x^2 (heading axis) 45.9 vs Sum n_y^2 (lateral) 314.1; points with |n_x|>0.7: 35 of 360 (10%)
+    pair scans (0,12): true relative motion in sensor-body frame x=0.240 y=-0.000 yaw=-0.000
+[3] init=identity           -> ICP x=+0.036 y=+0.001 yaw=-0.009  (error vs truth dx -0.205)  inliers 359
+[3] init=TRUE displacement  -> ICP x=+0.241 y=-0.001 yaw=+0.000  (error vs truth dx +0.001)  inliers 358
+[3] init=half of true       -> ICP x=+0.230 y=-0.000 yaw=-0.001  (error vs truth dx -0.010)  inliers 357
+[4] cost vs candidate dx (true dx=0.240), y,yaw fixed at truth:
+[3b] recovered fraction of the true forward displacement, ICP started at identity (F4 code; iterations 18 [F4] / 100 / 1000):
+     true dx 0.015 m (scans 0,1): recovered fraction 0.11 / 0.11 / 0.11
+     true dx 0.056 m (scans 2,5): recovered fraction 0.22 / 0.22 / 0.22
+     true dx 0.096 m (scans 0,5): recovered fraction 0.22 / 0.22 / 0.22
+     true dx 0.199 m (scans 0,10): recovered fraction 0.22 / 0.22 / 0.22
+######## wall2
+[1] n_scans=151  GT travel 0.624 m | live F4 0.000 m | offline replay of F4 0.000 m | replay-vs-live end diff 0.000 m
+    replay error vs GT: first >5 cm at scan 3 (GT travel then 0.057 m), max 0.624 m
+[2] points 360 | translation Hessian eig 40.8 (dir [-1.    0.09]) / 319.2 (dir [0.09 1.  ]), cond 7.8
+    Sum n_x^2 (heading axis) 43.1 vs Sum n_y^2 (lateral) 316.9; points with |n_x|>0.7: 37 of 360 (10%)
+    pair scans (0,12): true relative motion in sensor-body frame x=0.234 y=-0.000 yaw=-0.000
+[3] init=identity           -> ICP x=+0.002 y=-0.002 yaw=+0.000  (error vs truth dx -0.232)  inliers 360
+[3] init=TRUE displacement  -> ICP x=+0.242 y=+0.001 yaw=-0.000  (error vs truth dx +0.007)  inliers 358
+[3] init=half of true       -> ICP x=+0.227 y=+0.001 yaw=-0.002  (error vs truth dx -0.007)  inliers 358
+[4] cost vs candidate dx (true dx=0.234), y,yaw fixed at truth:
+[3b] recovered fraction of the true forward displacement, ICP started at identity (F4 code; iterations 18 [F4] / 100 / 1000):
+     true dx 0.014 m (scans 0,1): recovered fraction 0.05 / 0.05 / 0.05
+     true dx 0.045 m (scans 24,26): recovered fraction 0.07 / 0.07 / 0.07
+     true dx 0.095 m (scans 0,5): recovered fraction 0.13 / 0.13 / 0.13
+     true dx 0.195 m (scans 0,10): recovered fraction 0.08 / 0.09 / 0.09
+######## ctrl
+[1] n_scans=103  GT travel 1.800 m | live F4 1.723 m | offline replay of F4 1.720 m | replay-vs-live end diff 0.006 m
+    replay error vs GT: first >5 cm at scan 29 (GT travel then 0.580 m), max 0.105 m
+[2] points 360 | translation Hessian eig 109.8 (dir [ 0.03 -1.  ]) / 250.2 (dir [-1.   -0.03]), cond 2.3
+    Sum n_x^2 (heading axis) 250.0 vs Sum n_y^2 (lateral) 110.0; points with |n_x|>0.7: 253 of 360 (70%)
+    pair scans (0,12): true relative motion in sensor-body frame x=0.241 y=0.000 yaw=-0.000
+[3] init=identity           -> ICP x=+0.231 y=+0.008 yaw=-0.010  (error vs truth dx -0.010)  inliers 346
+[3] init=TRUE displacement  -> ICP x=+0.245 y=+0.002 yaw=+0.000  (error vs truth dx +0.004)  inliers 345
+[3] init=half of true       -> ICP x=+0.245 y=+0.002 yaw=+0.000  (error vs truth dx +0.004)  inliers 345
+[4] cost vs candidate dx (true dx=0.241), y,yaw fixed at truth:
+[3b] recovered fraction of the true forward displacement, ICP started at identity (F4 code; iterations 18 [F4] / 100 / 1000):
+     true dx 0.021 m (scans 0,1): recovered fraction 0.65 / 0.65 / 0.65
+     true dx 0.055 m (scans 19,22): recovered fraction 1.06 / 1.06 / 1.06
+     true dx 0.101 m (scans 0,5): recovered fraction 0.94 / 0.94 / 0.94
+     true dx 0.198 m (scans 0,10): recovered fraction 1.0 / 1.0 / 1.0

@@ -1,0 +1,22 @@
+random-map equivalence (cap=0): PASS 60/60
+== post_analysis_20261111/stop_type/dump_A1_cap60_nav2.txt  robot=(-1.54,-1.06)
+   original: kept=2 | relaxed(cap 0): kept=2 identical=YES
+   cap= 0 (internal   0): found=49 kept=2 reachable_kept=2 NE_box_frontiers=1 bfs_visited=25452 traversed_nonzero=0 max_cost_visited=0 
+   cap=60 (internal 153): found=49 kept=2 reachable_kept=2 NE_box_frontiers=1 bfs_visited=27478 traversed_nonzero=1943 max_cost_visited=148 
+   cap=98 (internal 252): found=49 kept=2 reachable_kept=2 NE_box_frontiers=1 bfs_visited=30068 traversed_nonzero=4533 max_cost_visited=249 
+== post_analysis_20261111/stop_type/dump_A2_cap60_nav2.txt  robot=(1.29,-6.21)
+   original: kept=3 | relaxed(cap 0): kept=3 identical=YES
+   cap= 0 (internal   0): found=55 kept=3 reachable_kept=3 NE_box_frontiers=3 bfs_visited=28215 traversed_nonzero=0 max_cost_visited=0 
+   cap=60 (internal 153): found=55 kept=3 reachable_kept=3 NE_box_frontiers=3 bfs_visited=30283 traversed_nonzero=2068 max_cost_visited=148 
+   cap=98 (internal 252): found=55 kept=3 reachable_kept=3 NE_box_frontiers=3 bfs_visited=32902 traversed_nonzero=4687 max_cost_visited=249 
+== post_analysis_20261111/stop_type/dump_C1_cap0_control.txt  robot=(-0.60,-6.68)
+   original: kept=6 | relaxed(cap 0): kept=6 identical=YES
+   cap= 0 (internal   0): found=21 kept=6 reachable_kept=6 NE_box_frontiers=6 bfs_visited=26876 traversed_nonzero=0 max_cost_visited=0 
+   cap=60 (internal 153): found=21 kept=6 reachable_kept=6 NE_box_frontiers=6 bfs_visited=28835 traversed_nonzero=1956 max_cost_visited=148 
+   cap=98 (internal 252): found=22 kept=6 reachable_kept=6 NE_box_frontiers=6 bfs_visited=31380 traversed_nonzero=4498 max_cost_visited=249 
+== post_analysis_20261111/stop_type/dump_C2_cap0_control.txt  robot=(1.44,-5.39)
+   original: kept=0 | relaxed(cap 0): kept=0 identical=YES
+   cap= 0 (internal   0): found=6 kept=0 reachable_kept=0 NE_box_frontiers=0 bfs_visited=28238 traversed_nonzero=0 max_cost_visited=0 
+   cap=60 (internal 153): found=6 kept=0 reachable_kept=0 NE_box_frontiers=0 bfs_visited=30311 traversed_nonzero=2073 max_cost_visited=148 
+   cap=98 (internal 252): found=6 kept=0 reachable_kept=0 NE_box_frontiers=0 bfs_visited=32993 traversed_nonzero=4755 max_cost_visited=249 
+TOTAL failures: 0
