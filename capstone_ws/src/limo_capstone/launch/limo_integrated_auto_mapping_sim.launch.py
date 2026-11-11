@@ -254,8 +254,12 @@ def generate_launch_description():
     # 7. Nav2 Navigation Stack (gated strictly to /cmd_vel_raw)
     nav2_launch = GroupAction(
         actions=[
-            SetRemap(src='cmd_vel', dst='/cmd_vel_raw'),
-            SetRemap(src='/cmd_vel', dst='/cmd_vel_raw'),
+            # Every Nav2 velocity command must reach /cmd_vel only through the stall gate:
+            # controller_server -> cmd_vel_nav (Nav2 default) -> velocity_smoother -> /cmd_vel_raw.
+            # (A global 'cmd_vel' remap would also feed the smoother's own input, creating a loop.)
+            SetRemap(src='cmd_vel_smoothed', dst='/cmd_vel_raw'),
+            # behavior_server (spin/backup/drive_on_heading) publishes 'cmd_vel' directly
+            SetRemap(src='behavior_server:cmd_vel', dst='/cmd_vel_raw'),
             SetRemap(src='odom', dst='/odom_nav2'),
             SetRemap(src='/odom', dst='/odom_nav2'),
             IncludeLaunchDescription(
@@ -292,6 +296,7 @@ def generate_launch_description():
             'require_operator_unlatch': True,
             'depth_mode': depth_mode,
             'sensor_timeout_sec': sensor_timeout_sec,
+            'estimator_odom_topic': '/odom_nav2',
             'use_sim_time': use_sim_time
         }]
     )
