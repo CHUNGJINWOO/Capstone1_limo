@@ -138,3 +138,20 @@ colcon build --symlink-install --packages-select limo_depth_obstacles limo_capst
 - 본 프로젝트의 자체 개발 코드는 특별한 명시가 없는 한 프로젝트 라이선스(Apache-2.0 권장)를 따릅니다.
 - 본 프로젝트에서 참고한 AgileX Robotics, Orbbec, YDLidar, WeGO Robotics 및 ROS 2 오픈소스 커뮤니티의 모든 상표, 상호 및 원저작권은 각 원저작자에게 귀속됩니다.
 - 본 고지는 오픈소스 저작권 의무를 준수하고, 라이선스 미확인 자산의 무단 재배포를 방지하며, 연구 개발 기여도를 투명하게 밝히기 위해 작성되었습니다.
+
+## 7. 라이선스 확인 현황 점검 (2026-11-11)
+
+위 표의 "선언 라이선스"는 기존 기록이다. 이번 점검에서 GitHub 라이선스 API와 설치된 `package.xml`로 다시 확인한 결과를 구분해 적는다. API가 `NOASSERTION`을 주는 것은 라이선스가 없다는 뜻이 아니라 단일 SPDX로 자동 판별되지 않았다는 뜻이며, 해당 항목은 업스트림 LICENSE 파일을 직접 읽어 확인해야 한다(미확인으로 남김). 라이선스가 확인되지 않은 파일에 임의로 라이선스를 부여하지 않는다.
+
+| 항목 | 이번 확인 결과 | 상태 |
+|---|---|---|
+| `agilexrobotics/limo_ros2` | API: 저장소 수준 LICENSE 없음(404) | 패키지별 선언만 있음. 기존 표 유지, 재배포 제외 정책 유지 |
+| `orbbec/ros2_astra_camera` | API: 저장소 수준 LICENSE 없음(404) | 기존 표 유지(재배포 제외) |
+| `YDLIDAR/ydlidar_ros2_driver` | API: `NOASSERTION` | 기존 표의 MIT는 **이번에 자동 확인되지 않음**. 설치 전 업스트림 LICENSE 확인 필요 |
+| `robo-friends/m-explore-ros2` | API: `NOASSERTION` | 기존 표의 BSD는 선언 기록. 업스트림 LICENSE 직접 확인 필요 |
+| `cra-ros-pkg/robot_localization` | API: `NOASSERTION` (설치된 `package.xml`에는 license 항목 없음) | 기존 표의 Apache-2.0 미확인 |
+| `SteveMacenski/slam_toolbox` | API: LGPL-2.1, 설치본 `package.xml`: LGPL | apt 바이너리로 사용, 저장소에 소스를 넣지 않음 |
+| Navigation2 | 설치본 `nav2_bt_navigator/package.xml`: Apache-2.0 (API는 `NOASSERTION`) | apt 바이너리로 사용 |
+
+프로젝트 자체 코드의 라이선스(`limo_capstone/package.xml`의 `TODO`)는 아직 정해지지 않았다. 정해지기 전에는 "Apache-2.0 권장"(6절)을 결정된 사실로 취급하지 않는다.
+
