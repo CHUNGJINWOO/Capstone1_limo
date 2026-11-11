@@ -1,0 +1,21 @@
+# integrated_explore_real_params.yaml
+# REAL-ROBOT copy of integrated_explore_params.yaml. The simulation baseline stays unchanged in integrated_explore_params.yaml.
+# Differences: docs/CONFIG_SIM_VS_REAL.md. Original explore_lite is the explorer; explore_relaxed is an experiment only.
+# integrated_explore_params.yaml
+# Explore Lite configuration for Autonomous Frontier Exploration
+# Tied to base_footprint and global costmap
+
+explore_node:
+  ros__parameters:
+    robot_base_frame: base_footprint
+    costmap_topic: /global_costmap/costmap
+    costmap_updates_topic: /global_costmap/costmap_updates
+    visualize: true
+    planner_frequency: 0.5       # 2.0 seconds per frontier evaluation cycle
+    progress_timeout: 30.0       # 30 seconds movement allowance before selecting new frontier
+    potential_scale: 3.0         # Prefers closer frontiers to minimize unnecessary travel
+    orientation_scale: 0.0
+    gain_scale: 1.0
+    transform_tolerance: 0.6     # Generous tolerance to absorb clock jitter
+    min_frontier_size: 0.35      # Meaningful frontier size (avoids 20cm micro-goals)
+    use_sim_time: false
