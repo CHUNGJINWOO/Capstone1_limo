@@ -40,4 +40,4 @@ Collision Monitor·Velocity Smoother는 구현 후보다. 프로젝트의 안전
 
 - [시뮬레이션 조사 보고서](SIMULATION_VERIFICATION_REPORT_2026-10-24.md)
 - [요약 원본·파일 해시·조건별 결과](experiments/2026-10-24/README.md)
-- [실행 코드와 재현 준비](../output/simulation/README.md)
+- 실행 코드와 재현 준비 (저장소에 포함되지 않은 경로: `../output/simulation/README.md`)

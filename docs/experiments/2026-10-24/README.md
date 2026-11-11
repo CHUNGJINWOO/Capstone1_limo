@@ -43,4 +43,4 @@
 - `evidence_manifest.json`: 복사한 요약·메타데이터 및 로컬 원본 JSONL의 SHA-256. JSONL을 Git에 포함했다는 뜻은 아니며, 해시만으로 재계산할 수는 없다.
 - 원본 시계열·영상·캡처는 각 `output/simulation/*_runs/`와 `output/video/`에 로컬 보관한다. 새로 복제한 저장소에는 없다.
 - 메타데이터의 절대 경로는 당시 실행 환경의 기록이다. 해당 경로를 새 머신의 표준 경로로 가정하지 않는다.
-- [실행 코드·환경 준비](../../../output/simulation/README.md), [초기 및 협로 시험 조사](../../SIMULATION_VERIFICATION_REPORT_2026-10-24.md), [현재 개발 상태](../../roadmap.md).
+- 실행 코드·환경 준비 (저장소에 포함되지 않은 경로: `../../../output/simulation/README.md`), [초기 및 협로 시험 조사](../../SIMULATION_VERIFICATION_REPORT_2026-10-24.md), [현재 개발 상태](../../roadmap.md).

@@ -21,16 +21,16 @@
 
 본 프로젝트가 기구학 규격, 센서 인터페이스, 통신 프로토콜을 참고하거나 의존하는 외부 프로젝트 목록입니다.
 
-| 프로젝트 / 패키지 명 | 원저작자 / 공식 출처 | 공식 업스트림 링크 | 선언 라이선스 | 본 프로젝트 내 상태 및 권한 |
+| 프로젝트 / 패키지 명 | 원저작자 / 공식 출처 | 공식 업스트림 링크 | 기존 기록된 라이선스 (2026-11-11 재확인은 §7) | 본 프로젝트 내 상태 및 권한 |
 | :--- | :--- | :--- | :---: | :--- |
 | **`limo_ros2`**<br>(`limo_base`, `limo_msgs`) | AgileX Robotics<br>(松灵机器人) | [agilexrobotics/limo_ros2](https://github.com/agilexrobotics/limo_ros2) | `limo_base`: Apache-2.0<br>`limo_msgs`: BSD | 하드웨어 섀시 시리얼 통신 프로토콜 참고. 공개 저장소에서는 제외하고 공식 upstream 설치 권장. |
 | **`limo_description`**<br>(3D 메시 및 URDF) | AgileX Robotics | [agilexrobotics/limo_ros2](https://github.com/agilexrobotics/limo_ros2) | `TODO: License declaration` | **라이선스 미확인 / 재배포 불가**. 3D 메시(`limo_wheel.dae`/`stl`)는 공개 이력에서 배제. |
 | **`limo_car`**<br>(Classic Gazebo) | AgileX Robotics &<br>TU Braunschweig | [agilexrobotics/limo_ros2](https://github.com/agilexrobotics/limo_ros2) | Apache-2.0 | 과거 Classic Gazebo 모델. Fortress 시뮬레이션에서는 자체 모델로 대체되었으므로 공개 제외. |
 | **`ros2_astra_camera`** | Orbbec 3D Technology | [orbbec/ros2_astra_camera](https://github.com/orbbec/ros2_astra_camera) | `astra_camera`: TODO<br>`astra_camera_msgs`: all copyrights reserved | **독점 저작권 및 바이너리 포함**. 비공개 드라이버 라이브러리(`liborbbec.so`) 포함으로 재배포 배제. |
-| **`ydlidar_ros2_driver`** | EAI YDLIDAR | [YDLIDAR/ydlidar_ros2_driver](https://github.com/YDLIDAR/ydlidar_ros2_driver) | **MIT** | 실차 2D LiDAR 센서 공식 드라이버. 라이선스 확인됨. 공식 upstream 설치 권장. |
+| **`ydlidar_ros2_driver`** | EAI YDLIDAR | [YDLIDAR/ydlidar_ros2_driver](https://github.com/YDLIDAR/ydlidar_ros2_driver) | MIT (기존 기록, 자동 확인 불가: §7) | 실차 2D LiDAR 센서 공식 드라이버. 업스트림 LICENSE 직접 확인 전까지 미확인. 공식 upstream 설치 권장. |
 | **`wego` / `wego_2d_nav`**<br>`limo_ros2_application` | WeGO Robotics | [wego-robotics](https://github.com/wego-robotics) | **Apache-2.0** | 국내 유통사 교육·실습용 런치 및 기본 노드. 본 프로젝트 핵심 알고리즘과 무관하여 제외. |
-| **`robot_localization`** | Tom Moore / CRA | [cra-ros-pkg/robot_localization](https://github.com/cra-ros-pkg/robot_localization) | **Apache-2.0** | 표준 EKF 센서 융합 패키지. ROS 2 apt 바이너리 또는 upstream 소스 설치 권장. |
-| **`m-explore-ros2`**<br>(`explore_lite`) | Carlos Alvarez / Robo Friends | [robo-friends/m-explore-ros2](https://github.com/robo-friends/m-explore-ros2) | **BSD** | 프론티어 기반 자동 탐색 알고리즘. ROS 2 공식 커뮤니티 패키지. |
+| **`robot_localization`** | Tom Moore / CRA | [cra-ros-pkg/robot_localization](https://github.com/cra-ros-pkg/robot_localization) | Apache-2.0 (기존 기록, 미확인: §7) | 표준 EKF 센서 융합 패키지. ROS 2 apt 바이너리 또는 upstream 소스 설치 권장. |
+| **`m-explore-ros2`**<br>(`explore_lite`) | Carlos Alvarez / Robo Friends | [robo-friends/m-explore-ros2](https://github.com/robo-friends/m-explore-ros2) | BSD (기존 기록, 자동 확인 불가: §7) | 프론티어 기반 자동 탐색 알고리즘. ROS 2 공식 커뮤니티 패키지. |
 | **`magic_enum`** | Neargye | [Neargye/magic_enum](https://github.com/Neargye/magic_enum) | **MIT** | C++17 Header-only Enum 리플렉션 라이브러리. |
 | **`libuvc`** | Ken Tossell / libuvc | [libuvc/libuvc](https://github.com/libuvc/libuvc) | **BSD** | USB Video Class 기기 크로스 플랫폼 라이브러리. |
 
@@ -138,3 +138,20 @@ colcon build --symlink-install --packages-select limo_depth_obstacles limo_capst
 - 본 프로젝트의 자체 개발 코드는 특별한 명시가 없는 한 프로젝트 라이선스(Apache-2.0 권장)를 따릅니다.
 - 본 프로젝트에서 참고한 AgileX Robotics, Orbbec, YDLidar, WeGO Robotics 및 ROS 2 오픈소스 커뮤니티의 모든 상표, 상호 및 원저작권은 각 원저작자에게 귀속됩니다.
 - 본 고지는 오픈소스 저작권 의무를 준수하고, 라이선스 미확인 자산의 무단 재배포를 방지하며, 연구 개발 기여도를 투명하게 밝히기 위해 작성되었습니다.
+
+## 7. 라이선스 확인 현황 점검 (2026-11-11)
+
+위 표의 "선언 라이선스"는 기존 기록이다. 이번 점검에서 GitHub 라이선스 API와 설치된 `package.xml`로 다시 확인한 결과를 구분해 적는다. API가 `NOASSERTION`을 주는 것은 라이선스가 없다는 뜻이 아니라 단일 SPDX로 자동 판별되지 않았다는 뜻이며, 해당 항목은 업스트림 LICENSE 파일을 직접 읽어 확인해야 한다(미확인으로 남김). 라이선스가 확인되지 않은 파일에 임의로 라이선스를 부여하지 않는다.
+
+| 항목 | 이번 확인 결과 | 상태 |
+|---|---|---|
+| `agilexrobotics/limo_ros2` | API: 저장소 수준 LICENSE 없음(404) | 패키지별 선언만 있음. 기존 표 유지, 재배포 제외 정책 유지 |
+| `orbbec/ros2_astra_camera` | API: 저장소 수준 LICENSE 없음(404) | 기존 표 유지(재배포 제외) |
+| `YDLIDAR/ydlidar_ros2_driver` | API: `NOASSERTION` | 기존 표의 MIT는 **이번에 자동 확인되지 않음**. 설치 전 업스트림 LICENSE 확인 필요 |
+| `robo-friends/m-explore-ros2` | API: `NOASSERTION` | 기존 표의 BSD는 선언 기록. 업스트림 LICENSE 직접 확인 필요 |
+| `cra-ros-pkg/robot_localization` | API: `NOASSERTION` (설치된 `package.xml`에는 license 항목 없음) | 기존 표의 Apache-2.0 미확인 |
+| `SteveMacenski/slam_toolbox` | API: LGPL-2.1, 설치본 `package.xml`: LGPL | apt 바이너리로 사용, 저장소에 소스를 넣지 않음 |
+| Navigation2 | 설치본 `nav2_bt_navigator/package.xml`: Apache-2.0 (API는 `NOASSERTION`) | apt 바이너리로 사용 |
+
+프로젝트 자체 코드의 라이선스(`limo_capstone/package.xml`의 `TODO`)는 아직 정해지지 않았다. 정해지기 전에는 "Apache-2.0 권장"(6절)을 결정된 사실로 취급하지 않는다.
+

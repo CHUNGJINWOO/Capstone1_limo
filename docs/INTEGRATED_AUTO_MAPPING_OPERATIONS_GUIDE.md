@@ -13,7 +13,7 @@
 본 문서는 `capstone_ws`에 정식 이식된 **LIMO Pro 통합 자동 맵핑 시스템**의 빌드, 시뮬레이션 구동, 모니터링, 안전 게이트 운용, rosbag2 기록·재생 및 실물 적용 전 안전 수칙을 기술한 정식 운영 가이드입니다.
 
 ### 1.1 패키지 및 저장소 역할 분담
-- **`capstone_ws` (메인 워크스페이스):** 정식 개발·빌드 및 런타임 실행 환경. `limo_capstone`, `limo_depth_obstacles` 패키지가 위치하며, 외부 참조 없이 자립 실행 가능합니다.
+- **`capstone_ws` (메인 워크스페이스):** 정식 개발·빌드 및 런타임 실행 환경. `limo_capstone`, `limo_depth_obstacles` 패키지가 위치하며, `experiments/`에는 의존하지 않지만, AgileX `limo_description`(시뮬레이션·실차), 실차의 `limo_base`·`ydlidar_ros2_driver`·`astra_camera` 등 외부 패키지가 별도로 필요합니다(`docs/third_party.repos`).
 - **`experiments/limo_integrated_auto_mapping_20261108/` (실험 아카이브):** 검증 회귀 스크립트, 장시간 맵핑 데이터, 고장 주입 벤치마크 결과 JSON, 원본 rosbag2 기록 및 단계별 검증 보고서가 보존된 연구 아카이브입니다.
 
 ```text
