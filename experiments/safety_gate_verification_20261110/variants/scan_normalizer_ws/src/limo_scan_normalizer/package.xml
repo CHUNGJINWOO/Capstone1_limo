@@ -4,7 +4,7 @@
   <version>0.1.0</version>
   <description>Experimental: republish a LaserScan with a fixed number of beams for SLAM input only (nearest-beam mapping, no interpolation).</description>
   <maintainer email="noreply@example.com">capstone</maintainer>
-  <license>Apache-2.0</license>
+  <license>TODO: License declaration</license>
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
   <test_depend>python3-pytest</test_depend>

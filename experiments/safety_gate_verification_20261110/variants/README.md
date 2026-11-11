@@ -10,3 +10,7 @@
 | sim_ack_smac_dubin.launch.py + integrated_nav2_params_smac_dubin.yaml | Ackermann sim, 전역 플래너만 SmacPlannerHybrid(DUBIN, 반경 0.35) |
 
 원본과의 diff는 `diff <원본> <변형>`으로 확인. 변형 launch는 절대 경로 yaml을 참조한다.
+
+## 빌드와 라이선스 메모
+- 이 폴더에는 `COLCON_IGNORE`가 있어 저장소 루트에서 `colcon list/build`를 해도 `explore_relaxed`, `limo_scan_normalizer`가 기본 워크스페이스에 섞이지 않는다. 변형을 직접 빌드하려면 `explore_variant_ws` 또는 `scan_normalizer_ws` 안에서 colcon을 실행한다.
+- `limo_scan_normalizer`의 라이선스는 프로젝트 라이선스가 정해질 때까지 `TODO: License declaration`으로 둔다(이전 `Apache-2.0` 표기는 결정된 것이 아니었다). `explore_relaxed`는 `m-explore-ros2`에서 파생되어 원본 BSD 라이선스 파일(`LICENSE_m-explore-ros2`)과 저작권 표기를 유지한다.
