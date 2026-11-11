@@ -39,7 +39,7 @@
 시뮬레이션 차동 변형(`integrated_nav2_diff_params.yaml`)은 위 실차 컨트롤러 값에 `use_rotate_to_heading: true`를 더한 값이다. 즉 기준선과의 차이 27줄 중 대부분이 실차 조정값에서 왔다. 시뮬레이션 Ackermann 기준선은 계속 위 "기준선" 값을 쓴다.
 
 ## 3. launch가 덮어쓰는 값
-- real launch: Ackermann 복구 BT(`navigate_to_pose_ackermann_no_reverse.xml`)를 `RewrittenYaml`로 적용한다(Spin/BackUp 제거, 게이트가 후진을 막기 때문).
+- real launch: `drive_mode` 인자로 선택한다. **기본값 `diff`(4WD 차동)는 Nav2 stock BT(Spin/BackUp 포함)와 `use_rotate_to_heading: true`를 쓴다.** `drive_mode:=ackermann`일 때만 `navigate_to_pose_ackermann_no_reverse.xml`(Spin/BackUp 제거)과 `use_rotate_to_heading: false`가 적용된다(`RewrittenYaml`). 어느 쪽이든 후진 명령은 게이트가 0으로 막으므로 stock BT의 BackUp은 실행되지 않고 실패한다. 하드웨어 `motion_mode`(0 = 4WD 차동)와 일치시켜 쓴다.
 - sim 기준선 launch: Nav2 기본 BT를 그대로 쓴다. 따라서 **시뮬레이션 Ackermann에서는 Spin 복구가 남아 있다**(원 실험에서 yaw 변화 0°로 시간 초과했던 동작). 이 정리에서는 기준선을 보존했으므로 고치지 않았다.
 - sim_diff launch만의 시뮬레이션 전용 값: 깊이 필터 `processing_hz: 20`, `min_height: -0.02`, 비용 지도 `min_obstacle_height: -0.03`(시뮬레이션 모델의 `base_footprint`가 바닥에서 0.044 m 떠 있어 보정). 실차에는 적용하지 않는다.
 

@@ -21,16 +21,16 @@
 
 본 프로젝트가 기구학 규격, 센서 인터페이스, 통신 프로토콜을 참고하거나 의존하는 외부 프로젝트 목록입니다.
 
-| 프로젝트 / 패키지 명 | 원저작자 / 공식 출처 | 공식 업스트림 링크 | 선언 라이선스 | 본 프로젝트 내 상태 및 권한 |
+| 프로젝트 / 패키지 명 | 원저작자 / 공식 출처 | 공식 업스트림 링크 | 기존 기록된 라이선스 (2026-11-11 재확인은 §7) | 본 프로젝트 내 상태 및 권한 |
 | :--- | :--- | :--- | :---: | :--- |
 | **`limo_ros2`**<br>(`limo_base`, `limo_msgs`) | AgileX Robotics<br>(松灵机器人) | [agilexrobotics/limo_ros2](https://github.com/agilexrobotics/limo_ros2) | `limo_base`: Apache-2.0<br>`limo_msgs`: BSD | 하드웨어 섀시 시리얼 통신 프로토콜 참고. 공개 저장소에서는 제외하고 공식 upstream 설치 권장. |
 | **`limo_description`**<br>(3D 메시 및 URDF) | AgileX Robotics | [agilexrobotics/limo_ros2](https://github.com/agilexrobotics/limo_ros2) | `TODO: License declaration` | **라이선스 미확인 / 재배포 불가**. 3D 메시(`limo_wheel.dae`/`stl`)는 공개 이력에서 배제. |
 | **`limo_car`**<br>(Classic Gazebo) | AgileX Robotics &<br>TU Braunschweig | [agilexrobotics/limo_ros2](https://github.com/agilexrobotics/limo_ros2) | Apache-2.0 | 과거 Classic Gazebo 모델. Fortress 시뮬레이션에서는 자체 모델로 대체되었으므로 공개 제외. |
 | **`ros2_astra_camera`** | Orbbec 3D Technology | [orbbec/ros2_astra_camera](https://github.com/orbbec/ros2_astra_camera) | `astra_camera`: TODO<br>`astra_camera_msgs`: all copyrights reserved | **독점 저작권 및 바이너리 포함**. 비공개 드라이버 라이브러리(`liborbbec.so`) 포함으로 재배포 배제. |
-| **`ydlidar_ros2_driver`** | EAI YDLIDAR | [YDLIDAR/ydlidar_ros2_driver](https://github.com/YDLIDAR/ydlidar_ros2_driver) | **MIT** | 실차 2D LiDAR 센서 공식 드라이버. 라이선스 확인됨. 공식 upstream 설치 권장. |
+| **`ydlidar_ros2_driver`** | EAI YDLIDAR | [YDLIDAR/ydlidar_ros2_driver](https://github.com/YDLIDAR/ydlidar_ros2_driver) | MIT (기존 기록, 자동 확인 불가: §7) | 실차 2D LiDAR 센서 공식 드라이버. 업스트림 LICENSE 직접 확인 전까지 미확인. 공식 upstream 설치 권장. |
 | **`wego` / `wego_2d_nav`**<br>`limo_ros2_application` | WeGO Robotics | [wego-robotics](https://github.com/wego-robotics) | **Apache-2.0** | 국내 유통사 교육·실습용 런치 및 기본 노드. 본 프로젝트 핵심 알고리즘과 무관하여 제외. |
-| **`robot_localization`** | Tom Moore / CRA | [cra-ros-pkg/robot_localization](https://github.com/cra-ros-pkg/robot_localization) | **Apache-2.0** | 표준 EKF 센서 융합 패키지. ROS 2 apt 바이너리 또는 upstream 소스 설치 권장. |
-| **`m-explore-ros2`**<br>(`explore_lite`) | Carlos Alvarez / Robo Friends | [robo-friends/m-explore-ros2](https://github.com/robo-friends/m-explore-ros2) | **BSD** | 프론티어 기반 자동 탐색 알고리즘. ROS 2 공식 커뮤니티 패키지. |
+| **`robot_localization`** | Tom Moore / CRA | [cra-ros-pkg/robot_localization](https://github.com/cra-ros-pkg/robot_localization) | Apache-2.0 (기존 기록, 미확인: §7) | 표준 EKF 센서 융합 패키지. ROS 2 apt 바이너리 또는 upstream 소스 설치 권장. |
+| **`m-explore-ros2`**<br>(`explore_lite`) | Carlos Alvarez / Robo Friends | [robo-friends/m-explore-ros2](https://github.com/robo-friends/m-explore-ros2) | BSD (기존 기록, 자동 확인 불가: §7) | 프론티어 기반 자동 탐색 알고리즘. ROS 2 공식 커뮤니티 패키지. |
 | **`magic_enum`** | Neargye | [Neargye/magic_enum](https://github.com/Neargye/magic_enum) | **MIT** | C++17 Header-only Enum 리플렉션 라이브러리. |
 | **`libuvc`** | Ken Tossell / libuvc | [libuvc/libuvc](https://github.com/libuvc/libuvc) | **BSD** | USB Video Class 기기 크로스 플랫폼 라이브러리. |
 

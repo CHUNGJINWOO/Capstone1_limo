@@ -18,7 +18,7 @@
 2026년 11월 8일, `capstone_ws`를 메인 자립형 워크스페이스로 확정하고 시뮬레이션 통합 자동 맵핑 파이프라인의 1차 기능 동등성 및 안전 회귀 검증을 완료하였습니다.
 
 - **워크스페이스 역할 분담:**
-  - **`capstone_ws` (메인 워크스페이스):** 정식 ROS 2 패키지(`limo_capstone`, `limo_depth_obstacles`), 정식 Launch 2종(`sim`, `real`), 설정 YAML, SDF/URDF 모델을 포함하며 외부 참조 없이 독립 빌드·실행됩니다.
+  - **`capstone_ws` (메인 워크스페이스):** 정식 ROS 2 패키지(`limo_capstone`, `limo_depth_obstacles`), 정식 Launch 2종(`sim`, `real`), 설정 YAML, SDF/URDF 모델을 포함합니다. 단, **외부 의존성이 필요합니다**: 시뮬레이션·실차 launch 모두 AgileX `limo_ros2`의 `limo_description`을, 실차는 추가로 `limo_base`, `ydlidar_ros2_driver`(시스템 라이브러리 `ydlidar_sdk` 필요), `astra_camera`(깊이 카메라 사용 시)를 요구하며 이들은 `capstone_ws/src`에 포함되어 있지 않습니다(출처: `docs/third_party.repos`). 이 의존성이 없는 환경에서는 launch가 `PackageNotFoundError`로 실패합니다.
   - **`experiments/limo_integrated_auto_mapping_20261108/` (실험 아카이브):** 자동 회귀 검증 스크립트, 장시간 탐색 벤치마크 로그, 고장 주입 시험 JSON, 공식 rosbag2 아카이브 및 기술 보고서 5종을 보존합니다.
 - **핵심 통합 서브시스템:**
   - **F4/F5_improved 선택형 상태 추정:** 2D LiDAR ICP 오도메트리(F4, 10.0Hz) 및 ICP + IMU 요 각속도 EKF 융합 오도메트리(F5_improved, 50.0Hz).
@@ -211,8 +211,8 @@
 | **기본 패키지** | LIMO 드라이버·모델·메시지 | 소스 보유 | 원제공 소스와 프로젝트 수정 사항은 Git 이력으로 구분 |
 | **상태 추정 (F4)** | 2D LiDAR ICP 오도메트리 | **통합 완료** | 시뮬레이션 10.0 Hz 실측 검증. 고유 TF는 `odom_tf_relay_node`를 통해 중재 |
 | **상태 추정 (F5)** | ICP + IMU EKF 융합 | **통합 완료** | 시뮬레이션 50.0 Hz 실측 검증. 슬립 방지를 위해 휠 오도는 EKF에서 배제 |
-| **SLAM 지도 작성** | SLAM Toolbox 온라인 비동기 | **통합 완료** | `map -> odom` TF 단일 소유. 실시간 점유 격자 확장 검증 |
-| **자율 탐색 주행** | Nav2 RPP + explore_lite | **통합 완료** | 프론티어 자동 감지 및 NavigateToPose 액션 연동 자율 탐색 완주 |
+| **SLAM 지도 작성** | SLAM Toolbox 온라인 비동기 | 시뮬레이션 통합 완료 / **실차 미해결** | 시뮬레이션: `map -> odom` TF 단일 소유, 점유 격자 확장 검증. 실차: LiDAR 스캔 점 수 불일치로 지도가 갱신되지 않는 문제 확인, 정규화 해결안은 오프라인 검증만 됐고 실차 미적용 (`docs/REAL_ROBOT_STATUS.md`) |
+| **자율 탐색 주행** | Nav2 RPP + explore_lite | 시뮬레이션 통합 완료 / **실차 맵핑 미검증** | 시뮬레이션: 프론티어 자동 감지 및 NavigateToPose 연동 탐색 완주. 실차: 감독 하의 짧은 시행만 있고 정상 맵핑은 확인되지 않음 |
 | **3D 장애물 필터** | DaBai Depth 높이 윈도잉 | **통합 완료** | `limo_depth_obstacles` 패키지. 지상 [0.025, 0.35]m 윈도잉, 0.38초 워치독 |
 | **안전 명령 게이트** | Stall Detector 노드 | **통합 완료** | 후진 차단(`enable_auto_reverse:=false`), 0.38초 센서 단절 제동, 휠 헛돎 감지 |
 | **모터 잠금 격리** | 실물 Launch 안전 격리 | **통합 완료** | `allow_motor_drive:=false` 시 `/cmd_vel` 0건 누출, `/cmd_vel_locked` 전량 라우팅 |
@@ -272,6 +272,9 @@ ros2 launch limo_capstone limo_integrated_auto_mapping_real.launch.py \
 ```
 *(※ 잠금 모드에서 `/cmd_vel` 발행자는 0개이며 명령은 `/cmd_vel_locked`로 격리됩니다. 실차에서는 LiDAR가 시작 직후와 정상 상태에서 점 수가 달라 slam_toolbox가 스캔을 거부해 지도가 갱신되지 않는 문제가 확인되었고, 정규화 해결안은 아직 실차 launch에 적용되지 않았습니다.)*
 
+> [!CAUTION]
+> **레거시 launch 사용 금지:** `limo_nav2.launch.py`, `limo_auto_mapping.launch.py`, `limo_nav2_sim.launch.py`, `limo_auto_mapping_sim.launch.py`, `limo_mc3f_sim.launch.py` 등 (Nav2를 띄우는 비통합 launch) `limo_integrated_auto_mapping_*`가 아닌 launch에는 현재 안전 게이트(`/cmd_vel_raw` → `stall_detector_node`)가 적용되어 있지 않습니다. Nav2 출력이 `/cmd_vel`로 직접 나갈 수 있으므로 **실차 자율 주행에 사용하지 마십시오.** (게이트 적용은 구현하지 않았고 경고만 추가한 상태입니다.)
+
 #### 3) RViz2 시각화 설정
 별도 터미널에서 RViz2를 실행하여 점유 격자 지도 및 센서를 확인합니다.
 ```bash
@@ -283,7 +286,7 @@ source /opt/ros/humble/setup.bash && rviz2
 - **3D Depth:** Topic `/depth_obstacles/points` (Reliability: `Reliable`)
 
 #### 4) 안전 래치 확인 및 수동 리셋
-센서 단절이나 정체로 인해 로봇이 멈춘 경우, 센서 복구 후 다음 서비스로 주행을 재개합니다.
+정체(STALL) 래치는 아래 서비스로 운영자가 해제해야 합니다. **실차 launch(`require_operator_unlatch=False`)에서 센서 단절 FAILSAFE는 필요한 입력이 모두 다시 정상이 되고 Nav2 명령이 0 근처(선·각속도 0.02 미만)일 때 운영자 확인 없이 자동으로 NORMAL로 복귀합니다**(코드상 동작이며 실차에서 안전성이 검증되지 않았음). 시뮬레이션 launch는 `require_operator_unlatch=True`라 센서 FAILSAFE도 서비스로 해제합니다.
 ```bash
 # 안전 게이트 텔레메트리 모니터링
 ros2 topic echo /stall_detector/status_json
@@ -596,13 +599,16 @@ Navigation Goal 전송
 | 감사 영역 | 검증 항목 | 합격 기준 | 실제 측정값 | 최종 판정 |
 | :--- | :--- | :--- | :--- | :---: |
 | **Audit 1: 패키지 이식 정합성** | 엔트리포인트 9종, share 디렉터리, experiments 참조 0건, 레거시 파일 보존 | 결함/오류 0건, 레거시 보존 | 엔트리포인트 9종 정상 등록, share 접근 정상, experiments 참조 0건, 원본 6종 100% 보존 | **PASS** |
-| **Audit 2: 실물 구동 안전 게이트** | `allow_motor_drive:=false` 모터 잠금, Nav2 바이패스 차단 | `/cmd_vel` 0건, `/cmd_vel_locked` 라우팅 | `/cmd_vel` 0건 (누출 제로), `/cmd_vel_locked` 160건 전량 라우팅 | **PASS** |
+| **Audit 2: 실물 구동 안전 게이트** | `allow_motor_drive:=false` 모터 잠금, Nav2 바이패스 차단 | `/cmd_vel` 0건, `/cmd_vel_locked` 라우팅 | `/cmd_vel` 0건 (누출 제로), `/cmd_vel_locked` 160건 전량 라우팅 | **PASS** (※ 아래 주의) |
 | **Audit 3: F4 통합 자동 탐색** | 단일 TF 트리, 오도메트리 주기, 지도 확장, rosbag2 기록/재생 | TF 100%, Freq $\ge 8\text{Hz}$, Map 확장, 재생 가능 | TF 단일 소유, Freq 10.0 Hz, Map 격자 확장, 2.509 MB 재생 성공 | **PASS** |
 | **Audit 4: F5 통합 자동 탐색** | 단일 TF 트리, EKF 오도메트리 주기, 지도 확장, rosbag2 기록/재생 | TF 100%, Freq $\ge 40\text{Hz}$, Map 확장, 재생 가능 | TF 단일 소유, Freq 50.0 Hz, Map 격자 확장, 3.267 MB 재생 성공 | **PASS** |
 | **Audit 5A: Depth 차단 (상태 반응성)** | 인공 `DEPTH_STALE` JSON 상태 주입 (Test A) | 반응 $\le 0.05\text{s}$, 정지거리 $< 0.20\text{m}$ | 감지 0.004s, 차단 0.003s, 총변위 0.100m (고장주입~정지), 완전정지 6.455s | **PASS** |
 | **Audit 5B: Depth 차단 (물리 단절)** | 실제 PointCloud2 발행 프로세스 강제 종료 (Test B) | 감지 $0.30\sim0.55\text{s}$, 정지거리 $< 0.20\text{m}$ | 감지 0.421s, 차단 0.421s (PASS) / 정지변위 0.165m (UNVERIFIED) | **PASS (지연시간)** / **UNVERIFIED (제동거리)** |
 | **Audit 6: LiDAR/ICP 고장 차단** | 주행 중 F4 스캔매처 노드 강제 종료 | 감지 $\le 0.55\text{s}$, 차단 $\le 0.58\text{s}$, 정지거리 $< 0.20\text{m}$ | 감지 0.406s, 차단 0.403s, 총변위 0.174m (고장주입~정지), 즉시 제동 | **PASS** |
 | **종합 평가** | 전 7개 세부 감사 기준 충족 | 전 부문 합격 | **기능 동등성 및 지연시간 충족 / 실측 정지거리 UNVERIFIED** | **PASS (기능)** |
+
+> [!WARNING]
+> **11월 8일 감사(위 표)의 한계:** Audit 2 등 안전 게이트 PASS는 당시 launch 구조에서 얻은 값입니다. 그 구조에서는 전역 `cmd_vel` remap 때문에 `velocity_smoother`의 출력이 안전 게이트를 거치지 않고 `/cmd_vel`로 나갈 수 있었고, 이 감사는 주행 없이 유휴 상태에서 `/cmd_vel` 0건을 본 것이어서 그 우회를 검증하지 못했습니다. 11월 10일에 이 배선을 고쳤습니다(`cmd_vel_smoothed`, `behavior_server:cmd_vel` → `/cmd_vel_raw`, 게이트 1개; 기록: `docs/dev_notes/2026_11_10_cmd_vel_안전게이트_경로_점검.md`). 수정 후에는 게이트 단독 시험 86/86과 launch 그래프 확인(`/cmd_vel` 발행자가 게이트 하나)을 했지만, 위 표의 수치(0.421 s 등)를 수정된 배선으로 다시 측정한 것은 아닙니다.
 
 #### 2) Depth 센서 단절 지연 및 제동 거리 정밀 분석 (0.421초 지연 및 0.165m 변위 검증)
 
