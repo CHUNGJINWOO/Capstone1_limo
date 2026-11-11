@@ -1,0 +1,4 @@
+snap1: unknown real=6974 recon=10233 | cost-0 cells real=22027 recon=22463 | cost-0 agreement (IoU) 0.909 | cells where real>0 but recon==0: 1277, real==0 but recon>0: 0 | real>=99: 8708 recon>=99: 5949
+snap2: unknown real=6638 recon=10233 | cost-0 cells real=22108 recon=22463 | cost-0 agreement (IoU) 0.896 | cells where real>0 but recon==0: 1399, real==0 but recon>0: 0 | real>=99: 8822 recon>=99: 5949
+snap3: unknown real=6635 recon=10233 | cost-0 cells real=22038 recon=22463 | cost-0 agreement (IoU) 0.897 | cells where real>0 but recon==0: 1425, real==0 but recon>0: 0 | real>=99: 8922 recon>=99: 5949
+snap4: unknown real=6635 recon=10233 | cost-0 cells real=22038 recon=22463 | cost-0 agreement (IoU) 0.897 | cells where real>0 but recon==0: 1425, real==0 but recon>0: 0 | real>=99: 8922 recon>=99: 5949

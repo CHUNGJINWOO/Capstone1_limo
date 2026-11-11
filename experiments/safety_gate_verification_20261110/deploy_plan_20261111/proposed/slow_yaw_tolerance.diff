@@ -1,0 +1,19 @@
+--- config/integrated_nav2_lidar_only_slow_params.yaml	2026-11-11 12:51:43.538937350 +0900
++++ <repo>/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/integrated_nav2_lidar_only_slow_params_yaw.yaml	2026-11-11 15:28:49.479528262 +0900
+@@ -5,6 +5,7 @@
+ #   min_approach_linear_velocity 0.15 -> 0.08, regulated_linear_scaling_min_speed 0.18 -> 0.10
+ #   behavior_server.max_rotational_vel/min_rotational_vel/rotational_acc_lim (new): 0.5 / 0.2 / 1.5
+ #   velocity_smoother.max_velocity/min_velocity (new): hard cap on the Nav2 controller output path
++#   general_goal_checker.yaw_goal_tolerance 0.60 -> 0.30 rad (about 34 deg -> 17 deg): D3b stopped about 31 deg short of the requested heading
+ # Selected by the real launch with speed_profile:=slow (lidar-only configuration only).
+ # integrated_nav2_params.yaml
+ # Production Nav2 Configuration for LIMO Pro Integrated Auto-Mapping System
+@@ -86,7 +87,7 @@
+       stateful: True
+       plugin: "nav2_controller::SimpleGoalChecker"
+       xy_goal_tolerance: 0.12
+-      yaw_goal_tolerance: 0.60
++      yaw_goal_tolerance: 0.30
+ 
+     FollowPath:
+       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"

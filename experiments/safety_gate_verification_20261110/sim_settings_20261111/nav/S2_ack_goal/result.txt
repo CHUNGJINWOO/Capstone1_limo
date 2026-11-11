@@ -1,0 +1,13 @@
+gate: {"sim_time": 52.7, "state": "NORMAL", "state_code": 0, "cmd_blocked": 
+---
+/cmd_vel PUB:       1 stall_detector_node 
+/cmd_vel_raw PUB:       3 behavior_server       1 velocity_smoother 
+BT: navigate_to_pose_ackermann_no_reverse.xml
+gate state at start: FAILSAFE_SENSOR_TIMEOUT
+goal map=(0.50,-0.00) yaw=-0 dist=0.50
+goal accepted: True
+nav status=not finished (4=SUCCEEDED); GT path=0.00 m, net=0.00 m; map pose end=(-0.00,0.00) goal err=0.50 m
+/cmd_vel nonzero=0/2869; state transitions=[(1794325045.67, 'FAILSAFE_SENSOR_TIMEOUT')]
+gate after: {"sim_time": 115.1, "state": "FAILSAFE_SENSOR_TIMEOUT", "state_code": 
+---
+gate log: [stall_detector_node-22] [ERROR] [1794325042.798416700] [stall_detector_node]: [FAIL-SAFE SENSOR TIMEOUT] scan_stale=False, lidar_stale=False, wheel_odom_stale=False, est_odom_stale=False, depth_fault 
