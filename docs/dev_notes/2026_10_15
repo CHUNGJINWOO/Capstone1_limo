@@ -1,0 +1,9 @@
+## limo_auto_mapping.launch.py
+
+# explore_node와 static_tf 위치 변경.
+현재 런치 파일은 base_link → base_footprint 정적 변환을 제공. 
+explore.yaml은 robot_base_frame: base_link로 설정되어 있지만, 
+Nav2 설정의 일부 노드는 base_footprint를 사용.
+따라서 탐색 노드를 시작하기 전에 해당 TF를 제공하도록 배치.
+
+explore_node 먼저 실행 시 TF노드보다 탐색 노드가 먼저  실행 됨. 때문에 TF가 준비될 때까지 탐색 노드가 기다리거나 오류를 기록할 수 있음.
