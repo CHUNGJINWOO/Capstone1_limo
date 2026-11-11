@@ -452,8 +452,9 @@ def generate_launch_description():
     )
 
     log_lock_notice = LogInfo(
-        condition=UnlessCondition(allow_motor_drive),
-        msg="[SAFETY LOCK ACTIVE] Real robot motor drive is LOCKED (allow_motor_drive:=false). Commands redirected to /cmd_vel_locked."
+        # Same test as gate_out_topic: only the exact string 'true' unlocks; anything else (false, TRUE, empty) is locked.
+        condition=IfCondition(PythonExpression(["'", allow_motor_drive, "' != 'true'"])),
+        msg="[SAFETY LOCK ACTIVE] Real robot motor drive is LOCKED (allow_motor_drive is not exactly 'true'). Commands redirected to /cmd_vel_locked."
     )
 
     return LaunchDescription([
