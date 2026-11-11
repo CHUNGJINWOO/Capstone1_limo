@@ -15,13 +15,32 @@
   <depend>action_msgs</depend>
   <depend>nav2_msgs</depend>
   <depend>tf2_ros</depend>
+  <depend>tf2_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>visualization_msgs</depend>
   <depend>limo_depth_obstacles</depend>
 
   <exec_depend>robot_localization</exec_depend>
   <exec_depend>slam_toolbox</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>explore_lite</exec_depend>
+  <!-- runtime packages used by the launch files (verified by reading get_package_share_directory / Node package names) -->
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>nav2_common</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <!-- real robot (not part of this workspace: provided by the LIMO image / vendor sources) -->
+  <exec_depend>limo_base</exec_depend>
+  <exec_depend>limo_description</exec_depend>
+  <exec_depend>ydlidar_ros2_driver</exec_depend>
+  <exec_depend>astra_camera</exec_depend> <!-- only with use_depth_camera:=true -->
+  <!-- simulation (Gazebo Fortress) -->
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-opencv</exec_depend> <!-- integrated_recorder_node -->
+  <exec_depend>python3-pil</exec_depend> <!-- scripts/map_to_world.py -->
   <exec_depend>python3-scipy</exec_depend>
 
   <test_depend>ament_copyright</test_depend>

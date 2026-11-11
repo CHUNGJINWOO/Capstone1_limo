@@ -17,6 +17,7 @@ import time
 import numpy as np
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Quaternion
@@ -74,7 +75,7 @@ class LidarScanMatcherOdomNode(Node):
         self.wz = 0.0
         self.last_inliers = 350.0
 
-        self.sub_scan = self.create_subscription(LaserScan, '/scan', self.on_scan, 10)
+        self.sub_scan = self.create_subscription(LaserScan, '/scan', self.on_scan, qos_profile_sensor_data)
         self.pub_odom = self.create_publisher(Odometry, '/odometry/lidar_odom', 20)
         self.pub_lat = self.create_publisher(Float32MultiArray, '/diagnostics/f4_latency', 20)
 
@@ -238,8 +239,10 @@ def main(args=None):
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-    node.destroy_node()
-    rclpy.shutdown()
+    finally:
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
