@@ -1,0 +1,17 @@
+{
+ "saved_because": "exploration_complete",
+ "wall_s_since_start": 105.1,
+ "status_history": [
+  [
+   6.3,
+   "exploration_started"
+  ],
+  [
+   100.6,
+   "exploration_complete"
+  ]
+ ],
+ "map_saver_returncode": 0,
+ "prefix": "<repo>/experiments/auto_mapping_final_20261112/runs/v3/limo_sim_map",
+ "map_saver_tail": "ments/auto_mapping_final_20261112/runs/v3/limo_sim_map.pgm\n[INFO] [1794461498.540363722] [map_io]: Writing map metadata to <repo>/experiments/auto_mapping_final_20261112/runs/v3/limo_sim_map.yaml\n[INFO] [1794461498.540502269] [map_io]: Map saved\n[INFO] [1794461498.540514285] [map_saver]: Map saved successfully\n[INFO] [1794461498.543261426] [map_saver]: Destroying\n"
+}

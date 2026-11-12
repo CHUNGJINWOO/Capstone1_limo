@@ -1,0 +1,111 @@
+{
+ "definition": [
+  "Coverage definition (same as analyze_map_quality.py): interior = inner faces of the 4 outer walls of lounge_evaluation_world.sdf",
+  "(x in [-5.9, 5.9], y in [-4.4, 4.4] = 103.84 m2); 'known' = SLAM cell that is free (<25) or occupied (>=65); coverage = known interior area / interior area.",
+  "Furniture is not subtracted, so cells under furniture count as unexplored."
+ ],
+ "interior_area_m2": 103.84,
+ "known_in_interior_m2": 82.52,
+ "free_in_interior_m2": 80.06,
+ "occupied_in_interior_m2": 2.46,
+ "coverage_fraction": 0.795,
+ "known_total_m2": 86.07,
+ "alignment_refinement": {
+  "delta_theta_deg": -6.45,
+  "dx_m": -0.069,
+  "dy_m": -0.016,
+  "outer_wall_residual_with_start_pose_alignment": {
+   "mean_abs_m": 0.2,
+   "p95_abs_m": 0.412,
+   "n": 749
+  },
+  "outer_wall_residual_after_wall_fit_alignment": {
+   "mean_abs_m": 0.024,
+   "p95_abs_m": 0.05,
+   "n": 852
+  }
+ },
+ "coverage_fraction_with_wall_fit_alignment": 0.821,
+ "unexplored_interior_regions_ge_0.3m2": [
+  {
+   "area_m2": 8.58,
+   "x_range": [
+    1.0,
+    5.85
+   ],
+   "y_range": [
+    -4.4,
+    -1.5
+   ]
+  },
+  {
+   "area_m2": 7.08,
+   "x_range": [
+    2.6,
+    5.9
+   ],
+   "y_range": [
+    1.55,
+    4.35
+   ]
+  },
+  {
+   "area_m2": 0.76,
+   "x_range": [
+    -5.9,
+    -2.55
+   ],
+   "y_range": [
+    -2.3,
+    -1.4
+   ]
+  },
+  {
+   "area_m2": 0.37,
+   "x_range": [
+    1.15,
+    3.1
+   ],
+   "y_range": [
+    -4.4,
+    -3.6
+   ]
+  }
+ ],
+ "path_length_m_from_gt_timeseries": 9.41,
+ "monitor_gt_path_m": 8.28,
+ "stop_reason": "exploration_stopped",
+ "sim_s": 200.0,
+ "wall_s": 217.0,
+ "saved_map_file": {
+  "size": [
+   178,
+   238
+  ],
+  "known_cells": 34427,
+  "monitor_final_map_known_cells": 34427
+ },
+ "wall_coverage_from_map_quality": [
+  [
+   "north (y=4.4)",
+   0.483
+  ],
+  [
+   "south (y=-4.4)",
+   0.576
+  ],
+  [
+   "west (x=-5.9)",
+   0.693
+  ],
+  [
+   "east (x=5.9)",
+   0.67
+  ],
+  [
+   "glass wall (y=-1.5)",
+   0.671
+  ]
+ ],
+ "ground_truth_path_length_m_gazebo": 8.25
+}
