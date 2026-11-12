@@ -45,6 +45,23 @@
 
 ---
 
+## 중앙 관제와 Open-RMF 연동 (`fleet_control/`)
+
+노트북의 중앙 관제 서버(웹 대시보드, REST API, SQLite), LIMO의 Robot Agent, Open-RMF Fleet Adapter를 Tailscale 사설망으로 연결하는 구성입니다. 자세한 내용은 [fleet_control/README.md](fleet_control/README.md), [API](fleet_control/docs/API.md), [검증 요약](fleet_control/docs/VALIDATION.md), [Open-RMF 설계](fleet_control/rmf_adapter/docs/RMF.md)를 보세요.
+
+| 구분 | 현재 상태 |
+|---|---|
+| 구현 완료 | 대시보드, 서버, Robot Agent, 임무 생성·취소·상태, 인증·역할, 제어권 lease, 운영자 복구, Open-RMF Fleet Adapter |
+| 모의 환경 검증 | RMF → Mission Manager → 모의 로봇 임무 수행·취소, 웹/RMF 소유권 충돌, 통신 장애·재연결, 복구 |
+| 실차 검증 | 모터 잠금 상태에서 Tailscale 경유 **상태 수신**만(임무·이동 없음) |
+| 미검증 | Gazebo·Open-RMF 통합, Open-RMF 실차 이동, 다중 로봇, 장시간 운용, RMF 고아 작업 복구, 최신 서버·Agent의 운영 배포 |
+
+시뮬레이션 결과를 실차 검증으로 읽지 마세요. `tests/run_checks.py`는 한 번 원인 미상의 실패(42/46)가 있었습니다. 한계는 위 문서에 적혀 있습니다.
+
+`fleet_control/`에는 현재 별도의 오픈소스 라이선스가 부여되지 않았습니다([안내](fleet_control/README.md#라이선스)).
+
+---
+
 ## 1. 프로젝트 소개
 
 ### 프로젝트명

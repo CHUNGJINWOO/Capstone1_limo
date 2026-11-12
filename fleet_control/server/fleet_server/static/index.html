@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Capstone1 Fleet Control</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><h1>Capstone1 중앙 관제</h1><span id="srv" class="muted"></span><span class="spacer"></span><span id="who" class="muted"></span><button id="logout" class="small hidden">토큰 지움</button></header>
+<div id="login" class="card hidden"><h2>API 토큰 입력</h2><p class="muted">관제 서버 토큰(viewer, operator, admin 중 하나)을 입력하세요. 토큰은 이 브라우저 탭의 sessionStorage에만 저장됩니다.</p>
+<input id="tok" type="password" placeholder="Bearer token" autocomplete="off"><button id="go">접속</button><div id="loginerr" class="bad"></div></div>
+<main id="main" class="hidden">
+ <section id="robots"></section>
+ <section class="cols">
+  <div class="card"><h2>지도와 로봇 위치 <select id="mapRobot"></select> <span id="mapinfo" class="muted"></span></h2>
+   <div class="mapwrap"><canvas id="map" width="640" height="560"></canvas></div>
+   <div class="muted small">지도를 클릭하면 목표 좌표가 입력됩니다 (map 프레임, 위=+y).</div></div>
+  <div class="card"><h2>임무</h2>
+   <form id="mform" class="mform"><label>로봇 <select id="mrobot"></select></label>
+    <label>x<input id="mx" type="number" step="any" value="0"></label><label>y<input id="my" type="number" step="any" value="0"></label><label>yaw(rad)<input id="myaw" type="number" step="any" value="0"></label>
+    <button id="mcreate" type="submit">임무 생성 (NavigateToPose)</button></form><div id="merr" class="bad"></div>
+   <table id="missions"><thead><tr><th>mission</th><th>robot</th><th>목표</th><th>상태</th><th>진행</th><th></th></tr></thead><tbody></tbody></table></div>
+ </section>
+ <section class="card"><h2>이벤트 로그</h2><div id="events"></div></section>
+</main>
+<script src="app.js"></script></body></html>

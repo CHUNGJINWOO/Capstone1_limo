@@ -1,0 +1,5 @@
+# local-only runtime state and credentials (never commit)
+secrets/
+data/
+__pycache__/
+*.pyc
