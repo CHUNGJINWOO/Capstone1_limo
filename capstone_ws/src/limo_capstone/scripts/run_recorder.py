@@ -70,6 +70,26 @@ def find_repo_root(start):
     return None
 
 
+def default_runs_root(start=None, environ=None):
+    """run 디렉터리의 기본 위치를 정한다. (--root 인자는 호출부에서 이 값보다 우선한다.)
+
+    우선순위: $LIMO_RUNS_DIR > <저장소>/local_data/raw_results/limo_runs > ~/limo_runs
+    저장소는 find_repo_root()로 찾되, 다른 Git 저장소를 잘못 잡지 않도록
+    local_data/ 와 capstone_ws/src/limo_capstone/ 가 모두 있을 때만 인정한다.
+    조건을 하나라도 만족하지 못하면 기존 기본값(~/limo_runs)을 그대로 쓴다.
+    """
+    env = os.environ if environ is None else environ
+    explicit = env.get('LIMO_RUNS_DIR')
+    if explicit:
+        return explicit
+    begin = Path(__file__).resolve().parent if start is None else Path(start)
+    repo = find_repo_root(begin)
+    if (repo is not None and (repo / 'local_data').is_dir()
+            and (repo / 'capstone_ws' / 'src' / 'limo_capstone').is_dir()):
+        return str(repo / 'local_data' / 'raw_results' / 'limo_runs')
+    return str(Path.home() / 'limo_runs')
+
+
 def git_info(repo):
     if repo is None:
         return {'available': False}
@@ -153,9 +173,9 @@ def sanitize_label(label):
 def parse_args():
     ap = argparse.ArgumentParser(
         description='run 디렉터리 생성 + rosbag2 기록 (주행 동작 변경 없음)')
-    ap.add_argument('--root', default=os.environ.get(
-        'LIMO_RUNS_DIR', str(Path.home() / 'limo_runs')),
-        help='run 디렉터리를 만들 위치 (기본: $LIMO_RUNS_DIR 또는 ~/limo_runs)')
+    ap.add_argument('--root', default=default_runs_root(),
+        help='run 디렉터리를 만들 위치 (기본: $LIMO_RUNS_DIR, 없으면 저장소의 '
+             'local_data/raw_results/limo_runs, 저장소를 못 찾으면 ~/limo_runs)')
     ap.add_argument('--label', default='run', help='run 이름에 붙일 짧은 설명')
     ap.add_argument('--note', default='', help='메모 (meta.json에 저장)')
     ap.add_argument('--launch-args', default='',
