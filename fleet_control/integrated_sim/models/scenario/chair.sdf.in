@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- Static chair for YOLO (class chair); @CHAIR_MESH@ is replaced at run time (mesh not stored in the repository). Box collision so LiDAR/depth see it. -->
+<sdf version="1.6">
+  <model name="scenario_chair">
+    <static>true</static>
+    <link name="link">
+      <collision name="c"><pose>0 0 0.45 0 0 0</pose><geometry><box><size>0.5 0.5 0.9</size></box></geometry></collision>
+      <visual name="v"><pose>0 0 0 0 0 1.5708</pose><geometry><mesh><uri>file://@CHAIR_MESH@</uri><scale>0.00817 0.00817 0.00817</scale></mesh></geometry></visual>
+    </link>
+  </model>
+</sdf>

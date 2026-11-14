@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>limo_robot_agent</name>
+  <version>0.1.0</version>
+  <description>Capstone1 fleet Robot Agent (stage 1): reports robot state to the central server and executes missions through the Nav2 NavigateToPose action. Read-only toward the existing SLAM/Nav2/Safety Gate stack.</description>
+  <maintainer email="noreply@example.com">capstone</maintainer>
+  <license>TODO: License declaration</license>
+  <depend>rclpy</depend>
+  <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>nav2_msgs</depend>
+  <depend>action_msgs</depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-pil</exec_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

@@ -1,0 +1,65 @@
+{
+  "duration_s": 10.0,
+  "processes": {
+    "dashboard_live": {
+      "cpu_percent_one_core": 1.0,
+      "rss_mib": 36.1
+    },
+    "dashboard_test": {
+      "cpu_percent_one_core": 4.2,
+      "rss_mib": 38.8
+    },
+    "synthetic_ros": {
+      "cpu_percent_one_core": 12.99,
+      "rss_mib": 64.2
+    },
+    "test_readonly_bridge": {
+      "cpu_percent_one_core": 4.8,
+      "rss_mib": 66.5
+    },
+    "replay_yolo_host": {
+      "cpu_percent_one_core": 10.0,
+      "rss_mib": 1738.0
+    },
+    "recorded_gazebo_rgb": {
+      "cpu_percent_one_core": 0.4,
+      "rss_mib": 17.6
+    }
+  },
+  "gateways": {
+    "18210": {
+      "upstream_reported_kB_s": 39.72,
+      "browser_aggregate_kB_s": 1.85,
+      "mm_polls_s": 2.0,
+      "video_polls_s": 4.9,
+      "pair_mismatch": 0,
+      "bridge": {
+        "received": 0,
+        "rejected": 0,
+        "out_of_order": 0
+      },
+      "layer_status": {},
+      "depth_status": null,
+      "video_fresh": false
+    },
+    "18211": {
+      "upstream_reported_kB_s": 155.09,
+      "browser_aggregate_kB_s": 214.35,
+      "mm_polls_s": 0.0,
+      "video_polls_s": 4.8,
+      "pair_mismatch": 24,
+      "bridge": {
+        "received": 667,
+        "rejected": 0,
+        "out_of_order": 0
+      },
+      "layer_status": {
+        "map": "OK",
+        "global_costmap": "OK",
+        "local_costmap": "OK"
+      },
+      "depth_status": "OK",
+      "video_fresh": true
+    }
+  }
+}

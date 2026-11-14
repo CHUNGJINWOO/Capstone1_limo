@@ -1,0 +1,17 @@
+{
+  ".gitignore": "92de825ab2ac5ffc2f2a5ed09976eb6076d410cea8509b6b5a71372f0056a121",
+  "API_AND_OFFICE.md": "ee44de42ce5d44d0b76c6bb1d5c30e8f6f9a83779c627a48305799e136429c94",
+  "COMPARISON.md": "33624e53c2f22596261952781625166e91e0c3b36c9e1fbd53c79a201e82bb88",
+  "README.md": "d552dd9c2a57092a8cf98064579751dc25ab3dcf3f0a62292f83da6c046bbcbc",
+  "evidence/image-digests.json": "cb566a4a3dcba9b11ca6656be5946c069779c5978dfe35773b8144be750c01fc",
+  "evidence/isolated-storybook.log": "115b6ba36476ee13d9437c9e46cd98cf52b808eee6043b04ca3f923c7871d309",
+  "evidence/preservation.json": "5f6644d40505c06e6cd079296ab0da7583caaf80068e435e7fcfcde538b639f2",
+  "evidence/stock-storybook-failure.log": "ff2ba411973ac39a7a7867ee92f7a34b8f5890eb4d83825621de4680441de1ad",
+  "evidence/versions.json": "40349584b6852b2f4f489fad83a355898b8e283c276211fcf73048f48672080a",
+  "harness/UPSTREAM-LICENSE.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+  "harness/main.ts": "f0602e9f582b36c2b6cda64efd1380ec40a3f22bf186b2af0321f073ecae095a",
+  "harness/office-research.stories.tsx": "33887c47f0fa133da15f80bcd0305024c1af95474f77614fec6628f949ac8775",
+  "harness/preview.tsx": "dbd1250a707cda70ae6614524c098b15305535a8c2b11f9a31b43f096e6f35f1",
+  "prepare_frontend.sh": "33a0b2d0fcec5e7aad08a4b8891f39acc6b4f0455330e98d35c8731ca82e67fb",
+  "start_storybook.sh": "fe3ab28c44f1eb044f82ceec338b8f7d1818a7023e3a8c70ade6ab866c42cb3e"
+}

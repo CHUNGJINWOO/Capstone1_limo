@@ -1,0 +1,12 @@
+{
+  "original_processes_alive": {
+    "37687": true,
+    "37799": true,
+    "37879": true,
+    "37887": true
+  },
+  "trial_python_processes_remaining": [],
+  "cmd_vel_publishers": 0,
+  "cmd_vel_locked_publishers": 1,
+  "original_bridge_manifest_matches": true
+}

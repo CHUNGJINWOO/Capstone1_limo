@@ -1,0 +1,77 @@
+{
+  "fleet_name": "limo_fleet",
+  "robot_name": "pcu",
+  "mission_robot_id": "pcu",
+  "map_name": "L1",
+  "nav2_map_yaml": "../maps/limo_sim_map.yaml",
+  "transform_rmf_from_nav2": {
+    "rotation_rad": 0.3,
+    "translation": [
+      20.0,
+      10.0
+    ]
+  },
+  "traits": {
+    "linear": [
+      0.3,
+      0.3
+    ],
+    "angular": [
+      0.5,
+      0.5
+    ],
+    "footprint_radius": 0.25,
+    "vicinity_radius": 0.5
+  },
+  "waypoints": [
+    {
+      "name": "wp_a",
+      "rmf": [
+        18.8047005367645,
+        3.0357154571923957
+      ],
+      "charger": true
+    },
+    {
+      "name": "wp_b",
+      "rmf": [
+        19.30300154206978,
+        4.131934462734513
+      ]
+    },
+    {
+      "name": "wp_c",
+      "rmf": [
+        19.80130254737506,
+        5.22815346827663
+      ]
+    },
+    {
+      "name": "wp_d",
+      "rmf": [
+        18.31607135926854,
+        5.292093423513558
+      ]
+    }
+  ],
+  "lanes": [
+    [
+      "wp_a",
+      "wp_b"
+    ],
+    [
+      "wp_b",
+      "wp_c"
+    ],
+    [
+      "wp_c",
+      "wp_d"
+    ]
+  ],
+  "arrival_speed_mps": 0.3,
+  "position_report_hz": 2.0,
+  "initial_waypoint_snap_m": 0.6,
+  "skip_start_waypoint_m": 0.15,
+  "merge_waypoint_distance_m": 0.3,
+  "simulation_profile": "Integrated simulation (Gazebo RGB-camera LIMO copy, saved-map AMCL, Nav2, unchanged Safety Gate): compact free-space graph in the south hall, start at wp_a"
+}
