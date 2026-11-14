@@ -21,7 +21,7 @@
 - `main` / `origin/main` (`a8132c7`): PR #1~#4, PR #8(공통 문서), **PR #9(`b350efa`, `fleet_control/` 173개)**, **PR #10(`a8132c7`, `run_recorder.py` 경로 개선)**이 병합된 정식 공개 기준선.
 - `feat/fleet-control-pr-b` (`e0bc7be`): PR #9 병합 브랜치 (`fleet_control/` 173개 + 증거 해시 안내 보완).
 - `feat/run-recorder-pr-c` (`f63688e`): PR #10 병합 브랜치 (`run_recorder.py` 신규 clone 출력 경로 보완).
-- `feat/fleet-control-unified` (`ed53d81`): `51175ef` + `419e798` 기반 로컬 통합 보존본(203개 비런타임 파일 + 비필수 증빙 30개).
+- `feat/fleet-control-unified` (`ed53d81`): `51175ef` + `419e798` 기반 로컬 통합 보존본(비런타임 파일 총 203개 = PR #9 공개 173개 + 제외된 비필수 로그·스크린샷 30개; 외부 실험 스크립트 3개는 PR-D 보류).
 - `docs/backup-policy-and-status-20261114` (`a021186`): `origin/main`(`51175ef`) 기반 공통 문서 증분 5종 분리 커밋.
 - `feat/fleet-control-rmf-integration` (`origin/feat/fleet-control-rmf-integration`, `419e798`): `main` 위에서 `fleet_control/`을 추가한 커밋 (기능 브랜치 4종의 공통 베이스).
 - `docs/gazebo-auto-mapping-final-20261112` (`cc58183`): Gazebo 차동구동 자동 맵핑 6회 결과 및 자동 지도 저장기(`experiments/auto_mapping_final_20261112/`).

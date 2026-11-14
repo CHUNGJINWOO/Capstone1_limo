@@ -63,15 +63,15 @@
 
 ---
 
+### 2.5 기록기 (`run_recorder.py`, PR #10 `main` 병합 완료)
+
+- **PR #10(`a8132c7`)** 반영으로 `--root` > `LIMO_RUNS_DIR` > 저장소(`capstone_ws/src/limo_capstone/`) 내 `local_data/raw_results/limo_runs/`(신규 clone 포함) > 저장소 밖 `~/limo_runs/` 우선순위가 확정되었습니다.
+- 격리 합성 시험 **16/16 PASS** (실제 `rosbag2` 기록 및 실차 온보드 실행은 **미검증**).
+
+---
+
 ## 3. 실차 구동 재개 전 필수 차단 요인 (Strict Blockers)
 
 1. **전원 돌발 차단(4회) 원인 미규명**: 2026-11-13 실차 시험 중 전원이 4회 갑자기 차단되었으며, 충전기 분리·이동 시 베이스 USB(`usb 3-7.4`, `ttyUSB1→ttyUSB2`) 재연결로 `wheel_odom_stale` FAILSAFE(`run_008`)가 발생했습니다. 원인 규명 및 완충 상태 소크 시험(`power_logger.py`) 통과 전까지 `--drive` 자율 주행을 금지합니다.
 2. **Depth 센서 거리 스케일 및 지터**: 실차 Depth 거리가 LiDAR 대비 약 `0.91~0.93배`로 짧게 측정되고, 필터 출력 주기 지터(최대 간격 680 ms vs 타임아웃 0.75 s) 및 소크 중 IR 투사 정지 현상이 미해결 상태입니다.
 3. **물리적 비상 정지(E-Stop) 미검증**: 모든 실차 구동 시험은 사용자가 전원 스위치 옆에 입회하고 단계별 승인을 얻은 감독 시험으로만 제한됩니다.
-
----
-
-### 2.5 기록기 (`run_recorder.py`, PR #10 `main` 병합 완료)
-
-- **PR #10(`a8132c7`)** 반영으로 `--root` > `LIMO_RUNS_DIR` > 저장소(`capstone_ws/src/limo_capstone/`) 내 `local_data/raw_results/limo_runs/`(신규 clone 포함) > 저장소 밖 `~/limo_runs/` 우선순위가 확정되었습니다.
-- 격리 합성 시험 **16/16 PASS** (실제 `rosbag2` 기록 및 실차 온보드 실행은 **미검증**).
