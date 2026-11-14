@@ -1,0 +1,38 @@
+test_bad_cell_values_rejected (__main__.Core) ... ok
+test_bad_grid_shape_rejected (__main__.Core) ... ok
+test_bridge_has_no_ros_control_writes (__main__.Core) ... ok
+test_clearing_update_removes_obstacle (__main__.Core) ... ok
+test_depth_16uc1_mm_invalid_and_padding (__main__.Core) ... ok
+test_depth_32fc1_m_nonfinite_invalid (__main__.Core) ... ok
+test_depth_big_endian_and_sampling (__main__.Core) ... ok
+test_late_packet_and_retired_boot_rejected (__main__.Core) ... ok
+test_live_test_isolation_both_directions (__main__.Core) ... ok
+test_malicious_compressed_size_rejected (__main__.Core) ... ok
+test_no_timestamp_never_claimed_ok (__main__.Core) ... ok
+test_nonfinite_origin_rejected (__main__.Core) ... ok
+test_patch_bounds_and_frame (__main__.Core) ... ok
+test_png_ros_y_axis_is_not_mirrored (__main__.Core) ... <dashboard-worktree>/fleet_control/dashboard/tests/test_visualization.py:19: DeprecationWarning: __array__ implementation doesn't accept a copy keyword, so passing copy=False failed. __array__ must implement 'dtype' and 'copy' keyword arguments. To learn more, see the migration guide https://numpy.org/devdocs/numpy_2_0_migration_guide.html#adapting-to-changes-in-the-copy-keyword
+  g=Grid(grid());im=np.array(Image.open(io.BytesIO(grid_png(g.cells,True))))
+ok
+test_reupload_does_not_make_old_sensor_fresh (__main__.Core) ... ok
+test_rgb_pair_requires_frame_stamp_and_boot (__main__.Core) ... ok
+test_rolling_origin_and_yaw_replace_previous (__main__.Core) ... ok
+test_tf_required_for_odom_grid (__main__.Core) ... ok
+test_timestamp_keys_preserved_beyond_js_precision (__main__.Core) ... ok
+test_unknown_depth_encoding_rejected (__main__.Core) ... ok
+test_yaw_composition (__main__.Core) ... ok
+test_all_robot_command_posts_blocked (__main__.Http) ... ok
+test_bridge_cannot_read_viewer_data (__main__.Http) ... ok
+test_content_security_policy_self_only (__main__.Http) ... ok
+test_cookie_login_and_logout (__main__.Http) ... ok
+test_csrf_origin (__main__.Http) ... ok
+test_live_rejects_synthetic (__main__.Http) ... ok
+test_nonobject_json_rejected (__main__.Http) ... ok
+test_real_grid_upload_and_png (__main__.Http) ... ok
+test_telemetry_requires_auth (__main__.Http) ... ok
+test_viewer_can_only_read (__main__.Http) ... ok
+
+----------------------------------------------------------------------
+Ran 31 tests in 5.073s
+
+OK

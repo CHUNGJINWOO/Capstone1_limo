@@ -1,0 +1,588 @@
+{
+  "duration_s": 12.01,
+  "ros_domain": "77",
+  "system_cpu_percent": 14.44,
+  "ram_total_mib": 7514.2,
+  "ram_available_mib": 4901.5,
+  "processes": {
+    "37687": {
+      "rss_mib": 89.6953125,
+      "roles": [
+        "mapping"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": false,
+      "locked_remap": false,
+      "cpu_percent_one_core": 23.56
+    },
+    "37799": {
+      "rss_mib": 157.125,
+      "roles": [
+        "camera"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": false,
+      "cpu_percent_one_core": 68.94
+    },
+    "37871": {
+      "rss_mib": 44.53515625,
+      "roles": [
+        "nav2"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": false,
+      "cpu_percent_one_core": 5.33
+    },
+    "37873": {
+      "rss_mib": 35.06640625,
+      "roles": [
+        "nav2"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": false,
+      "cpu_percent_one_core": 3.91
+    },
+    "37875": {
+      "rss_mib": 45.0234375,
+      "roles": [
+        "nav2"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": false,
+      "cpu_percent_one_core": 5.0
+    },
+    "37877": {
+      "rss_mib": 38.796875,
+      "roles": [
+        "nav2"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": false,
+      "cpu_percent_one_core": 4.25
+    },
+    "37879": {
+      "rss_mib": 48.95703125,
+      "roles": [
+        "nav2"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": false,
+      "cpu_percent_one_core": 5.41
+    },
+    "37881": {
+      "rss_mib": 32.23046875,
+      "roles": [
+        "nav2"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": false,
+      "cpu_percent_one_core": 2.5
+    },
+    "37883": {
+      "rss_mib": 30.20703125,
+      "roles": [
+        "nav2"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": false,
+      "cpu_percent_one_core": 2.66
+    },
+    "37885": {
+      "rss_mib": 32.5234375,
+      "roles": [
+        "nav2"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": false,
+      "cpu_percent_one_core": 4.25
+    },
+    "37887": {
+      "rss_mib": 66.578125,
+      "roles": [
+        "gate"
+      ],
+      "allow_motor_false": false,
+      "mapping_drive_flag": null,
+      "locked_remap": true,
+      "cpu_percent_one_core": 11.74
+    }
+  },
+  "topics": {
+    "/auto_mapping/depth_status": {
+      "types": [
+        "std_msgs/msg/String"
+      ],
+      "publishers": [
+        {
+          "node": "/depth_obstacle_filter",
+          "reliability": "RELIABLE",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/camera/color/camera_info": {
+      "types": [
+        "sensor_msgs/msg/CameraInfo"
+      ],
+      "publishers": [
+        {
+          "node": "/camera/camera",
+          "reliability": "BEST_EFFORT",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/camera/color/image_raw": {
+      "types": [
+        "sensor_msgs/msg/Image"
+      ],
+      "publishers": [
+        {
+          "node": "/camera/camera",
+          "reliability": "BEST_EFFORT",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/camera/depth/camera_info": {
+      "types": [
+        "sensor_msgs/msg/CameraInfo"
+      ],
+      "publishers": [
+        {
+          "node": "/camera/camera",
+          "reliability": "BEST_EFFORT",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/camera/depth/image_raw": {
+      "types": [
+        "sensor_msgs/msg/Image"
+      ],
+      "publishers": [
+        {
+          "node": "/camera/camera",
+          "reliability": "BEST_EFFORT",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/camera/ir/camera_info": {
+      "types": [
+        "sensor_msgs/msg/CameraInfo"
+      ],
+      "publishers": [
+        {
+          "node": "/camera/camera",
+          "reliability": "BEST_EFFORT",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/camera/ir/image_raw": {
+      "types": [
+        "sensor_msgs/msg/Image"
+      ],
+      "publishers": [
+        {
+          "node": "/camera/camera",
+          "reliability": "BEST_EFFORT",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/cmd_vel": {
+      "types": [
+        "geometry_msgs/msg/Twist"
+      ],
+      "publishers": []
+    },
+    "/cmd_vel_locked": {
+      "types": [
+        "geometry_msgs/msg/Twist"
+      ],
+      "publishers": [
+        {
+          "node": "/stall_detector_node",
+          "reliability": "RELIABLE",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/cmd_vel_nav": {
+      "types": [
+        "geometry_msgs/msg/Twist"
+      ],
+      "publishers": [
+        {
+          "node": "/controller_server",
+          "reliability": "RELIABLE",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/cmd_vel_raw": {
+      "types": [
+        "geometry_msgs/msg/Twist"
+      ],
+      "publishers": [
+        {
+          "node": "/behavior_server",
+          "reliability": "RELIABLE",
+          "durability": "VOLATILE"
+        },
+        {
+          "node": "/behavior_server",
+          "reliability": "RELIABLE",
+          "durability": "VOLATILE"
+        },
+        {
+          "node": "/behavior_server",
+          "reliability": "RELIABLE",
+          "durability": "VOLATILE"
+        },
+        {
+          "node": "/velocity_smoother",
+          "reliability": "RELIABLE",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/explore/resume": {
+      "types": [
+        "std_msgs/msg/Bool"
+      ],
+      "publishers": [
+        {
+          "node": "/real_mapping_session_monitor",
+          "reliability": "RELIABLE",
+          "durability": "VOLATILE"
+        }
+      ]
+    },
+    "/explore/status": {
+      "types": [
+        "explore_lite_msgs/msg/ExploreStatus"
+      ],
+      "publishers": []
+    },
+    "/global_costmap/costmap": {
+      "types": [
+        "nav_msgs/msg/OccupancyGrid"
+      ],
+      "publishers": [
+        {
+          "node": "/global_costmap/global_costmap",
+          "reliability": "RELIABLE",
+          "durability": "TRANSIENT_LOCAL"
+        }
+      ]
+    },
+    "/local_costmap/costmap": {
+      "types": [
+        "nav_msgs/msg/OccupancyGrid"
+      ],
+      "publishers": [
+        {
+          "node": "/local_costmap/local_costmap",
+          "reliability": "RELIABLE",
+          "durability": "TRANSIENT_LOCAL"
+        }
+      ]
+    },
+    "/map": {
+      "types": [
+        "nav_msgs/msg/OccupancyGrid"
+      ],
+      "publishers": [
+        {
+          "node": "/slam_toolbox",
+          "reliability": "RELIABLE",
+          "durability": "TRANSIENT_LOCAL"
+        }
+      ]
+    },
+    "/stall_detector/status_json": {
+      "types": [
+        "std_msgs/msg/String"
+      ],
+      "publishers": [
+        {
+          "node": "/stall_detector_node",
+          "reliability": "RELIABLE",
+          "durability": "VOLATILE"
+        }
+      ]
+    }
+  },
+  "messages": {
+    "/auto_mapping/depth_status": {
+      "count": 240,
+      "mean_fps_window": 19.984,
+      "payload_kB_s": 4.25,
+      "interval_fps": 20.016,
+      "status": {
+        "state": "ready",
+        "code": "DEPTH_READY",
+        "message": "",
+        "input_points": 64000,
+        "valid_points": 21936,
+        "obstacle_points": 5864,
+        "source_frame": "camera_color_optical_frame",
+        "source_stamp_sec": 1794547496.4469688
+      }
+    },
+    "/camera/color/camera_info": {
+      "count": 361,
+      "mean_fps_window": 30.059,
+      "payload_kB_s": 0.0,
+      "interval_fps": 30.122,
+      "age_ms_median": 0.533,
+      "age_ms_p95": 0.86,
+      "frame_id": "camera_color_optical_frame",
+      "stamp_ns": "1794547496567745707",
+      "width": 640,
+      "height": 400,
+      "k": [
+        454.8288879394531,
+        0.0,
+        330.599609375,
+        0.0,
+        454.8288879394531,
+        242.05123901367188,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "distortion_model": "plumb_bob"
+    },
+    "/camera/color/image_raw": {
+      "count": 313,
+      "mean_fps_window": 26.062,
+      "payload_kB_s": 20015.58,
+      "interval_fps": 26.106,
+      "age_ms_median": 1.472,
+      "age_ms_p95": 2.285,
+      "frame_id": "camera_color_optical_frame",
+      "stamp_ns": "1794547496567744095",
+      "width": 640,
+      "height": 400,
+      "encoding": "rgb8",
+      "step": 1920,
+      "is_bigendian": 0
+    },
+    "/camera/depth/camera_info": {
+      "count": 349,
+      "mean_fps_window": 29.06,
+      "payload_kB_s": 0.0,
+      "interval_fps": 29.078,
+      "age_ms_median": 0.731,
+      "age_ms_p95": 1.869,
+      "frame_id": "camera_color_optical_frame",
+      "stamp_ns": "1794547496585105843",
+      "width": 640,
+      "height": 400,
+      "k": [
+        454.8288879394531,
+        0.0,
+        330.599609375,
+        0.0,
+        454.8288879394531,
+        242.05123901367188,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "distortion_model": "plumb_bob"
+    },
+    "/camera/depth/image_raw": {
+      "count": 348,
+      "mean_fps_window": 28.976,
+      "payload_kB_s": 14835.83,
+      "interval_fps": 28.994,
+      "age_ms_median": 1.028,
+      "age_ms_p95": 1.711,
+      "frame_id": "camera_color_optical_frame",
+      "stamp_ns": "1794547496585105843",
+      "width": 640,
+      "height": 400,
+      "encoding": "16UC1",
+      "step": 1280,
+      "is_bigendian": 0,
+      "raw_nonzero_min": 428,
+      "raw_nonzero_median": 977.0,
+      "unit": "UNVERIFIED_DEVICE_SCALE",
+      "valid_fraction": 0.3987
+    },
+    "/camera/ir/camera_info": {
+      "count": 348,
+      "mean_fps_window": 28.976,
+      "payload_kB_s": 0.0,
+      "interval_fps": 29.012,
+      "age_ms_median": 0.729,
+      "age_ms_p95": 1.842,
+      "frame_id": "camera_color_optical_frame",
+      "stamp_ns": "1794547496578378702",
+      "width": 640,
+      "height": 400,
+      "k": [
+        454.8288879394531,
+        0.0,
+        330.599609375,
+        0.0,
+        454.8288879394531,
+        242.05123901367188,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "distortion_model": "plumb_bob"
+    },
+    "/camera/ir/image_raw": {
+      "count": 346,
+      "mean_fps_window": 28.81,
+      "payload_kB_s": 14750.57,
+      "interval_fps": 28.845,
+      "age_ms_median": 0.888,
+      "age_ms_p95": 1.76,
+      "frame_id": "camera_color_optical_frame",
+      "stamp_ns": "1794547496578378702",
+      "width": 640,
+      "height": 400,
+      "encoding": "mono16",
+      "step": 640,
+      "is_bigendian": 0
+    },
+    "/cmd_vel_locked": {
+      "count": 601,
+      "mean_fps_window": 50.042,
+      "payload_kB_s": 0.0,
+      "interval_fps": 50.07,
+      "linear_x": 0.0,
+      "angular_z": 0.0
+    },
+    "/global_costmap/costmap": {
+      "count": 10,
+      "mean_fps_window": 0.833,
+      "payload_kB_s": 38.22,
+      "interval_fps": 0.815,
+      "age_ms_median": 0.549,
+      "age_ms_p95": 459.258,
+      "frame_id": "map",
+      "stamp_ns": "1794547495660359053",
+      "width": 197,
+      "height": 233,
+      "resolution": 0.05000000074505806,
+      "origin": {
+        "x": -1.1755462545881925,
+        "y": -1.858328643183043,
+        "yaw": 0.0
+      },
+      "known_cells": 8858,
+      "map_from_frame": {
+        "x": 0,
+        "y": 0,
+        "yaw": 0,
+        "identity": true
+      }
+    },
+    "/local_costmap/costmap": {
+      "count": 21,
+      "mean_fps_window": 1.749,
+      "payload_kB_s": 11.19,
+      "interval_fps": 1.692,
+      "age_ms_median": 0.401,
+      "age_ms_p95": 1.219,
+      "frame_id": "odom",
+      "stamp_ns": "1794547496442850124",
+      "width": 80,
+      "height": 80,
+      "resolution": 0.05000000074505806,
+      "origin": {
+        "x": -2.350000000372529,
+        "y": -1.850000000372529,
+        "yaw": 0.0
+      },
+      "known_cells": 6400,
+      "map_from_frame": {
+        "x": 0.3408384519766489,
+        "y": 0.08093844157911473,
+        "yaw": 0.0,
+        "stamp_ns": "1794547496442850124"
+      }
+    },
+    "/map": {
+      "count": 13,
+      "mean_fps_window": 1.082,
+      "payload_kB_s": 49.69,
+      "interval_fps": 1.023,
+      "age_ms_median": 185.467,
+      "age_ms_p95": 442.079,
+      "frame_id": "map",
+      "stamp_ns": "1794547496150215000",
+      "width": 197,
+      "height": 233,
+      "resolution": 0.05000000074505806,
+      "origin": {
+        "x": -1.1755462545881925,
+        "y": -1.858328643183043,
+        "yaw": 0.0
+      },
+      "known_cells": 5551,
+      "map_from_frame": {
+        "x": 0,
+        "y": 0,
+        "yaw": 0,
+        "identity": true
+      }
+    },
+    "/stall_detector/status_json": {
+      "count": 120,
+      "mean_fps_window": 9.992,
+      "payload_kB_s": 5.45,
+      "interval_fps": 10.014,
+      "status": {
+        "sim_time": 1794547496.502,
+        "state": "NORMAL",
+        "state_code": 0,
+        "cmd_blocked": false,
+        "enable_auto_reverse": false,
+        "require_operator_unlatch": false,
+        "cmd_vx_in": 0.0,
+        "cmd_vx_out": 0.0,
+        "wheel_vx": 0.0,
+        "lidar_speed": 0.085,
+        "min_front_scan_m": 1.106,
+        "icp_inliers": 172.0,
+        "icp_error_m": 0.02,
+        "depth_mode": "required",
+        "depth_state": "ready",
+        "depth_code": "DEPTH_READY",
+        "depth_stale": false,
+        "wheel_odom_stale": false,
+        "est_odom_stale": false,
+        "stall_events": 0,
+        "failsafe_events": 8,
+        "icp_degraded_events": 0,
+        "operator_unlatch_count": 0
+      }
+    }
+  },
+  "robot_tf": {
+    "x": -0.009157123956929636,
+    "y": 0.23820308706135643,
+    "yaw": 1.329212132910384,
+    "stamp_ns": "1794547496450046000",
+    "age_ms": 170.524883
+  }
+}

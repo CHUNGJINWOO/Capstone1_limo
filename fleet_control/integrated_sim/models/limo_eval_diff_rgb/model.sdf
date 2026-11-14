@@ -1,0 +1,278 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="limo_eval_diff">
+    <pose>0 0 0.05 0 0 0</pose>
+
+    <!-- Base / Chassis Link -->
+    <link name="base_footprint">
+      <pose>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>2.1557</mass>
+        <inertia>
+          <ixx>0.24</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>0.96</iyy><iyz>0</iyz><izz>0.96</izz>
+        </inertia>
+      </inertial>
+
+      <!-- Visual chassis -->
+      <visual name="base_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry><box><size>0.28 0.13 0.10</size></box></geometry>
+        <material><ambient>0.2 0.2 0.25 1</ambient><diffuse>0.3 0.3 0.35 1</diffuse></material>
+      </visual>
+
+      <!-- Chassis lower collision: Ground clearance = 25mm, top at z = 125mm above floor -->
+      <collision name="base_collision">
+        <pose>0 0 0.03 0 0 0</pose>
+        <geometry><box><size>0.28 0.13 0.10</size></box></geometry>
+      </collision>
+
+      <!-- Laser Visual -->
+      <visual name="laser_visual">
+        <pose>0.103 0 0.116 0 0 0</pose>
+        <geometry><cylinder><radius>0.02</radius><length>0.04</length></cylinder></geometry>
+        <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.9 0.2 0.2 1</diffuse></material>
+      </visual>
+
+      <!-- [STEP 1 ADDITION] Laser Collision (LiDAR housing physical collision) -->
+      <!-- Center at z=0.116 (0.161m from floor), height 0.04m, spans z=0.141m to 0.181m from floor -->
+      <collision name="laser_collision">
+        <pose>0.103 0 0.116 0 0 0</pose>
+        <geometry><cylinder><radius>0.035</radius><length>0.04</length></cylinder></geometry>
+      </collision>
+
+      <!-- [STEP 1 ADDITION] Camera/Tower Mount Upper Collision -->
+      <!-- Temporary Engineering Assumption: LIMO Pro real camera mast reaches ~0.220m from floor -->
+      <!-- Center at z=0.145 (0.190m from floor), height 0.06m, spans z=0.160m to 0.220m from floor -->
+      <visual name="top_tower_visual">
+        <pose>0.05 0 0.145 0 0 0</pose>
+        <geometry><box><size>0.10 0.08 0.06</size></box></geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+      </visual>
+      <collision name="top_tower_collision">
+        <pose>0.05 0 0.145 0 0 0</pose>
+        <geometry><box><size>0.10 0.08 0.06</size></box></geometry>
+      </collision>
+
+      <!-- 2D LiDAR Sensor (gpu_lidar) -->
+      <sensor name="lidar" type="gpu_lidar">
+        <pose>0.103 0 0.116 0 0 0</pose>
+        <topic>/scan</topic>
+        <update_rate>10</update_rate>
+        <ignition_frame_id>laser_link</ignition_frame_id>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>360</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159</min_angle>
+              <max_angle>3.14159</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.10</min>
+            <max>10.0</max>
+            <resolution>0.01</resolution>
+          </range>
+        </ray>
+        <always_on>1</always_on>
+        <visualize>true</visualize>
+      </sensor>
+
+      <!-- [STEP 5 PREPARATION] Depth Camera Sensor -->
+      <sensor name="depth_camera" type="depth_camera">
+        <pose>0.12 0 0.13 0 0 0</pose>
+        <topic>/camera/depth_image</topic>
+        <update_rate>10</update_rate>
+        <ignition_frame_id>depth_camera_link</ignition_frame_id>
+        <camera>
+          <horizontal_fov>1.15</horizontal_fov>
+          <image>
+            <width>320</width>
+            <height>240</height>
+            <format>R_FLOAT32</format>
+          </image>
+          <clip>
+            <near>0.2</near>
+            <far>3.0</far>
+          </clip>
+        </camera>
+        <always_on>1</always_on>
+      </sensor>
+
+      <!-- INTEGRATED-SIM COPY of limo_eval_diff (original untouched) with an added RGB camera co-located with the depth camera (same pose and horizontal FOV) -->
+      <sensor name="rgb_camera" type="camera">
+        <pose>0.12 0 0.13 0 0 0</pose>
+        <topic>/camera/color/image_raw</topic>
+        <update_rate>15</update_rate>
+        <ignition_frame_id>rgb_camera_link</ignition_frame_id>
+        <camera>
+          <horizontal_fov>1.15</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>20.0</far>
+          </clip>
+        </camera>
+        <always_on>1</always_on>
+      </sensor>
+
+      <!-- IMU Sensor -->
+      <sensor name="imu_sensor" type="imu">
+        <pose>0 0 0 0 0 0</pose>
+        <topic>/imu</topic>
+        <update_rate>100</update_rate>
+        <ignition_frame_id>imu_link</ignition_frame_id>
+        <always_on>1</always_on>
+      </sensor>
+    </link>
+
+    <!-- Left Steering Hinge (FIXED in differential variant) -->
+    <link name="left_steering_hinge">
+      <pose>0.10 0.07 0.0 0 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.001</iyy><iyz>0</iyz><izz>0.001</izz></inertia>
+      </inertial>
+      <visual name="left_hinge_visual">
+        <geometry><cylinder><radius>0.01</radius><length>0.02</length></cylinder></geometry>
+      </visual>
+    </link>
+    <joint name="left_steering_hinge_wheel" type="fixed">
+      <parent>base_footprint</parent>
+      <child>left_steering_hinge</child>
+    </joint>
+
+    <!-- Front Left Wheel -->
+    <link name="front_left_wheel_link">
+      <pose>0.10 0.07 0.0 0 0 0</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia><ixx>0.01055</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00075</iyy><iyz>0</iyz><izz>0.01055</izz></inertia>
+      </inertial>
+      <visual name="fl_wheel_visual">
+        <geometry><mesh><uri>package://limo_description/meshes/limo_wheel.dae</uri></mesh></geometry>
+      </visual>
+      <collision name="fl_wheel_collision">
+        <pose>0 0.0225 0 1.570796 0 0</pose>
+        <geometry><cylinder><radius>0.045</radius><length>0.045</length></cylinder></geometry>
+        <surface><friction><ode><mu>0.3</mu><mu2>1.0</mu2><fdir1>0 0 1</fdir1></ode></friction></surface>
+      </collision>
+    </link>
+    <joint name="front_left_wheel" type="revolute">
+      <parent>left_steering_hinge</parent>
+      <child>front_left_wheel_link</child>
+      <axis><xyz>0 1 0</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+
+    <!-- Right Steering Hinge (FIXED in differential variant) -->
+    <link name="right_steering_hinge">
+      <pose>0.10 -0.07 0.0 0 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.001</iyy><iyz>0</iyz><izz>0.001</izz></inertia>
+      </inertial>
+      <visual name="right_hinge_visual">
+        <geometry><cylinder><radius>0.01</radius><length>0.02</length></cylinder></geometry>
+      </visual>
+    </link>
+    <joint name="right_steering_hinge_wheel" type="fixed">
+      <parent>base_footprint</parent>
+      <child>right_steering_hinge</child>
+    </joint>
+
+    <!-- Front Right Wheel -->
+    <link name="front_right_wheel_link">
+      <pose>0.10 -0.07 0.0 0 0 0</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia><ixx>0.01055</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00075</iyy><iyz>0</iyz><izz>0.01055</izz></inertia>
+      </inertial>
+      <visual name="fr_wheel_visual">
+        <pose>0 0 0 3.14159 0 0</pose>
+        <geometry><mesh><uri>package://limo_description/meshes/limo_wheel.dae</uri></mesh></geometry>
+      </visual>
+      <collision name="fr_wheel_collision">
+        <pose>0 -0.0225 0 1.570796 0 0</pose>
+        <geometry><cylinder><radius>0.045</radius><length>0.045</length></cylinder></geometry>
+        <surface><friction><ode><mu>0.3</mu><mu2>1.0</mu2><fdir1>0 0 1</fdir1></ode></friction></surface>
+      </collision>
+    </link>
+    <joint name="front_right_wheel" type="revolute">
+      <parent>right_steering_hinge</parent>
+      <child>front_right_wheel_link</child>
+      <axis><xyz>0 1 0</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+
+    <!-- Rear Left Wheel -->
+    <link name="rear_left_wheel_link">
+      <pose>-0.10 0.07 0.0 0 0 0</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia><ixx>0.01055</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00075</iyy><iyz>0</iyz><izz>0.01055</izz></inertia>
+      </inertial>
+      <visual name="rl_wheel_visual">
+        <geometry><mesh><uri>package://limo_description/meshes/limo_wheel.dae</uri></mesh></geometry>
+      </visual>
+      <collision name="rl_wheel_collision">
+        <pose>0 0.0225 0 1.570796 0 0</pose>
+        <geometry><cylinder><radius>0.045</radius><length>0.045</length></cylinder></geometry>
+        <surface><friction><ode><mu>0.3</mu><mu2>1.0</mu2><fdir1>0 0 1</fdir1></ode></friction></surface>
+      </collision>
+    </link>
+    <joint name="rear_left_wheel" type="revolute">
+      <parent>base_footprint</parent>
+      <child>rear_left_wheel_link</child>
+      <axis><xyz>0 1 0</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+
+    <!-- Rear Right Wheel -->
+    <link name="rear_right_wheel_link">
+      <pose>-0.10 -0.07 0.0 0 0 0</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia><ixx>0.01055</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00075</iyy><iyz>0</iyz><izz>0.01055</izz></inertia>
+      </inertial>
+      <visual name="rr_wheel_visual">
+        <pose>0 0 0 3.14159 0 0</pose>
+        <geometry><mesh><uri>package://limo_description/meshes/limo_wheel.dae</uri></mesh></geometry>
+      </visual>
+      <collision name="rr_wheel_collision">
+        <pose>0 -0.0225 0 1.570796 0 0</pose>
+        <geometry><cylinder><radius>0.045</radius><length>0.045</length></cylinder></geometry>
+        <surface><friction><ode><mu>0.3</mu><mu2>1.0</mu2><fdir1>0 0 1</fdir1></ode></friction></surface>
+      </collision>
+    </link>
+    <joint name="rear_right_wheel" type="revolute">
+      <parent>base_footprint</parent>
+      <child>rear_right_wheel_link</child>
+      <axis><xyz>0 1 0</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+
+    <!-- Differential Drive Plugin (4-wheel skid steer; replaces AckermannSteering) -->
+    <plugin filename="libignition-gazebo-diff-drive-system.so" name="ignition::gazebo::systems::DiffDrive">
+      <left_joint>front_left_wheel</left_joint>
+      <left_joint>rear_left_wheel</left_joint>
+      <right_joint>front_right_wheel</right_joint>
+      <right_joint>rear_right_wheel</right_joint>
+      <wheel_separation>0.14</wheel_separation>
+      <wheel_radius>0.045</wheel_radius>
+      <topic>/cmd_vel</topic>
+      <odom_topic>/odom</odom_topic>
+      <tf_topic>/tf</tf_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_footprint</child_frame_id>
+      <odom_publish_frequency>50</odom_publish_frequency>
+    </plugin>
+
+    <!-- Joint State Publisher Plugin -->
+    <plugin filename="libignition-gazebo-joint-state-publisher-system.so" name="ignition::gazebo::systems::JointStatePublisher">
+      <topic>/joint_states</topic>
+    </plugin>
+  </model>
+</sdf>

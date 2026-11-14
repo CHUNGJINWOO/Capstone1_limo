@@ -1,0 +1,37 @@
+[
+  {
+    "image": "open-rmf/rmf-web/api-server",
+    "tag": "humble-nightly",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "image": "ghcr.io/open-rmf/rmf-web/api-server",
+    "tag": "jazzy-nightly",
+    "digest": "sha256:4a932f75a733d7d0afbf07262a3a19299fe9b24afc741d854e978696aa66962b",
+    "platforms": [
+      {
+        "architecture": "amd64",
+        "os": "linux"
+      },
+      {
+        "architecture": "unknown",
+        "os": "unknown"
+      }
+    ]
+  },
+  {
+    "image": "ghcr.io/open-rmf/rmf-web/demo-dashboard",
+    "tag": "jazzy-nightly",
+    "digest": "sha256:c0fed04e173b9a21073ff5eb56f9c535a79a34ee67930db2db1633f731361634",
+    "platforms": [
+      {
+        "architecture": "amd64",
+        "os": "linux"
+      },
+      {
+        "architecture": "unknown",
+        "os": "unknown"
+      }
+    ]
+  }
+]

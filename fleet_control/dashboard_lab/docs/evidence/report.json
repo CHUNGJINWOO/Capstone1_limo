@@ -1,0 +1,707 @@
+{
+  "cohort": "single active IAB display tab; replay RGB + synthetic depth; CPU inference precomputed",
+  "warmup_excluded_s": 1,
+  "browser_phases": [
+    {
+      "transport": "rgb",
+      "fault": "normal",
+      "start_wall": 1794574842.292519,
+      "end_wall": 1794574853.305494,
+      "window_s": 11.013,
+      "presented_frames": 131,
+      "display_fps": 11.9,
+      "depth_display_fps": 7.99,
+      "latency_ms": {
+        "n": 131,
+        "mean": 22.68,
+        "p95": 37.71,
+        "p99": 39.98
+      },
+      "depth_latency_ms": {
+        "n": 88,
+        "mean": 7.5,
+        "p95": 11.21,
+        "p99": 18.21
+      },
+      "encode_ms": {
+        "n": 131,
+        "mean": 2.29,
+        "p95": 3.42,
+        "p99": 4.22
+      },
+      "decode_ms": {
+        "n": 131,
+        "mean": 1.89,
+        "p95": 2.65,
+        "p99": 3.87
+      },
+      "draw_ms": {
+        "n": 131,
+        "mean": 0.27,
+        "p95": 0.4,
+        "p99": 0.5
+      }
+    },
+    {
+      "transport": "h264",
+      "fault": "normal",
+      "start_wall": 1794574854.305494,
+      "end_wall": 1794574865.3118873,
+      "window_s": 11.006,
+      "presented_frames": 131,
+      "display_fps": 11.9,
+      "depth_display_fps": 7.9,
+      "latency_ms": {
+        "n": 131,
+        "mean": 24.21,
+        "p95": 38.47,
+        "p99": 41.19
+      },
+      "depth_latency_ms": {
+        "n": 87,
+        "mean": 7.08,
+        "p95": 9.59,
+        "p99": 12.59
+      },
+      "encode_ms": {
+        "n": 131,
+        "mean": 2.4,
+        "p95": 3.62,
+        "p99": 5.03
+      },
+      "decode_ms": {
+        "n": 131,
+        "mean": 1.04,
+        "p95": 2.3,
+        "p99": 3.05
+      },
+      "draw_ms": {
+        "n": 131,
+        "mean": 0.27,
+        "p95": 0.4,
+        "p99": 0.57
+      }
+    },
+    {
+      "transport": "webrtc",
+      "fault": "normal",
+      "start_wall": 1794574866.3118873,
+      "end_wall": 1794574877.4788523,
+      "window_s": 11.167,
+      "presented_frames": 132,
+      "display_fps": 11.82,
+      "depth_display_fps": 7.97,
+      "latency_ms": {
+        "n": 132,
+        "mean": 60.02,
+        "p95": 72.38,
+        "p99": 77.0
+      },
+      "depth_latency_ms": {
+        "n": 89,
+        "mean": 8.86,
+        "p95": 16.15,
+        "p99": 18.07
+      },
+      "encode_ms": {
+        "n": 132,
+        "mean": 2.46,
+        "p95": 3.44,
+        "p99": 3.86
+      },
+      "decode_ms": {
+        "n": 132,
+        "mean": 0.44,
+        "p95": 2.14,
+        "p99": 3.48
+      },
+      "draw_ms": {
+        "n": 0
+      }
+    },
+    {
+      "transport": "rgb",
+      "fault": "rtt400",
+      "start_wall": 1794574878.4788523,
+      "end_wall": 1794574885.488081,
+      "window_s": 7.009,
+      "presented_frames": 35,
+      "display_fps": 4.99,
+      "depth_display_fps": 4.85,
+      "latency_ms": {
+        "n": 35,
+        "mean": 285.71,
+        "p95": 338.15,
+        "p99": 346.01
+      },
+      "depth_latency_ms": {
+        "n": 34,
+        "mean": 268.72,
+        "p95": 324.11,
+        "p99": 330.38
+      },
+      "encode_ms": {
+        "n": 35,
+        "mean": 1.43,
+        "p95": 1.95,
+        "p99": 1.96
+      },
+      "decode_ms": {
+        "n": 35,
+        "mean": 1.43,
+        "p95": 2.03,
+        "p99": 2.23
+      },
+      "draw_ms": {
+        "n": 35,
+        "mean": 0.33,
+        "p95": 0.5,
+        "p99": 0.7
+      }
+    },
+    {
+      "transport": "rgb",
+      "fault": "jitter",
+      "start_wall": 1794574886.488081,
+      "end_wall": 1794574893.4940622,
+      "window_s": 7.006,
+      "presented_frames": 55,
+      "display_fps": 7.85,
+      "depth_display_fps": 7.99,
+      "latency_ms": {
+        "n": 55,
+        "mean": 116.25,
+        "p95": 163.25,
+        "p99": 171.96
+      },
+      "depth_latency_ms": {
+        "n": 56,
+        "mean": 111.24,
+        "p95": 159.22,
+        "p99": 165.28
+      },
+      "encode_ms": {
+        "n": 55,
+        "mean": 1.53,
+        "p95": 2.02,
+        "p99": 2.52
+      },
+      "decode_ms": {
+        "n": 55,
+        "mean": 1.56,
+        "p95": 2.5,
+        "p99": 3.71
+      },
+      "draw_ms": {
+        "n": 55,
+        "mean": 0.32,
+        "p95": 0.4,
+        "p99": 0.64
+      }
+    },
+    {
+      "transport": "rgb",
+      "fault": "loss10",
+      "start_wall": 1794574894.4940622,
+      "end_wall": 1794574901.5003366,
+      "window_s": 7.006,
+      "presented_frames": 72,
+      "display_fps": 10.28,
+      "depth_display_fps": 7.56,
+      "latency_ms": {
+        "n": 72,
+        "mean": 100.6,
+        "p95": 249.06,
+        "p99": 253.18
+      },
+      "depth_latency_ms": {
+        "n": 53,
+        "mean": 95.85,
+        "p95": 236.09,
+        "p99": 298.4
+      },
+      "encode_ms": {
+        "n": 72,
+        "mean": 2.3,
+        "p95": 3.18,
+        "p99": 3.32
+      },
+      "decode_ms": {
+        "n": 72,
+        "mean": 2.08,
+        "p95": 3.14,
+        "p99": 5.03
+      },
+      "draw_ms": {
+        "n": 72,
+        "mean": 0.31,
+        "p95": 0.5,
+        "p99": 0.56
+      }
+    },
+    {
+      "transport": "rgb",
+      "fault": "bandwidth150",
+      "start_wall": 1794574902.5003366,
+      "end_wall": 1794574909.507318,
+      "window_s": 7.007,
+      "presented_frames": 20,
+      "display_fps": 2.85,
+      "depth_display_fps": 4.85,
+      "latency_ms": {
+        "n": 20,
+        "mean": 415.46,
+        "p95": 470.13,
+        "p99": 481.84
+      },
+      "depth_latency_ms": {
+        "n": 34,
+        "mean": 275.27,
+        "p95": 329.14,
+        "p99": 334.72
+      },
+      "encode_ms": {
+        "n": 20,
+        "mean": 1.36,
+        "p95": 1.8,
+        "p99": 1.8
+      },
+      "decode_ms": {
+        "n": 20,
+        "mean": 1.36,
+        "p95": 1.91,
+        "p99": 2.06
+      },
+      "draw_ms": {
+        "n": 20,
+        "mean": 0.31,
+        "p95": 0.5,
+        "p99": 0.5
+      }
+    },
+    {
+      "transport": "rgb",
+      "fault": "disconnect",
+      "start_wall": 1794574910.507318,
+      "end_wall": 1794574917.5112305,
+      "window_s": 7.004,
+      "presented_frames": 57,
+      "display_fps": 8.14,
+      "depth_display_fps": 5.57,
+      "latency_ms": {
+        "n": 57,
+        "mean": 23.92,
+        "p95": 40.31,
+        "p99": 47.17
+      },
+      "depth_latency_ms": {
+        "n": 39,
+        "mean": 7.38,
+        "p95": 9.51,
+        "p99": 10.52
+      },
+      "encode_ms": {
+        "n": 57,
+        "mean": 2.44,
+        "p95": 3.95,
+        "p99": 4.12
+      },
+      "decode_ms": {
+        "n": 57,
+        "mean": 1.89,
+        "p95": 2.62,
+        "p99": 2.9
+      },
+      "draw_ms": {
+        "n": 57,
+        "mean": 0.29,
+        "p95": 0.42,
+        "p99": 0.5
+      }
+    },
+    {
+      "transport": "rgb",
+      "fault": "stalequeue",
+      "start_wall": 1794574918.5112305,
+      "end_wall": 1794574925.5164418,
+      "window_s": 7.005,
+      "presented_frames": 3,
+      "display_fps": 0.43,
+      "depth_display_fps": 1.14,
+      "latency_ms": {
+        "n": 3,
+        "mean": 605.65,
+        "p95": 620.46,
+        "p99": 622.3
+      },
+      "depth_latency_ms": {
+        "n": 8,
+        "mean": 590.39,
+        "p95": 665.78,
+        "p99": 674.96
+      },
+      "encode_ms": {
+        "n": 3,
+        "mean": 1.45,
+        "p95": 1.53,
+        "p99": 1.53
+      },
+      "decode_ms": {
+        "n": 3,
+        "mean": 1.97,
+        "p95": 2.44,
+        "p99": 2.49
+      },
+      "draw_ms": {
+        "n": 3,
+        "mean": 0.37,
+        "p95": 0.4,
+        "p99": 0.4
+      }
+    },
+    {
+      "transport": "rgb",
+      "fault": "normal",
+      "start_wall": 1794574926.5164418,
+      "end_wall": 1794574935.5164418,
+      "window_s": 9.0,
+      "presented_frames": 107,
+      "display_fps": 11.89,
+      "depth_display_fps": 7.89,
+      "latency_ms": {
+        "n": 107,
+        "mean": 23.97,
+        "p95": 39.16,
+        "p99": 41.71
+      },
+      "depth_latency_ms": {
+        "n": 71,
+        "mean": 7.62,
+        "p95": 9.98,
+        "p99": 16.45
+      },
+      "encode_ms": {
+        "n": 107,
+        "mean": 2.5,
+        "p95": 3.54,
+        "p99": 4.06
+      },
+      "decode_ms": {
+        "n": 107,
+        "mean": 2.01,
+        "p95": 2.97,
+        "p99": 4.27
+      },
+      "draw_ms": {
+        "n": 107,
+        "mean": 0.3,
+        "p95": 0.5,
+        "p99": 0.5
+      }
+    }
+  ],
+  "native_tcp": [
+    {
+      "profile": "high",
+      "codec": "jpeg",
+      "seconds": 7.05,
+      "native_fps": 14.893,
+      "payload_kB_s": 337.683,
+      "encode_ms": {
+        "n": 105,
+        "mean": 2.923,
+        "p95": 5.831,
+        "p99": 6.01
+      },
+      "encode_to_receive_ms": {
+        "n": 105,
+        "mean": 1.303,
+        "p95": 1.812,
+        "p99": 2.657
+      },
+      "decode_ms": {
+        "n": 105,
+        "mean": 3.058,
+        "p95": 5.321,
+        "p99": 6.645
+      },
+      "capture_to_native_decode_ms": {
+        "n": 105,
+        "mean": 22.604,
+        "p95": 40.044,
+        "p99": 41.393
+      }
+    },
+    {
+      "profile": "balanced",
+      "codec": "jpeg",
+      "seconds": 7.083,
+      "native_fps": 12.0,
+      "payload_kB_s": 172.912,
+      "encode_ms": {
+        "n": 85,
+        "mean": 2.689,
+        "p95": 4.342,
+        "p99": 6.398
+      },
+      "encode_to_receive_ms": {
+        "n": 85,
+        "mean": 1.239,
+        "p95": 2.108,
+        "p99": 4.097
+      },
+      "decode_ms": {
+        "n": 85,
+        "mean": 1.977,
+        "p95": 3.12,
+        "p99": 3.39
+      },
+      "capture_to_native_decode_ms": {
+        "n": 85,
+        "mean": 22.459,
+        "p95": 38.642,
+        "p99": 40.178
+      }
+    },
+    {
+      "profile": "low",
+      "codec": "jpeg",
+      "seconds": 7.002,
+      "native_fps": 8.14,
+      "payload_kB_s": 59.497,
+      "encode_ms": {
+        "n": 57,
+        "mean": 1.617,
+        "p95": 3.139,
+        "p99": 3.803
+      },
+      "encode_to_receive_ms": {
+        "n": 57,
+        "mean": 1.394,
+        "p95": 2.055,
+        "p99": 10.508
+      },
+      "decode_ms": {
+        "n": 57,
+        "mean": 1.035,
+        "p95": 1.515,
+        "p99": 1.559
+      },
+      "capture_to_native_decode_ms": {
+        "n": 57,
+        "mean": 20.363,
+        "p95": 35.156,
+        "p99": 37.539
+      }
+    },
+    {
+      "profile": "emergency",
+      "codec": "jpeg",
+      "seconds": 7.169,
+      "native_fps": 5.161,
+      "payload_kB_s": 34.333,
+      "encode_ms": {
+        "n": 37,
+        "mean": 1.681,
+        "p95": 2.266,
+        "p99": 2.411
+      },
+      "encode_to_receive_ms": {
+        "n": 37,
+        "mean": 1.17,
+        "p95": 1.546,
+        "p99": 3.14
+      },
+      "decode_ms": {
+        "n": 37,
+        "mean": 1.08,
+        "p95": 1.465,
+        "p99": 1.677
+      },
+      "capture_to_native_decode_ms": {
+        "n": 37,
+        "mean": 19.494,
+        "p95": 34.514,
+        "p99": 37.841
+      }
+    },
+    {
+      "profile": "balanced",
+      "codec": "h264",
+      "seconds": 7.066,
+      "native_fps": 11.605,
+      "payload_kB_s": 66.551,
+      "encode_ms": {
+        "n": 82,
+        "mean": 2.792,
+        "p95": 3.902,
+        "p99": 5.681
+      },
+      "encode_to_receive_ms": {
+        "n": 82,
+        "mean": 3.605,
+        "p95": 5.224,
+        "p99": 8.499
+      },
+      "decode_ms": {
+        "n": 82,
+        "mean": 0.477,
+        "p95": 1.051,
+        "p99": 2.169
+      },
+      "capture_to_native_decode_ms": {
+        "n": 82,
+        "mean": 22.609,
+        "p95": 37.687,
+        "p99": 40.869
+      }
+    }
+  ],
+  "native_webrtc": {
+    "native_fps": 11.677075613318385,
+    "seconds": 8.0499607189995,
+    "latency": {
+      "n": 94,
+      "mean": 110.936,
+      "p95": 128.75,
+      "p99": 136.42
+    }
+  },
+  "restart": {
+    "outage_to_http_s": 11.383471965789795,
+    "ready_to_first_display_s": 4.326570272445679,
+    "outage_to_first_display_s": 15.710042238235474
+  },
+  "fault_counters": {
+    "captured": 5221,
+    "rgb_source_skipped": 3320,
+    "depth_captured": 1377,
+    "rgb_encoded": 1898,
+    "rgb_encoded_bytes": 22901847,
+    "depth_encoded": 1377,
+    "depth_bytes": 4978573,
+    "h264_encoded": 1656,
+    "h264_bytes": 6487623,
+    "simulated_lost_units": 27,
+    "offline_dropped": 50
+  },
+  "profile_history": [
+    {
+      "t": 1794574832.97417,
+      "profile": "balanced",
+      "reason": "initial"
+    },
+    {
+      "t": 1794574877.478858,
+      "profile": "low",
+      "reason": "rtt400"
+    },
+    {
+      "t": 1794574885.4880865,
+      "profile": "balanced",
+      "reason": "jitter"
+    },
+    {
+      "t": 1794574885.5130293,
+      "profile": "low",
+      "reason": "measured delivery EMA"
+    },
+    {
+      "t": 1794574893.5403879,
+      "profile": "balanced",
+      "reason": "measured delivery EMA"
+    },
+    {
+      "t": 1794574900.70028,
+      "profile": "low",
+      "reason": "measured delivery EMA"
+    },
+    {
+      "t": 1794574900.8987179,
+      "profile": "balanced",
+      "reason": "measured delivery EMA"
+    },
+    {
+      "t": 1794574901.5003412,
+      "profile": "emergency",
+      "reason": "bandwidth150"
+    },
+    {
+      "t": 1794574901.53629,
+      "profile": "balanced",
+      "reason": "measured delivery EMA"
+    },
+    {
+      "t": 1794574902.2035468,
+      "profile": "low",
+      "reason": "measured delivery EMA"
+    },
+    {
+      "t": 1794574909.5073225,
+      "profile": "balanced",
+      "reason": "disconnect"
+    },
+    {
+      "t": 1794574909.6819935,
+      "profile": "low",
+      "reason": "measured delivery EMA"
+    },
+    {
+      "t": 1794574912.861475,
+      "profile": "balanced",
+      "reason": "measured delivery EMA"
+    },
+    {
+      "t": 1794574917.511235,
+      "profile": "emergency",
+      "reason": "stalequeue"
+    },
+    {
+      "t": 1794574925.5164485,
+      "profile": "balanced",
+      "reason": "normal"
+    },
+    {
+      "t": 1794574925.8552637,
+      "profile": "low",
+      "reason": "measured delivery EMA"
+    },
+    {
+      "t": 1794574926.0407572,
+      "profile": "balanced",
+      "reason": "measured delivery EMA"
+    }
+  ],
+  "stages": {
+    "capture_ms": {
+      "n": 4000,
+      "mean": 0.404,
+      "p95": 0.766,
+      "p99": 1.048
+    },
+    "jpeg_encode_ms": {
+      "n": 1898,
+      "mean": 2.275,
+      "p95": 3.519,
+      "p99": 4.159
+    },
+    "depth_color_encode_ms": {
+      "n": 1377,
+      "mean": 2.867,
+      "p95": 4.148,
+      "p99": 6.108
+    },
+    "delivery_service_ms": {
+      "n": 2779,
+      "mean": 28.225,
+      "p95": 204.336,
+      "p99": 489.699
+    },
+    "h264_encode_ms": {
+      "n": 1656,
+      "mean": 2.392,
+      "p95": 3.358,
+      "p99": 6.219
+    }
+  }
+}

@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: OccupancyGrid origin yaw rotates cells, not ROS coordinates
+ok 1 - OccupancyGrid origin yaw rotates cells, not ROS coordinates
+  ---
+  duration_ms: 0.862604
+  type: 'test'
+  ...
+# Subtest: rolling odom origin composes map TF and grid yaw
+ok 2 - rolling odom origin composes map TF and grid yaw
+  ---
+  duration_ms: 1.760002
+  type: 'test'
+  ...
+# Subtest: view rotation, zoom and pan are invertible
+ok 3 - view rotation, zoom and pan are invertible
+  ---
+  duration_ms: 0.779792
+  type: 'test'
+  ...
+# Subtest: PNG top row corresponds to ROS highest grid row
+ok 4 - PNG top row corresponds to ROS highest grid row
+  ---
+  duration_ms: 0.177677
+  type: 'test'
+  ...
+# Subtest: display rotation never mutates original map origin
+ok 5 - display rotation never mutates original map origin
+  ---
+  duration_ms: 0.288843
+  type: 'test'
+  ...
+# Subtest: invalid depth is distinct from valid near/far distances
+ok 6 - invalid depth is distinct from valid near/far distances
+  ---
+  duration_ms: 0.936081
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13.071894

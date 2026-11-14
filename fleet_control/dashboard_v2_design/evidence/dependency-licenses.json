@@ -1,0 +1,89 @@
+{
+  "upstream_commit": "c1b13dc90c0f6983970df87f58004e011a322d2f",
+  "packages": [
+    {
+      "name": "react",
+      "version": "18.3.1",
+      "declared_license": "MIT",
+      "package_json_sha256": "d4e68a5c96babb20cad1daafea8b78822eae45b341552cf5418d06a5304fa64c",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "react-dom",
+      "version": "18.3.1",
+      "declared_license": "MIT",
+      "package_json_sha256": "d2f29e31bd48b833e48cd7bbf41f192e8ee4ff8da249fdbe10d4ac4114b8b12e",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "@mui/material",
+      "version": "5.16.1",
+      "declared_license": "MIT",
+      "package_json_sha256": "6515bcf3e65943b8b22eddf6409a1a138d2c47c7f432f699d27f47a3478441d2",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "@mui/icons-material",
+      "version": "5.16.1",
+      "declared_license": "MIT",
+      "package_json_sha256": "7c4ff034aeeb962d86d3e9fb15e29e65d3afde94fd3fc1f859c36cefeac132d5",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "three",
+      "version": "0.166.1",
+      "declared_license": "MIT",
+      "package_json_sha256": "cc766c15c0d612a03e94898b9caa6e88c0946e7476861fbbef89b7f2f78397a9",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "rxjs",
+      "version": "7.8.1",
+      "declared_license": "Apache-2.0",
+      "package_json_sha256": "8a85f1614acae51ed45ec98de4acca37cfdb6cb0c92e20804c37f4def186c6b7",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "keycloak-js",
+      "version": "25.0.2",
+      "declared_license": "Apache-2.0",
+      "package_json_sha256": "9434240fc6047b16cacf2bdb4b0f24117b4bc0981c980f8a44535bac04339282",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "@fontsource/roboto",
+      "version": "4.5.8",
+      "declared_license": "MIT",
+      "package_json_sha256": "7c9d33476af444e45902f7de4aadc8debadbe057cd69e71815680d5114674201",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "storybook",
+      "version": "10.5.8",
+      "declared_license": "MIT",
+      "package_json_sha256": "ba7d06023314b07f69e5152631a9af0b22b7f0be36877151bb4514c475f0ba53",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "api-client",
+      "version": "0.3.0",
+      "declared_license": "Apache-2.0",
+      "package_json_sha256": "1e1339026751b9bbc5e4f2b2e0d6267e0edb2855352edcaf35b5d194685dd43c",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "rmf-models",
+      "version": "0.3.0",
+      "declared_license": "Apache-2.0",
+      "package_json_sha256": "7a6c5208ff6d85b053773103b06789e66fc4170a9de93ca87e663e2e92081f0a",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    },
+    {
+      "name": "react-grid-layout",
+      "version": "1.4.4",
+      "declared_license": "MIT",
+      "package_json_sha256": "a40823ae99ba132388ffcca3e24309ccee7fc5de56cd88d7520776e905f1f17a",
+      "review_scope": "Declared metadata only; no transitive/asset clearance"
+    }
+  ]
+}

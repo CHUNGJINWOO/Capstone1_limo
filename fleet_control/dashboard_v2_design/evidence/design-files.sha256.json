@@ -1,0 +1,10 @@
+{
+  "CONTRACTS.md": "31bcbc3f7c188a6f3beac53dfe6c97e1fd4bf3ca31912b3ec51cd301df38e28a",
+  "DESIGN.md": "be4cc41e9a879399b2a8316f38c7bc1519fa3526703bc6ae274c23956da1d3d4",
+  "README.md": "2d391520b15f8655b40a6d66ba13ca60fec80809eb0d588f0f4e416a7f72ab56",
+  "REUSE_LICENSES.md": "055003472f2c9389d230a027a13e5532a33fedd80ce26387737c9e9cb4c6c2c2",
+  "evidence/dependency-licenses.json": "6b7223d22ab135dc72aaa2eff4e39abe76783a357bd55decc7434364397c4e8e",
+  "evidence/example-audit.json": "e9994a320f8d52648a5ce9ff2eba4da088860e1ce770121dc7d461e963e4dfa5",
+  "evidence/preservation.json": "aaa9e9481f6d697b6a0d645ee7143a1cb84d1504beea4ec83de81b7308756550",
+  "examples/view-contract.json": "916f2ee5070213e55ccc42f4e90a75a0db44e573d56f7262247b5249e2379aa8"
+}
