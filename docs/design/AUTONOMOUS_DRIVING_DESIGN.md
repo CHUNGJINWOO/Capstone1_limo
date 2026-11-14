@@ -101,7 +101,7 @@ python3 run_recorder.py --label corridor_f1b --snapshot-params \
 python3 run_recorder.py --label cable_test --extra /camera/color/image_raw   # 영상은 필요할 때만 지정
 ```
 
-- 저장 위치: `<root>/<시각>_<label>/` (`meta.json`, `params/`, `bag/`, `exit.json`). `<root>`는 다음 순서로 정한다: ① `--root` 인자 → ② `$LIMO_RUNS_DIR` → ③ 프로젝트 저장소가 확인되고 `local_data/`와 `capstone_ws/src/limo_capstone/`가 모두 있으면 `<저장소>/local_data/raw_results/limo_runs/` → ④ 그 외(실차 온보드 단독 워크스페이스 등 저장소를 찾지 못한 경우)는 기존 `~/limo_runs/`.
+- 저장 위치: `<root>/<시각>_<label>/` (`meta.json`, `params/`, `bag/`, `exit.json`). `<root>`는 다음 순서로 정한다: ① `--root` 인자 → ② `$LIMO_RUNS_DIR` → ③ 프로젝트 저장소(`capstone_ws/src/limo_capstone/`)가 확인되면(`local_data/` 미생성 신규 clone 포함) `<저장소>/local_data/raw_results/limo_runs/` → ④ 그 외(실차 온보드 단독 워크스페이스 등 저장소를 찾지 못한 경우)는 기존 `~/limo_runs/`.
 - 종료: Ctrl+C(SIGINT) 또는 SIGTERM → rosbag2에 SIGINT를 전달해 파일을 정상 마감.
 - 한계: `exit.json`은 **기록기 프로세스**의 종료 사유다. launch/개별 노드의 종료 원인은 ROS logger 로그와 이후 단계(launch `OnProcessExit` 핸들러)에서 다룬다.
 - 토픽 목록은 프로젝트 코드·launch에서 확인한 이름이다. Nav2 costmap 토픽은 표준 이름이므로 `ros2 topic list`로 확인한다.

@@ -75,8 +75,9 @@ def default_runs_root(start=None, environ=None):
 
     우선순위: $LIMO_RUNS_DIR > <저장소>/local_data/raw_results/limo_runs > ~/limo_runs
     저장소는 find_repo_root()로 찾되, 다른 Git 저장소를 잘못 잡지 않도록
-    local_data/ 와 capstone_ws/src/limo_capstone/ 가 모두 있을 때만 인정한다.
-    조건을 하나라도 만족하지 못하면 기존 기본값(~/limo_runs)을 그대로 쓴다.
+    capstone_ws/src/limo_capstone/ 가 있을 때만 Capstone1 저장소로 인정한다.
+    신규 clone 직후라 local_data/ 가 아직 없어도 경로를 선택하며,
+    실제 디렉터리 생성은 기록 시작 시점(mkdir(parents=True))에만 수행한다.
     """
     env = os.environ if environ is None else environ
     explicit = env.get('LIMO_RUNS_DIR')
@@ -84,8 +85,7 @@ def default_runs_root(start=None, environ=None):
         return explicit
     begin = Path(__file__).resolve().parent if start is None else Path(start)
     repo = find_repo_root(begin)
-    if (repo is not None and (repo / 'local_data').is_dir()
-            and (repo / 'capstone_ws' / 'src' / 'limo_capstone').is_dir()):
+    if repo is not None and (repo / 'capstone_ws' / 'src' / 'limo_capstone').is_dir():
         return str(repo / 'local_data' / 'raw_results' / 'limo_runs')
     return str(Path.home() / 'limo_runs')
 
