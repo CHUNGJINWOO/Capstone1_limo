@@ -12,20 +12,18 @@
 
 | 구분 | 로컬 워크트리 경로 (`<WORKSPACE_PARENT>` 기준) | 브랜치 | HEAD | 소유/역할 | 미커밋·미추적 상태 | 정리 방침 |
 |---|---|---|---|---|---|---|
-| **메인 (보존 1)** | `<WORKSPACE_PARENT>/Capstone1_limo` | `staging/fleet-control-on-progress-c804241` | `c804241` | 공통 / Claude Code: 메인 저장소, `capstone_ws`, `experiments/*20261113*`, `local_data/` | `M AGENTS.md`, `M README.md`, 다수 미추적(`fleet_control/`, `experiments/*`, `notebook/`, `src/`, 루트 공통 문서 8개) | **보존 필수 (절대 이동·초기화 금지)** |
-| **기능 1 (보존 2)** | `<WORKSPACE_PARENT>/Capstone1_limo_dashboard` | `codex/dashboard-visualization` | `419e798` | Codex: 시각화 대시보드(`dashboard`), 스트리밍 연구소(`dashboard_lab`), v2 설계, `rmf_web_research` | 추적 파일 수정 0건, 미추적 폴더 4개(93개 파일) + 증빙 28개 | **보존 필수** (미추적 폴더 4개 브랜치 커밋/백업 전 제거 금지) |
-| **기능 2 (보존 3)** | `<WORKSPACE_PARENT>/Capstone1_limo_fleet_rmf` | `codex/rmf-gazebo-integration` | `419e798` | Codex: Open-RMF + Gazebo 연동(`gazebo/`), `motor_policy.py`, `run_gazebo_checks.py` | `M` 10개, `??` 10개(폴더 기준 6개) | **보존 필수**: 미커밋 변경 브랜치 커밋/패치 백업 및 `lf_env.sh`·`offline_registration_test.py` 경로 분리 전 제거 금지 |
-| **기능 3 (보존 4)** | `<WORKSPACE_PARENT>/Capstone1_limo_video_preverify` | `exp/video-ai-preverify` | `419e798` | Codex/Claude: 관제 대시보드 영상 패널(`video_panel.js`), `--video-origin` | `M` 5개, `??` 3개 | **보존 필수**: 미커밋 변경 브랜치 커밋/패치 백업 및 `lf_setup.sh` 경로 분리 전 제거 금지 |
-| **기능 4 (보존 5)** | `<WORKSPACE_PARENT>/Capstone1_limo_integrated_sim` | `exp/integrated-sim-20261113` | `419e798` | Codex/Claude: 기능 2 + 기능 3 변경분 통합 + `integrated_sim/` | `M` 14개, `??` 28개(폴더 기준 10개) | **보존 필수** (`fleet_control` 통합 기준점 후보; 미커밋 변경 브랜치 커밋 필수) |
-| **정리 1** | `<WORKSPACE_PARENT>/Capstone1_limo_cleanup/01-real-core-code` | `cleanup/01-real-core-code` | `1f27e71` | 2026-11-11 PR #1 분할 병합용 워크트리 | Clean (gitignored `capstone_ws/{build,install,log}`만 존재) | **연결 해제 후보 1순위**: `main`(`2010e44`)에 100% 병합 완료됨 |
-| **정리 2** | `<WORKSPACE_PARENT>/Capstone1_limo_cleanup/02-sim-code` | `cleanup/02-sim-code` | `8c0a0c0` | 2026-11-11 PR #2 분할 병합용 워크트리 | Clean | **연결 해제 후보 1순위**: `main`(`2010e44`)에 100% 병합 완료됨 |
-| **정리 3** | `<WORKSPACE_PARENT>/Capstone1_limo_cleanup/03-docs` | `cleanup/03-docs` | `f49b58e` | 2026-11-11 PR #3 분할 병합용 워크트리 | Clean | **연결 해제 후보 1순위**: `main`(`2010e44`)에 100% 병합 완료됨 |
-| **정리 4** | `<WORKSPACE_PARENT>/Capstone1_limo_cleanup/04-experiment-reports` | `cleanup/04-experiment-reports` | `a669f48` | 2026-11-11 PR #4 분할 병합용 워크트리 | Clean (gitignored 실험 로그만 존재) | **연결 해제 후보 1순위**: `main`(`2010e44`)에 100% 병합 완료됨 |
-| **유실 1** | `$HOME/.gemini/antigravity/brain/<session_id>/scratch/integrate_worktree` | `integrate/privacy-preserved-main` | `b1d14de` | 과거 임시 워크트리 (`prunable`) | 디렉터리 없음 | 추후 `git worktree prune` 대상 |
+| **메인 (보존 1)** | `<WORKSPACE_PARENT>/Capstone1_limo` | `staging/fleet-control-on-progress-c804241` | `c804241` | 공통 / Claude Code: 메인 저장소, `capstone_ws`, **통합 `fleet_control/`(단일 기준)**, `experiments/*20261113*`, `local_data/` | `M AGENTS.md`, `M README.md`, 다수 미추적(`fleet_control/`, `experiments/*`, `notebook/`, 공통 문서 8종) | **보존 필수 (절대 이동·초기화 금지)** |
+| **기능 1~4 (해제 완료)** | *(워크트리 해제됨)* | `codex/dashboard-visualization` (`bc3df5e`), `codex/rmf-gazebo-integration` (`0dc7ef9`), `exp/video-ai-preverify` (`e4dd598`), `exp/integrated-sim-20261113` (`29818e8`) | 각 스냅샷 커밋 | `fleet_control` 통합 완료 후 각 브랜치에 스냅샷 커밋 보존 및 `git worktree remove` 완료 | Clean (스냅샷 diff/status는 `local_data/worktree_backups_20261114/`에도 보존) | **해제 완료** (기준 소스는 `Capstone1_limo/fleet_control/` 및 `feat/fleet-control-unified` `ed53d81`) |
+| **정리 1~4 (해제 완료)** | *(워크트리 해제됨)* | `cleanup/01~04` | PR #1~#4 | 2026-11-11 PR #1~#4 분할 병합용 워크트리 (`main` 100% 병합 완료) | Clean | **해제 완료** |
+| **유실 1 (해제 완료)** | *(워크트리 해제 완료)* | `integrate/privacy-preserved-main` | `b1d14de` | 과거 임시 워크트리 정리 완료 | Clean | **해제 완료** |
 
 ### 워크트리가 연결되지 않은 주요 브랜치
-- `main` (`origin/main`, `2010e44`): PR #1~#4(`cleanup/01-real-core-code` ~ `cleanup/04-experiment-reports`)가 병합된 정식 공개 기준선.
-- `feat/fleet-control-rmf-integration` (`origin/feat/fleet-control-rmf-integration`, `419e798`): `main` 위에서 `fleet_control/`을 추가한 커밋 (기능 워크트리 1~4의 베이스).
+- `main` / `origin/main` (`a8132c7`): PR #1~#4, PR #8(공통 문서), **PR #9(`b350efa`, `fleet_control/` 173개)**, **PR #10(`a8132c7`, `run_recorder.py` 경로 개선)**이 병합된 정식 공개 기준선.
+- `feat/fleet-control-pr-b` (`e0bc7be`): PR #9 병합 브랜치 (`fleet_control/` 173개 + 증거 해시 안내 보완).
+- `feat/run-recorder-pr-c` (`f63688e`): PR #10 병합 브랜치 (`run_recorder.py` 신규 clone 출력 경로 보완).
+- `feat/fleet-control-unified` (`ed53d81`): `51175ef` + `419e798` 기반 로컬 통합 보존본(203개 비런타임 파일 + 비필수 증빙 30개).
+- `docs/backup-policy-and-status-20261114` (`a021186`): `origin/main`(`51175ef`) 기반 공통 문서 증분 5종 분리 커밋.
+- `feat/fleet-control-rmf-integration` (`origin/feat/fleet-control-rmf-integration`, `419e798`): `main` 위에서 `fleet_control/`을 추가한 커밋 (기능 브랜치 4종의 공통 베이스).
 - `docs/gazebo-auto-mapping-final-20261112` (`cc58183`): Gazebo 차동구동 자동 맵핑 6회 결과 및 자동 지도 저장기(`experiments/auto_mapping_final_20261112/`).
 - `docs/scan-normalizer-locked-test-20261112` (`09d742c`): 실차 스캔 정규화 배포 및 모터 잠금 검증 노트.
 - `docs/limo-real-robot-progress-20261111` (`c804241`): 2026-11-11 정리 이전 전체 실험 스냅샷 보존 브랜치 (`PRESERVED_SNAPSHOTS.tsv` 참조).

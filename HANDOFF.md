@@ -15,15 +15,19 @@
    - `obstacle_memory_node.py`(Depth 3D TF 변환, 반복 stamp 무시, `/collision_monitor/memory_status`, 차체 프레임 발행, `/collision_monitor/clear_memory_near`), `stall_detector_node.py`(stamp 정체 감시, 고장 잠금 `latch_safety_faults`, 고장 시점 목표 자동 재개 차단 `block_resume_of_fault_goals`), `lidar_scan_matcher_odom_node.py`(진단 v2), `navigate_to_pose_diff_no_backup.xml` 구현.
    - 검증(**합성 하네스 + Office Gazebo**): `run04`(`fixed`) 및 `run05`(`fixed2`) 28/28 PASS (FAIL 0, 기존 Gate 86/86 PASS). Office Gazebo(`office03_20261114`)에서 Costmap `memory_layer` 및 전용 approach footprint 적용으로 초기 27초 교착을 해소하고 `explore_rep2` 16.22 m, `explore_rep3` 18.48 m, `odom_tf_loss_recover` 20.83 m 주행 확인 (단, `explore_rep1` 1.55 m 조기 종료 및 `low_box_rep1` `sensor_normalizer_node` exit `-2` 실패 기록 보존).
 3. **실차 현장 시험 및 Depth·관제·대시보드 연동 (2026-11-13, Claude Code / Codex)**
-   - 경로: 로컬 미추적 `experiments/real_limo_field_20261113/`, `experiments/real_depth_integration_20261113/`, `<WORKSPACE_PARENT>/Capstone1_limo_dashboard/fleet_control/dashboard`
+   - 경로: 로컬 미추적 `experiments/real_limo_field_20261113/`, `experiments/real_depth_integration_20261113/`, `fleet_control/dashboard` (PR #9 병합)
    - 검증(**실차**):
      - LiDAR-only 저속(0.15 m/s) 자동 맵핑(`run_010`, `real_auto_mapping_ready_20261113` 배포본): 약 110초 실제 구동, 지도 1,080→30,430셀 생성 및 `map_001`/`map_002` 저장.
      - 모터 잠금 상태에서 신규 Robot Agent 배포(`~/limo_field_agent_ws`), `409 agent_session_mismatch` 해결 및 지도 API 업로드(`map.png` HTTP 200) 확인.
      - 모터 잠금 상태에서 DaBai RGB → Tailscale → 노트북 CUDA YOLO11n 왕복(10 fps) 및 신규 시각화 대시보드(`dashboard`) 15초 제한 실차 `/map`·Costmap·TF·Depth(SSH `bridge_node.py`) 및 별도 15초 RGB(`readonly_rgb.py`, 5 fps) 표시 확인.
 4. **대시보드 스트리밍 연구소(`dashboard_lab`), v2 설계, `rmf-web` 조사 및 통합 시뮬레이션 (2026-11-12~13, Codex / Claude Code)**
-   - 로컬 `<WORKSPACE_PARENT>/Capstone1_limo_dashboard`: `dashboard_lab` WebSocket JPEG 11.90 fps / Depth 7.99 fps 오프라인 검증(121 PASS), `dashboard_v2_design` 계약 문서화, `rmf_web_research` Storybook(18410) 확인.
-   - 로컬 `<WORKSPACE_PARENT>/Capstone1_limo_fleet_rmf`: Gazebo × Open-RMF E2E 69/69 PASS(필수 15/15 PASS).
-   - 로컬 `<WORKSPACE_PARENT>/Capstone1_limo_integrated_sim`: RMF × Gazebo × Nav2 × Video/YOLO 단일 통합 실행(`final4`) 12/13 PASS 및 장애 주입 복구 확인.
+   - `fleet_control/{dashboard,dashboard_lab,dashboard_v2_design,rmf_web_research}` (스냅샷 `bc3df5e` → PR #9 병합): `dashboard_lab` 이전 121 PASS 기록(`test_lab.py`는 `aiohttp` 미설치로 미검증), `rmf_web_research` Storybook(18410) 확인.
+   - `fleet_control/{agent,rmf_adapter,gazebo}` (스냅샷 `0dc7ef9` → PR #9 병합): 이전 Gazebo × Open-RMF E2E 69/69 PASS(PR #9 격리 검증 미재실행).
+   - `fleet_control/integrated_sim` (스냅샷 `29818e8` → PR #9 병합): 이전 단일 통합 실행(`final4`) 12/13 PASS(통합 후 풀스택 재실행 미검증).
+5. **대용량 실험 데이터 Option D 비공개 백업·검증 진행 (2026-11-14, [VALIDATION.md](VALIDATION.md) §2.5 기준)**:
+   - `run03~06_20261114` (합성 하네스): GPG AES-256 봉인, Google Drive 비공개 업로드 및 원격 복호화·복구 검증(`remote_full_restore_verified: true`) 완료 (단, `run03~05` 과거 중간 편집 소스 4건은 `not_found_in_searched_sources` 한계 유지).
+   - `office04_20261115` (25회 실행, 281개 파일): 로컬 전체 복원(393/393, SQLite 25/25, `ros2 bag info` 25/25) 및 Google Drive 8/8 업로드·원격 다운로드 해시(7/7) 검증 완료; 원격 전체 복호화는 사용자 판단으로 생략(`skipped_by_user` / `remote_backup_integrity_verified`), 과거 `tools/run_office2.py`(`e96874a8bec59c35`) 5회분 미확보 유지.
+   - `office03_20261114` (12회 실행, 원본 113개): 로컬 전체 복원(225/225, SQLite 12/12, `ros2 bag info` 12/12) 및 Google Drive 8개 파일 업로드·원격 해시 7/7 검증 완료; 원격 전체 복호화는 `skipped_by_user`로 마감(`remote_backup_integrity_verified`, 실행 당시 코드 해시 연결 기록 `meta.json` 미확보).
 
 ---
 
@@ -42,8 +46,10 @@
 4. **[관제/RMF] Adapter 재시작 시 RMF 고아 작업 및 E2E 타이밍 경합**:
    - RMF Adapter 재시작 시 이전 RMF 작업이 RMF 스케줄러에서 `underway`로 남는 한계 미해결.
    - 통합 워크트리에서 실행한 `run_rmf_checks.py`(47/51) 및 `run_gazebo_checks.py`(66/68)에서 Agent 재시작 구역 타이밍 경합 실패가 발생해 원인 분리 필요.
-5. **[저장소 구조] 미커밋 워크트리 5개 분산 및 메인 폴더 브랜치 불일치**:
-   - **5개 미커밋 워크트리**(`Capstone1_limo`, `Capstone1_limo_dashboard`, `Capstone1_limo_fleet_rmf`, `Capstone1_limo_video_preverify`, `Capstone1_limo_integrated_sim`)의 작업이 아직 각 브랜치에 커밋되지 않았고, 메인 폴더(`Capstone1_limo`)는 `c804241`에 머물러 있음.
+5. **[저장소 구조] `fleet_control` 통합·기능 워크트리 정리 완료, 남은 후속 정리 항목**:
+   - `fleet_control/` 단일 기준(`Capstone1_limo/fleet_control/`, `feat/fleet-control-unified` `ed53d81`) 통합 및 `cleanup/01~04`·기능 워크트리 4개(`bc3df5e`, `0dc7ef9`, `e4dd598`, `29818e8`) 스냅샷 커밋 후 해제 완료.
+   - **PR #9(`fleet_control/` 173개) 및 PR #10(`run_recorder.py` 경로 개선) `main`(`a8132c7`) 병합 완료.**
+   - 남은 정리 대상: (a) 공통 문서 PR-A 반영, (b) 외부 실험 스크립트 3개 및 형제 스크립트 PR-D 검토, (c) 메인 폴더 `c804241` 미추적 실험/노트 정리.
 
 ---
 
@@ -51,12 +57,12 @@
 
 1. **[실차 비구동 진단]** LIMO 완충 후 충전기를 분리한 상태에서 모터 잠금 모드로 `power_logger.py` 소크 시험을 수행해 전원 차단 및 USB 재연결 재발 여부 확인.
 2. **[정책 승인 및 코드 통합]** 사용자와 [DECISIONS.md](DECISIONS.md) `C-01`의 미확정 정책 3건을 확정한 뒤, `experiments/safety_chain_fix_20261113/fixed2`의 검증된 노드를 실차 준비 번들 및 `capstone_ws/src/limo_capstone`으로 이식하는 계획 수립.
-3. **[폴더/Git 단계별 정리]** 사용자 승인 하에 (a) 미커밋 변경이 있는 5개 워크트리(`Capstone1_limo`, `dashboard`, `fleet_rmf`, `video_preverify`, `integrated_sim`) 작업분 보존·커밋, (b) 이미 `main`에 병합된 `Capstone1_limo_cleanup/01~04` 워크트리 및 `prunable` 메타데이터 정리, (c) 주요 실험 `rosbag2`의 Denylist/Allowlist 검사 후 `manifest.json` 생성 및 Google Drive 백업 진행.
+3. **[폴더/Git 후속 마무리]** 사용자 승인 하에 (a) `feat/fleet-control-unified`(`ed53d81`) 및 공통 문서 증분(`a021186` + 이번 `WORKTREES.md`/`CODE_INDEX.md` 등) `origin/main` PR 반영, (b) `integrate_worktree` scratch 및 홈 디렉터리 잔여 후보(`~/limo_runs`, `~/slam_toolbox_source`, `webots_limo_pro`, `coppeliasim_limo_pro`) 정리 여부 확정.
 
 ---
 
 ## 4. 작업 시 주의 사항 (Cautions)
 
 - **실차 구동 금지**: 사용자 현장 입회, 배터리 완충 확인, 물리적 정지 준비, 명시적 승인 없이는 `--drive` 또는 `allow_motor_drive:=true`를 절대 실행하지 마세요.
-- **타 에이전트 작업 및 경로 보호**: `Capstone1_limo_fleet_rmf`, `Capstone1_limo_video_preverify`, `experiments/office_limo_sim_20261113` 경로는 다른 실험 스크립트(`lf_env.sh`, `lf_setup.sh`, `offline_registration_test.py`, `office_limo_*.launch.py`)가 하드코딩으로 참조하므로 임의 이동·삭제를 금지합니다.
+- **통합 경로 및 실험 스크립트 보호**: `fleet_control/` 및 `experiments/office_limo_sim_20261113` 경로는 실험 스크립트(`lf_env.sh`, `lf_setup.sh`, `offline_registration_test.py`, `office_limo_*.launch.py`)가 참조하므로 임의 이동·삭제를 금지합니다.
 - **민감정보 보호**: `Capstone1_limo/fleet_control/{data,secrets}`, `$HOME/.config/limo_field_20261113/`, `$HOME/.local/share/robot-sim-projects/limo_video_ai_preverify/real_limo_kit/secrets/` 내 토큰과 `.env`, DB는 절대 Git에 커밋하거나 Google Drive에 업로드하지 마세요.
