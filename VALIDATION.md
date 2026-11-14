@@ -1,0 +1,194 @@
+# VALIDATION.md — 통합 검증 색인 및 대용량 실험 자료(Google Drive · YouTube · rosbag) 관리 규격
+
+> **기준일**: 2026-11-14  
+> 이 문서는 **(1) 영역별 검증 결과 및 원본 보고서 색인**과 **(2) 대용량 `rosbag2`·시뮬레이션 영상·실차 주행 영상의 로컬 / GitHub / Google Drive / YouTube 통합 관리 설계**를 정의합니다.
+
+---
+
+## 1. 영역별 핵심 검증 기록 색인
+
+모든 시험 결과는 **실차(Real Robot)**, **Gazebo(물리 시뮬레이션)**, **합성/오프라인(Synthetic/Offline)**으로 구분하며, 상세 수치와 한계는 각 원본 보고서를 따릅니다.
+
+| 검증 영역 | 검증 환경 | 대표 실행 ID (`run_id`) | 핵심 결과 요약 (성공 및 실패·한계 병기) | 상세 근거 문서 (브랜치 / 로컬 미추적 구분) |
+|---|---|---|---|---|
+| **온보드 안전 체인 결함 수정 후보 (`baseline` vs `fixed` vs `fixed2`)** | 합성 하네스 + Office Gazebo (실차 미검증) | `run03_20261114` (baseline)<br/>`run04_20261114` (fixed)<br/>`run05_20261114` (fixed2)<br/>`office01~03_20261114`<br/>`gate86_20261114` | - 하네스: `baseline` PASS 15 / **FAIL 12** → `fixed`·`fixed2` **PASS 28 / FAIL 0** (기존 Gate 회귀 86/86 PASS)<br/>- Office Gazebo: `fixed`는 일반 탐색 2.18~4.03 m 정지 지속; `fixed2`에서 `explore_rep2` **16.22 m**, `explore_rep3` **18.48 m**, `odom_tf_loss_recover` **20.83 m** 주행 확인 (단, 반경 `0.22/0.40` 시험인 `explore_rep1` 1.55 m 조기 종료 및 `low_box_rep1` `sensor_normalizer_node` exit `-2` 실패 기록 보존) | - 로컬 미추적 보고서:<br/>  - `experiments/safety_chain_fix_20261113/README.md`<br/>  - `experiments/safety_chain_fix_20261113/docs/RESULTS_harness_baseline-run03_fixed-run04.md`<br/>  - `experiments/safety_chain_fix_20261113/docs/DEADLOCK_ANALYSIS.md`<br/>  - `experiments/safety_chain_fix_20261113/docs/MEMORY_POLICY_V2.md`<br/>- 원본 bag/로그(7.0 GB): `experiments/safety_chain_fix_20261113/runs/` |
+| **실차 현장 시험 (관제·영상 AI·LiDAR 자동 맵핑·Depth 정지)** | **실차 (LIMO)** (모터 잠금 + `run_010`만 저속 구동) | `limo_run2~4` (영상 AI)<br/>`run_008` (USB 재연결 차단)<br/>`run_010` (LiDAR 구동 맵핑)<br/>`run_012~014` (Depth+RGB 잠금) | - `run_008`: 충전기 분리 직후 베이스 USB(`ttyUSB1→ttyUSB2`) 재연결로 `wheel_odom_stale` 구동 전 차단<br/>- `run_010` (`real_auto_mapping_ready_20261113`): 0.15 m/s로 약 110초 주행, 지도 1,080→30,430셀 성장 후 `FAILSAFE_ICP_DEGRADED` 정지·지도(`map_001`,`map_002`) 저장<br/>- `run_012` (`real_depth_slow_20261113`): 정지 상태 화이트보드 하단 프레임 Depth→local costmap 마킹 확인<br/>- 전원 4회 돌발 차단 발생으로 추가 구동 보류 | - 로컬 미추적 보고서:<br/>  - `experiments/real_limo_field_20261113/FIELD_RESULTS_20261113.md`<br/>  - `experiments/real_depth_integration_20261113/README_DEPTH_INTEGRATION.md`<br/>  - `experiments/real_depth_lidar_mapping_20261113/STATUS.md` |
+| **실차 스캔 정규화 (`limo_scan_normalizer`)** | **실차 (모터 잠금 수동 이동)** + 오프라인 bag | `20261112_scan_norm` | 정규화 OFF 시 0.92 m 이동 동안 지도 685셀 고정(경고 5건) 실패 → ON 시 1.06 m 이동 동안 **701→7,531셀 성장(경고 0건)** | - 원인 분석(`main` 공개): [experiments/safety_gate_verification_20261110/slam_scan_fix_20261111/REPORT.md](experiments/safety_gate_verification_20261110/slam_scan_fix_20261111/REPORT.md)<br/>- 실차 기록(`09d742c` 브랜치 및 로컬): `docs/dev_notes/2026_11_12_실차_스캔정규화_배포와_모터잠금_검증.md` |
+| **Gazebo 차동구동 자동 맵핑 + 자동 지도 저장** | Gazebo | `auto_mapping_final_20261112` (`run1~3`, `v1~3`) | 6회 실행 중 3회 실내 커버리지 98~99% 완주, **2회 82~85% 조기 종료, 1회 일시적 Depth stale FAILSAFE 정지** | - 보고서(`cc58183` 브랜치): `experiments/auto_mapping_final_20261112/REPORT.md`<br/>- 로컬 데이터(252 MB): `experiments/auto_mapping_final_20261112/runs/` |
+| **Office Fortress 월드 + LIMO + Collision Monitor 통합** | Gazebo | `office_limo_02` | 190초 Frontier 탐색 주행 21.1 m, 알려진 셀 10,643→34,802, 최소 LiDAR 거리 0.299 m | - 요약(로컬 미추적): `experiments/office_limo_sim_20261113/README.md`<br/>- 원본 bag: `$HOME/rmf_demos_humble/runs/office_limo_02/bag_explore` |
+| **중앙 관제 서버 · Agent · Open-RMF 모의 E2E** | **합성/모의 환경 전용** (Open-RMF 실차 시험 없음) | `20261112_fleet_rmf_mock` | `run_checks.py` 46/46(연속 6회, 과거 1회 원인 미상 42/46 기록), `test_ownership.py` 37/37, `test_runner_policy.py` 33/33, `run_rmf_checks.py` 59/59(연속 3회; 통합 세션 병행 시 47/51 간헐 실패) | - 요약(`419e798` 브랜치): `fleet_control/docs/VALIDATION.md` |
+| **Gazebo × Open-RMF E2E** | Gazebo | `20261112_gazebo_rmf` | **69/69 PASS (필수 15/15 PASS)**, RMF patrol → Mission Manager → Gazebo 실제 이동 → RMF `completed`, 취소·소유권·단절·복구 검증 (통합 세션 병행 시 66/68 간헐 실패 기록) | - 보고서(로컬 미커밋): `<WORKSPACE_PARENT>/Capstone1_limo_fleet_rmf/fleet_control/gazebo/RESULTS.md`<br/>- 결과 JSON: `<WORKSPACE_PARENT>/Capstone1_limo_fleet_rmf/fleet_control/gazebo/results.json` |
+| **통합 시뮬레이션 (RMF × Gazebo × Nav2 × Video/YOLO)** | Gazebo + CUDA YOLO11n | `final3`, `final4` | 단일 실행 **12/13 PASS** (박스 최소 간격 0.151 m로 보수적 반경 0.155 m 기준 1건 미달 기록), 영상/서버 장애 주입 중 RMF 5/5 완료 및 Gate NORMAL 유지 | - 보고서(로컬 미커밋): `<WORKSPACE_PARENT>/Capstone1_limo_integrated_sim/fleet_control/integrated_sim/RESULTS.md`<br/>- 런타임 로그: `$HOME/.local/share/robot-sim-projects/limo_integrated_sim/runs/` |
+| **시각화 대시보드 (`dashboard` / `dashboard_lab` / `rmf_web_research`)** | 합성 + **실차 15초 읽기 전용(분리 창)** + 오프라인 벤치 | `20261113_dashboard_v1`<br/>`20261113_dashboard_lab`<br/>`20261113_rmf_web` | - `dashboard`: 자동 검사 37+83 PASS, 실차 15초 지도·Costmap·TF·Depth 및 별도 15초 RGB/YOLO(5 fps) 표시 확인 (정지 상태라 `/plan`, `/local_plan`은 `UNAVAILABLE`)<br/>- `dashboard_lab`: 오프라인/합성 121 PASS, WS JPEG 11.90 fps / Depth 7.99 fps 달성 (실차 미연결)<br/>- `rmf_web_research`: Storybook 오프라인 fixture 확인 | - 로컬 워크트리(`<WORKSPACE_PARENT>/Capstone1_limo_dashboard/fleet_control/`):<br/>  - `dashboard/docs/VALIDATION.md`<br/>  - `dashboard/docs/REAL_LIMO.md`<br/>  - `dashboard_lab/docs/RESULTS.md`<br/>  - `rmf_web_research/README.md` |
+
+---
+
+## 2. 대용량 실험 자료(rosbag · 영상 · 지도 · 실행 스냅샷) 4계층 스토리지 설계
+
+### 2.1 로컬 · GitHub · Google Drive · YouTube의 역할 분리
+
+| 저장소 | 보관 대상 | 보관 금지 대상 | 보존 목적 |
+|---|---|---|---|
+| **1. 로컬 워크스페이스** (`local_data/`, `experiments/*/runs/`, `$HOME/.local/share/robot-sim-projects/`) | - 최근 작업 중인 원본 `rosbag2`(`*.db3`, `*.mcap`), 원시 로그(`*.log`, `*.jsonl`), 미편집 영상<br/>- 런타임 DB(`fleet.db`), 인증 토큰(`*.token`, `kit.env`), 학교 행정 제출 원본 | 없음 (단, 민감 파일은 권한 `0600`/`0700` 유지 및 Git 추적 제외) | 즉시 재현·디버깅 및 업로드 전 해시 검증 원본 |
+| **2. GitHub 저장소** (`CHUNGJINWOO/Capstone1_limo`) | - ROS 2 / Fleet / Dashboard 소스코드 및 설정 파일<br/>- 실험 요약 JSON/CSV, 정제된 지도(`*.pgm`, `*.yaml`, `*.png`), 마크다운 보고서<br/>- 대용량 자료의 **메타데이터 매니페스트(`manifest.json`, SHA-256, Drive/YouTube 링크)** | - 대용량 `rosbag2`, 영상(`*.mp4`, `*.webm`), 빌드 산출물(`build/`, `install/`)<br/>- **토큰, 비밀번호, IP/SSH 접속 정보, 학번, 개인 연락처, 학교 제출 보고서/발표자료 원본** ([docs/PUBLICATION_POLICY.md](docs/PUBLICATION_POLICY.md)) | 버전 관리 및 코드·검증 근거의 단일 기준점 |
+| **3. Google Drive** (팀/프로젝트 전용 아카이브) | - 검증 완료된 주요 실험의 압축 아카이브(`rosbag_<run_id>.tar.zst`, `logs_<run_id>.tar.zst`, **비밀정보 제거 검사를 통과한 `code_and_config_<run_id>.tar.zst`**, `manifest.json`)<br/>- 실차 주행 영상, Gazebo 시뮬레이션 녹화 영상, 시연 영상 보관본 | - **인증 토큰(`*.token`), `*.env`, `kit.env`, `auth.json`, `real_connection.json`, `fleet.db`/`*.sqlite*`, 무검토 원본 `git diff`, 무검토 환경변수 덤프(`env`)**<br/>- `before-privacy-reset` 등 개인정보가 포함된 구 Git 번들 및 학교 행정 제출 원본 | 장기 보존, 미커밋 실험 코드·설정의 정확한 재현, 팀원 간 대용량 데이터 공유 |
+| **4. YouTube** (외부 시연 채널) | - 개인정보·민감 화면이 제거(마스킹/블러)된 주요 시연 영상 (Gazebo 통합 시뮬레이션, 실차 주행 시연, 대시보드 구동 화면) | - 원시 미검토 촬영본, 학번·실명·얼굴·개인 화면·내부 IP가 노출된 영상 | 보고서·README·발표 임베딩 및 외부 검증 시연 |
+
+> **재현성 우선순위 원칙 (`rosbag` > 로그/코드 스냅샷 > 영상)**:  
+> 디스크 용량이나 업로드 대역폭이 제한될 때는 **1순위: `manifest.json` + `code_and_config_<run_id>.tar.zst`(허용 목록 통과분) + `events.jsonl`/`result.json`**, **2순위: `rosbag2`(`*.db3`/`*.mcap`) 및 저장 지도**, **3순위: 녹화 영상(`*.mp4`/`*.webm`)** 순으로 보존합니다. 영상만 있고 `rosbag2`/로그가 없는 결과는 정량 검증 근거로 인정하지 않습니다.
+
+---
+
+### 2.2 Google Drive 권장 폴더 구조
+
+```text
+Capstone1_LIMO_Archive/
+├── 00_INDEX/
+│   ├── ARCHIVE_CATALOG.tsv                 # 전체 업로드 항목(run_id, sha256, drive_path, youtube_url) 마스터 표
+│   └── RESTORE_GUIDE.md                    # 다운로드 및 SHA-256 무결성 검증 절차
+├── 01_REAL_ROBOT/                          # 실차(Physical LIMO) 실험 아카이브
+│   └── <YYYYMMDD>_<experiment_slug>/       # 예: 20261113_real_limo_field/
+│       └── <run_id>/                       # 예: run_010_lidar_drive_slow/
+│           ├── manifest.json               # 실행 메타데이터 및 파일별 SHA-256
+│           ├── code_and_config_<run_id>.tar.zst # [필수 검열 통과분] 실행 코드·YAML·launch 스냅샷
+│           ├── rosbag_<run_id>.tar.zst     # rosbag2 (metadata.yaml + *.db3)
+│           ├── logs_<run_id>.tar.zst       # monitor.jsonl, stack.log, result.json
+│           ├── maps/                       # map_001.pgm, map_001.yaml 등
+│           └── videos/                     # 실차 외관 촬영 및 대시보드/RViz 녹화본 (*.mp4)
+├── 02_GAZEBO_SIM/                          # Gazebo 물리 시뮬레이션 아카이브
+│   └── <YYYYMMDD>_<experiment_slug>/       # 예: 20261114_safety_chain_fix/, 20261113_integrated_sim/
+│       └── <run_id>/                       # 예: office03_20261114_fixed2_explore_rep3/, final4/
+│           ├── manifest.json
+│           ├── code_and_config_<run_id>.tar.zst
+│           ├── rosbag_<run_id>.tar.zst
+│           ├── logs_<run_id>.tar.zst
+│           └── videos/
+├── 03_SYNTHETIC_BENCHMARKS/                # 합성 하네스·오프라인 재생·Dashboard Lab 벤치마크
+│   └── <YYYYMMDD>_<experiment_slug>/
+│       └── <run_id>/
+└── 04_PRESENTATION_AND_DEMOS/              # 개인정보 검토를 마친 시연·발표 영상 (학교 행정 제출 원본 제외)
+    └── <YYYYMMDD>_<title>/
+        ├── manifest.json
+        └── <video_name>_sanitized.mp4
+```
+
+---
+
+### 2.3 `code_and_config_<run_id>.tar.zst` 비밀정보 제외 목록(Denylist) 및 허용 파일 목록(Allowlist) 사전 검사 규격
+
+현재 많은 실험(`safety_chain_fix_20261113/fixed2`, `real_limo_field_20261113`, 4개 기능 워크트리)이 Git 미추적(`??`) 또는 미커밋(`M`) 상태에서 수행되므로, `git_commit` 해시만으로는 실행 코드를 재현할 수 없습니다.  
+단, **원본 `git diff`, 환경변수 전체 덤프(`env`), 토큰, 런타임 DB를 무검토로 압축·업로드하면 비밀정보와 개인정보가 유출**되므로 반드시 아래 **2단계 필터(Denylist 차단 → Allowlist 선별)**를 통과한 파일만 `code_and_config_<run_id>.tar.zst`에 포함합니다.
+
+1. **절대 포함·업로드 금지 목록 (Strict Denylist)**:
+   - 인증 토큰·키·비밀번호 파일: `*.token`, `*.key`, `*.pem`, `*secret*`, `auth.json`, `real_connection.json`, `$HOME/.config/limo_field_20261113/*`, `real_limo_kit/secrets/*`
+   - 환경변수 원본 파일 및 무검토 덤프: `*.env`, `kit.env`, `.env.*`, 무검토 `printenv`/`env` 출력 전체
+   - 런타임 데이터베이스 및 대용량 산출물: `fleet.db`, `*.db`, `*.sqlite*`, `*.db3`, `*.mcap`, `build/`, `install/`, `log/`
+   - **무검토 원본 `git diff` / `git status`**: 로컬 사용자 홈 경로, Tailscale IP(`100.x.y.z`), SSH 계정명, 임시 토큰이 포함될 수 있는 원시(raw) `git diff` 출력
+   - 학교 행정 제출 문서 및 개인정보 파일: 학기 보고서·계획서·발표 슬라이드 원본 문서 및 학번·성명·연락처가 포함된 문서 ([docs/PUBLICATION_POLICY.md](docs/PUBLICATION_POLICY.md))
+2. **검토 후 포함 허용 목록 (Explicit Allowlist)**:
+   - 실행에 실제 사용된 소스·설정 파일: 명시적으로 지정한 `nodes/*.py`, `fleet_server/*.py`, `limo_robot_agent/*.py`, `limo_rmf_adapter/*.py`, `launch/*.launch.py`, `config/*.yaml`, `bt/*.xml`, `world/*.world`
+   - 파일별 무결성 해시표: `SOURCE_SHA256SUMS` (허용 목록에 포함된 소스·설정 파일들의 `sha256sum` 목록)
+   - **마스킹·검열을 마친 버전 기록**:
+     - `git_head_info.txt`: 브랜치명 및 `HEAD` 커밋 해시만 기록
+     - `git_diff_sanitized.patch` (선택): 포함 전 반드시 정규식 검사(`grep -E -i "(token|secret|password|bearer|100\.[0-9]+\.[0-9]+\.[0-9]+|sshpass)"`) 결과가 **0건**임을 확인하고, 호스트 경로/IP를 `<REDACTED>`로 치환한 패치만 허용
+     - `ros_launch_args_sanitized.yaml`: 토큰·IP·경로를 제거한 순수 알고리즘/ROS 파라미터(`allow_motor_drive`, `robot_radius`, `inflation_radius`, `ROS_LOCALHOST_ONLY` 등) 스냅샷
+
+---
+
+### 2.4 `run_id`와 소스 버전으로 연결되는 실험 메타데이터 (`manifest.json`) 규격
+
+Google Drive에 업로드하는 모든 `<run_id>/` 폴더와 로컬 실험 폴더(`experiments/<exp>/runs/<run_id>/`)에는 아래 표준 `manifest.json`을 생성해 **어떤 코드 버전과 설정 스냅샷에서 얻은 데이터인지** 영구적으로 연결합니다.
+
+```json
+{
+  "schema_version": "1.1",
+  "run_id": "office03_20261114_fixed2_explore_rep3",
+  "experiment_slug": "safety_chain_fix_20261113",
+  "environment": "gazebo",
+  "created_at": "2026-11-14T11:57:45+09:00",
+  "source_version": {
+    "git_branch": "staging/fleet-control-on-progress-c804241",
+    "git_commit": "c804241ac9afb702616c7e9cd59478c8ea077a8f",
+    "worktree_dirty": true,
+    "variant_path": "experiments/safety_chain_fix_20261113/fixed2",
+    "code_and_config_archive": "code_and_config_office03_fixed2_explore_rep3.tar.zst",
+    "source_sha256sums_file": "SOURCE_SHA256SUMS"
+  },
+  "command": "tools/run_office.sh fixed2 office03_20261114 explore",
+  "verdict": "PASS (18.48 m travelled, normal_stops=0)",
+  "privacy_and_denylist_checked": true,
+  "files": [
+    {
+      "name": "code_and_config_office03_fixed2_explore_rep3.tar.zst",
+      "role": "sanitized_code_and_config",
+      "size_bytes": 38420,
+      "sha256": "<64-char hex sha256>"
+    },
+    {
+      "name": "rosbag_office03_fixed2_explore_rep3.tar.zst",
+      "role": "rosbag2",
+      "size_bytes": 412345678,
+      "sha256": "<64-char hex sha256>"
+    },
+    {
+      "name": "logs_office03_fixed2_explore_rep3.tar.zst",
+      "role": "logs_and_params",
+      "size_bytes": 485120,
+      "sha256": "<64-char hex sha256>"
+    }
+  ],
+  "external_links": {
+    "gdrive_path": "Capstone1_LIMO_Archive/02_GAZEBO_SIM/20261114_safety_chain_fix/office03_20261114_fixed2_explore_rep3/",
+    "gdrive_file_id": "<업로드 후 기록>",
+    "youtube_url": null,
+    "youtube_visibility": null
+  }
+}
+```
+
+---
+
+### 2.5 SHA-256 무결성 검증, 업로드 및 복구 가능성 검사 절차
+
+> **현재 도구 상태 확인 (2026-11-14)**: 현재 노트북에는 `rclone`이 설치되어 있지 않으며(`rclone: command not found`), Antigravity IDE의 Google Drive 플러그인 스킬 또는 추후 `rclone` 설치를 통해 업로드할 수 있습니다. (이번 단계에서는 업로드를 수행하지 않음)
+
+1. **패키징 전 Denylist/Allowlist 검사 및 로컬 SHA-256 생성**:
+   - `tar -tf <archive>.tar.zst` 목록에 Denylist 패턴(`*.token`, `*.env`, `kit.env`, `auth.json`, `real_connection.json`, `*.db`, `*.sqlite*`, 학교 제출 문서)이 **0건**인지 먼저 확인합니다.
+   - `code_and_config_<run_id>.tar.zst` 내부 텍스트에 토큰·비밀번호·사설 IP가 포함되지 않았는지 패턴 검사를 수행한 뒤 `sha256sum <아카이브 파일> > SHA256SUMS`를 생성합니다.
+2. **업로드 후 복구 가능성 검사 (Round-trip Restore Check)**:
+   - 업로드만 하고 로컬 원본을 지우는 것을 금지합니다.
+   - 반드시 임시 경로(`/tmp/restore_verify_<run_id>`)로 Drive에서 아카이브를 다시 내려받거나 원격 해시(`rclone check` 또는 Drive `md5Checksum`/`sha256Checksum`)를 대조해 `sha256sum -c SHA256SUMS`가 `OK`인지 확인합니다.
+   - `rosbag2` 아카이브는 압축 해제 후 `ros2 bag info <bag_dir>`가 정상 파싱되는지 확인한 뒤에만 "백업 완료(Verified Backup)"로 표시합니다.
+3. **로컬 원본 보존 구분 (실패 실행 포함)**:
+   - **로컬 영구 보존**: 모든 성공·실패 실행의 `manifest.json`, `result.json`, `events.jsonl`, `summary.json`, 지도(`*.pgm`, `*.yaml`), 검열된 설정 스냅샷, 그리고 **실차 실험 원본 `rosbag2`**.
+   - **Drive 백업 검증 후 로컬 분리/정리 가능 후보**: 수 GB에 달하는 반복 Gazebo 시뮬레이션 `rosbag2`(예: `safety_chain_fix_20261113/runs/office01~03` 6.3 GB 중 중간 반복 실행분). 단, 이 경우에도 요약 지표(`result.json`)는 로컬에 남기며 사용자의 **명시적 삭제 승인** 전에는 절대 삭제하지 않습니다.
+
+---
+
+### 2.6 영상 개인정보 보호 및 YouTube 공개 등급 정책
+
+[docs/PUBLICATION_POLICY.md](docs/PUBLICATION_POLICY.md)를 영상 자료에도 동일하게 적용합니다.
+
+1. **업로드 전 필수 개인정보·보안 점검 체크리스트**:
+   - **실차 촬영 영상**: 실험실/복도에 있는 **사람의 얼굴**, 화이트보드/모니터에 적힌 **이름·학번·전화번호·이메일·비밀번호**, 개인 노트북 바탕화면/알림창이 노출되지 않았는지 전 프레임 확인 (노출 시 블러 처리 또는 해당 구간 크롭).
+   - **화면 녹화(RViz / Dashboard / 터미널)**: 터미널 프롬프트나 브라우저 주소창·로그에 **Tailscale 사설 IP(`100.x.y.z`), 공인 IP, SSH 호스트명, Bearer 토큰, 학생 학번**이 노출되지 않았는지 확인.
+   - **학교 제출 자료**: 학기 보고서, 계획서, 성적/기여도 평가표가 포함된 발표 영상은 외부 공개 금지.
+2. **YouTube 공개 등급 구분**:
+   - **전체 공개 (Public)**: 개인정보·IP·학번이 전혀 없는 순수 Gazebo/RViz 시뮬레이션 주행 영상 또는 블러 처리가 완료되고 팀/사용자 승인을 거친 최종 대표 시연 영상.
+   - **일부 공개 (Unlisted, 기본 권장)**: GitHub `README.md`나 `VALIDATION.md`, 기술 보고서에서 링크로 연결해 심사자·팀원이 볼 수 있도록 하는 실험 증빙 영상.
+   - **비공개 (Private) 또는 Google Drive 전용**: 디버깅용 실패 재현 영상, 편집 전 실차 원본 영상, 내부 화면이 포함된 테스트 녹화본.
+
+---
+
+### 2.7 `VALIDATION.md`에서 실험 결과와 영상·rosbag을 연결하는 표준 표 형식
+
+새로운 실험을 마치고 영상이나 `rosbag2`를 백업한 경우, 아래 표에 행을 추가해 코드·보고서·대용량 자료를 1:1로 연결합니다. (실패/기준선 실행도 삭제하지 않고 함께 기록합니다.)
+
+| `run_id` | 날짜 | 환경 | 소스 커밋 / 변형 경로 | 로컬 요약·보고서 | `rosbag2` 아카이브 (`SHA-256` 앞 12자리) | Google Drive 경로 | YouTube 시연 링크 (등급) |
+|---|---|---|---|---|---|---|---|
+| `run03_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/baseline` | 로컬 `experiments/safety_chain_fix_20261113/docs/RESULTS_harness_baseline-run03_fixed-run04.md` (PASS 15 / FAIL 12) | 로컬 보존 (`runs/run03_20261114/`) | 업로드 예정 (`03_SYNTHETIC_BENCHMARKS/...`) | 해당 없음 |
+| `run04_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/fixed` | 로컬 `experiments/safety_chain_fix_20261113/docs/RESULTS_harness_baseline-run03_fixed-run04.md` (PASS 28 / FAIL 0) | 로컬 보존 (`runs/run04_20261114/`) | 업로드 예정 (`03_SYNTHETIC_BENCHMARKS/...`) | 해당 없음 |
+| `run05_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/fixed2` | 로컬 `runs/run05_fixed2.console.log` (PASS 28 / FAIL 0) | 로컬 보존 (`runs/run05_20261114/`) | 업로드 예정 (`03_SYNTHETIC_BENCHMARKS/...`) | 해당 없음 |
+| `office03_20261114` | 2026-11-14 | Gazebo (Office) | `c804241` + `safety_chain_fix_20261113/fixed2` | 로컬 `experiments/safety_chain_fix_20261113/docs/MEMORY_POLICY_V2.md` (`explore_rep2/3` 성공 및 `explore_rep1`/`low_box_rep1` 실패 포함) | 로컬 보존 (`runs/office03_20261114/`, 4.0 GB) | 업로드 예정 (`02_GAZEBO_SIM/...`) | 미녹화 (헤드리스) |
+| `run_010` | 2026-11-13 | **실차 (LIMO)** | `real_auto_mapping_ready_20261113` | 로컬 `experiments/real_limo_field_20261113/FIELD_RESULTS_20261113.md` | 온보드/로컬 보존 (`map_001`, `map_002`) | 업로드 예정 (`01_REAL_ROBOT/...`) | 미등록 |
+| `final4` | 2026-11-13 | Gazebo + YOLO | `419e798` + 로컬 `Capstone1_limo_integrated_sim` | 로컬 `<WORKSPACE_PARENT>/Capstone1_limo_integrated_sim/fleet_control/integrated_sim/RESULTS.md` (12/13 PASS) | `$HOME/.local/share/robot-sim-projects/limo_integrated_sim/runs/` | 업로드 예정 (`02_GAZEBO_SIM/...`) | 미등록 |

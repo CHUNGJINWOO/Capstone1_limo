@@ -452,3 +452,20 @@ When a change may affect multiple subsystems, inspect the dependencies first and
 ## 17. Privacy and Publication
 
 Follow [the repository publication policy](docs/PUBLICATION_POLICY.md) before staging or publishing files. School reports, team plans, slide decks and their drafting/review records stay local, including final submissions. Preserve technical and simulation investigation records without publishing student IDs, private contact details, per-person evaluations or credentials. Review document metadata and commit author/committer emails as well as file contents. Use a verified GitHub noreply email where author privacy is required. Never push local history backups or merge retired history after an authorized privacy reset.
+
+---
+
+## 18. Multi-Agent Coordination and Common Context Documents
+
+1. **Entry Point and Selective Reading**:
+   - Start at [START_HERE.md](START_HERE.md) and selectively read only the common context documents relevant to your current task (do not read all common documents unconditionally on every task).
+   - Section 3 above reflects the initial `src/limo_ros2` layout; when your task involves locating ROS 2 packages (`capstone_ws/src/`), `fleet_control/`, or experimental bundles, check [CODE_INDEX.md](CODE_INDEX.md).
+2. **Worktree and Folder Creation Rules**:
+   - Do not create new git worktrees or new top-level experiment/runtime directories without explicit user approval.
+   - When a new worktree or experiment folder is approved, register its purpose, branch, and owner agent in [WORKTREES.md](WORKTREES.md) and [CODE_INDEX.md](CODE_INDEX.md) (keeping machine-specific paths confined to `WORKTREES.md` per Section 15).
+3. **Protection of Other Agents' Work and Experiment Records**:
+   - Do not modify, stash, reset, clean, or remove uncommitted or untracked changes in worktrees owned by other agents.
+   - Never overwrite or delete existing experiment records (`experiments/*/runs/`, `results/`, `rosbag2` archives, `result.json`, `events.jsonl`), including failed or partial runs. Always use a new `run_id` directory for new test runs.
+4. **Targeted Context Updates**:
+   - Upon completing a task, update only the common documents affected by your changes ([CURRENT_STATUS.md](CURRENT_STATUS.md), [CODE_INDEX.md](CODE_INDEX.md), [WORKTREES.md](WORKTREES.md), [VALIDATION.md](VALIDATION.md), [HANDOFF.md](HANDOFF.md), and [DECISIONS.md](DECISIONS.md) only when the user approves a finalized design decision), maintaining the verification distinctions required by Sections 5.2 and 14.
+   - If a shared document has conflicting concurrent edits or lacks write permission, provide a minimal diff patch in your report rather than overwriting it.
