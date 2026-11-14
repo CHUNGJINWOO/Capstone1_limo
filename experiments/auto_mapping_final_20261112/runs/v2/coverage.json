@@ -1,0 +1,89 @@
+{
+ "definition": [
+  "Coverage definition (same as analyze_map_quality.py): interior = inner faces of the 4 outer walls of lounge_evaluation_world.sdf",
+  "(x in [-5.9, 5.9], y in [-4.4, 4.4] = 103.84 m2); 'known' = SLAM cell that is free (<25) or occupied (>=65); coverage = known interior area / interior area.",
+  "Furniture is not subtracted, so cells under furniture count as unexplored."
+ ],
+ "interior_area_m2": 103.84,
+ "known_in_interior_m2": 96.34,
+ "free_in_interior_m2": 93.43,
+ "occupied_in_interior_m2": 2.91,
+ "coverage_fraction": 0.928,
+ "known_total_m2": 103.7,
+ "alignment_refinement": {
+  "delta_theta_deg": -6.88,
+  "dx_m": -0.059,
+  "dy_m": -0.039,
+  "outer_wall_residual_with_start_pose_alignment": {
+   "mean_abs_m": 0.218,
+   "p95_abs_m": 0.427,
+   "n": 735
+  },
+  "outer_wall_residual_after_wall_fit_alignment": {
+   "mean_abs_m": 0.078,
+   "p95_abs_m": 0.18,
+   "n": 972
+  }
+ },
+ "coverage_fraction_with_wall_fit_alignment": 0.98,
+ "unexplored_interior_regions_ge_0.3m2": [
+  {
+   "area_m2": 0.47,
+   "x_range": [
+    -5.84,
+    -2.54
+   ],
+   "y_range": [
+    -1.7,
+    -1.51
+   ]
+  },
+  {
+   "area_m2": 0.39,
+   "x_range": [
+    1.44,
+    5.89
+   ],
+   "y_range": [
+    -4.4,
+    -4.23
+   ]
+  }
+ ],
+ "path_length_m_from_gt_timeseries": 20.33,
+ "monitor_gt_path_m": 17.83,
+ "stop_reason": "exploration_stopped",
+ "sim_s": 298.0,
+ "wall_s": 330.9,
+ "saved_map_file": {
+  "size": [
+   178,
+   238
+  ],
+  "known_cells": 41479,
+  "monitor_final_map_known_cells": 41479
+ },
+ "wall_coverage_from_map_quality": [
+  [
+   "north (y=4.4)",
+   0.458
+  ],
+  [
+   "south (y=-4.4)",
+   0.432
+  ],
+  [
+   "west (x=-5.9)",
+   0.545
+  ],
+  [
+   "east (x=5.9)",
+   0.568
+  ],
+  [
+   "glass wall (y=-1.5)",
+   0.5
+  ]
+ ],
+ "ground_truth_path_length_m_gazebo": 17.88
+}

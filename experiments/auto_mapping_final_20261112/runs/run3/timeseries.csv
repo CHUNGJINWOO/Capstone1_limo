@@ -1,0 +1,5 @@
+wall_s,sim_s,rtf_5s,gate_state,known_m2,free_m2,occ_m2,gt_x,gt_y,gt_yaw_deg,gt_path_m,slam_err_xy_m,slam_err_yaw_deg,goals_ok,goals_cancel,goals_abort,goal_active,min_scan_m,cpu_sys_pct,load1
+1.6,0.0,,NORMAL,,,,,,,0.0,,,0,0,7,1,10.0,,8.0693359375
+5.3,20.0,,FAILSAFE_SENSOR_TIMEOUT,61.75,59.84,1.92,0.165,0.589,109.0,0.014,0.0,0.0,0,0,9,1,0.406,44.3,8.46435546875
+11.3,25.0,0.849,FAILSAFE_SENSOR_TIMEOUT,61.75,59.84,1.92,0.165,0.589,109.0,0.014,0.0,-0.0,0,0,9,1,0.406,42.7,8.50732421875
+17.1,30.0,0.851,FAILSAFE_SENSOR_TIMEOUT,61.75,59.84,1.92,0.165,0.589,109.0,0.014,0.0,-0.0,0,0,9,1,0.406,42.1,9.02734375
