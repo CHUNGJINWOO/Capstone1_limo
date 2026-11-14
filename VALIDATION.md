@@ -148,20 +148,36 @@ Google Drive에 업로드하는 모든 `<run_id>/` 폴더와 로컬 실험 폴�
 
 ---
 
-### 2.5 SHA-256 무결성 검증, 업로드 및 복구 가능성 검사 절차
+### 2.5 위험 기반 백업·암호화·무결성 검증 및 복구 정책 (SSOT)
 
-> **현재 도구 상태 확인 (2026-11-14)**: 현재 노트북에는 `rclone`이 설치되어 있지 않으며(`rclone: command not found`), Antigravity IDE의 Google Drive 플러그인 스킬 또는 추후 `rclone` 설치를 통해 업로드할 수 있습니다. (이번 단계에서는 업로드를 수행하지 않음)
+민감정보(로컬 절대경로·`/rosout` 등)가 포함될 수 있는 원본 `rosbag2`와 바이트 단위 원본 코드·설정은 **원본을 변조하지 않고 GPG AES-256으로 암호화해 비공개 Google Drive에 보관(Option D)**하며, 아래 위험 기반 검증 기준을 따릅니다.
 
-1. **패키징 전 Denylist/Allowlist 검사 및 로컬 SHA-256 생성**:
-   - `tar -tf <archive>.tar.zst` 목록에 Denylist 패턴(`*.token`, `*.env`, `kit.env`, `auth.json`, `real_connection.json`, `*.db`, `*.sqlite*`, 학교 제출 문서)이 **0건**인지 먼저 확인합니다.
-   - `code_and_config_<run_id>.tar.zst` 내부 텍스트에 토큰·비밀번호·사설 IP가 포함되지 않았는지 패턴 검사를 수행한 뒤 `sha256sum <아카이브 파일> > SHA256SUMS`를 생성합니다.
-2. **업로드 후 복구 가능성 검사 (Round-trip Restore Check)**:
-   - 업로드만 하고 로컬 원본을 지우는 것을 금지합니다.
-   - 반드시 임시 경로(`/tmp/restore_verify_<run_id>`)로 Drive에서 아카이브를 다시 내려받거나 원격 해시(`rclone check` 또는 Drive `md5Checksum`/`sha256Checksum`)를 대조해 `sha256sum -c SHA256SUMS`가 `OK`인지 확인합니다.
-   - `rosbag2` 아카이브는 압축 해제 후 `ros2 bag info <bag_dir>`가 정상 파싱되는지 확인한 뒤에만 "백업 완료(Verified Backup)"로 표시합니다.
-3. **로컬 원본 보존 구분 (실패 실행 포함)**:
-   - **로컬 영구 보존**: 모든 성공·실패 실행의 `manifest.json`, `result.json`, `events.jsonl`, `summary.json`, 지도(`*.pgm`, `*.yaml`), 검열된 설정 스냅샷, 그리고 **실차 실험 원본 `rosbag2`**.
-   - **Drive 백업 검증 후 로컬 분리/정리 가능 후보**: 수 GB에 달하는 반복 Gazebo 시뮬레이션 `rosbag2`(예: `safety_chain_fix_20261113/runs/office01~03` 6.3 GB 중 중간 반복 실행분). 단, 이 경우에도 요약 지표(`result.json`)는 로컬에 남기며 사용자의 **명시적 삭제 승인** 전에는 절대 삭제하지 않습니다.
+1. **필수 검증 (모든 중요 백업 공통)**:
+   1. **원본·아카이브 해시 검증**: 원본 파일 및 아카이브의 `SHA-256` 생성 및 대조 (`FILE_HASH_MAPPING.tsv`, `SHA256SUMS.txt`).
+   2. **로컬 격리 복원 검증**: `/tmp` 등 격리 디렉터리에 복원(암호화 아카이브는 로컬 복호화 포함) 후 전수 파일 `SHA-256` 일치 확인.
+   3. **`rosbag2` 무결성 검증**: 복원된 모든 `.db3`의 `SQLite PRAGMA integrity_check` 및 `ros2 bag info <bag_dir>` 정상 파싱 확인.
+   4. **민감 원본 암호화**: 개인정보가 포함될 수 있는 원본 `rosbag2` 및 바이트 원본 코드·설정은 GPG AES-256 대칭 암호화(`.gpg`, 사용자 대화형 암호 입력; 명령행·로그·환경변수 저장 금지).
+   5. **비공개 Google Drive 업로드**: `Shared: false` 및 소유자 전용 권한 확인 후 검증된 파일만 업로드(평문 민감 아카이브 업로드 금지, 기존 파일 임의 덮어쓰기 금지).
+   6. **원격 다운로드 해시 검증**: 원격에서 재다운로드(또는 이에 준하는 신뢰 가능한 원격 해시 대조) 후 `sha256sum -c SHA256SUMS.txt` 및 `.gpg` 바이트 일치(`cmp -s`) 확인(실패 시 즉시 비정상 종료).
+   7. **검증 결과·한계 기록**: `manifest.json` 및 별도 검증 기록에 확인 사실과 재현성 한계(과거 실행 코드 미확보 등)를 기록.
+2. **선택적 검증 (원격 전체 복호화·복원 시험)**:
+   - 모든 백업에 대해 매번 원격 다운로드본 전체 복호화·복원 시험을 반복하지 않습니다.
+   - 동일한 검증 절차에서 대표 백업(`run03~06` 등)의 원격 복구 시험이 성공했고, 개별 백업의 `local_restore_verified`와 `remote_download_integrity_verified`가 통과했다면 전체 원격 복호화는 생략할 수 있습니다.
+   - 단, 다음 상황에서는 추가 원격 복원 시험 여부를 반드시 평가합니다:
+     - 암호화 방식 또는 복구 스크립트(`seal_*`, `verify_remote_restore_*`) 변경
+     - 기존 백업 형식·매니페스트 스키마와 비호환되는 변경
+     - 대규모 데이터 이동 또는 로컬 원본 삭제 전
+     - 중요한 장기 보관 자료의 정기 복구 점검
+3. **검증 상태 구분 (매니페스트 스키마 호환성 유지)**:
+   - `local_restore_verified` (기존 `local_decrypt_restore_verified`와 호환): 로컬 격리 복원 및 해시·SQLite·`ros2 bag info` 검증 성공
+   - `remote_download_integrity_verified`: Google Drive 업로드 후 원격 재다운로드 `SHA256SUMS.txt` 및 암호문 바이트 일치 확인
+   - `remote_full_restore_verified` (기존 `gdrive_remote_restore_verified`와 호환): 원격 다운로드본을 실제 복호화·복원해 전수 검증 완료 (`true`)
+   - `skipped_by_user`: 원격 전체 복원 시험을 사용자 판단으로 생략 (사유 병기; **생략한 검증은 절대 `true`/`PASS`로 기록 금지**)
+4. **원본 보존 및 보안 원칙**:
+   - 원본 `rosbag2`·실험 결과(`result.json`, `meta.json`)·코드·설정은 임의로 수정하지 않습니다.
+   - 검열본(`code_and_config_*.tar.zst`, `logs_*.tar.zst`)은 `private_backup`으로 취급하며 자동으로 공개 가능한 자료로 간주하지 않습니다([docs/PUBLICATION_POLICY.md](docs/PUBLICATION_POLICY.md)).
+   - 로컬 원본 삭제(수 GB 반복 Gazebo `rosbag2` 등)는 별도 사용자 명시적 승인 및 복구 위험 평가 전에는 절대 수행하지 않습니다. 실차 실험 원본 `rosbag2`와 요약 지표(`result.json` 등)는 로컬 영구 보존합니다.
+   - 과거 실행 코드 미확보(`not_found_in_searched_sources`) 등 재현성 한계는 현재 코드로 대체하지 않고 매니페스트에 유지합니다.
 
 ---
 
@@ -184,11 +200,27 @@ Google Drive에 업로드하는 모든 `<run_id>/` 폴더와 로컬 실험 폴�
 
 새로운 실험을 마치고 영상이나 `rosbag2`를 백업한 경우, 아래 표에 행을 추가해 코드·보고서·대용량 자료를 1:1로 연결합니다. (실패/기준선 실행도 삭제하지 않고 함께 기록합니다.)
 
-| `run_id` | 날짜 | 환경 | 소스 커밋 / 변형 경로 | 로컬 요약·보고서 | `rosbag2` 아카이브 (`SHA-256` 앞 12자리) | Google Drive 경로 | YouTube 시연 링크 (등급) |
+| `run_id` | 날짜 | 환경 | 소스 커밋 / 변형 경로 | 로컬 요약·보고서 | `rosbag2` 아카이브 (`SHA-256` 앞 12자리) | Google Drive 경로 (백업 상태) | YouTube 시연 링크 (등급) |
 |---|---|---|---|---|---|---|---|
-| `run03_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/baseline` | 로컬 `experiments/safety_chain_fix_20261113/docs/RESULTS_harness_baseline-run03_fixed-run04.md` (PASS 15 / FAIL 12) | 로컬 보존 (`runs/run03_20261114/`) | 업로드 예정 (`03_SYNTHETIC_BENCHMARKS/...`) | 해당 없음 |
-| `run04_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/fixed` | 로컬 `experiments/safety_chain_fix_20261113/docs/RESULTS_harness_baseline-run03_fixed-run04.md` (PASS 28 / FAIL 0) | 로컬 보존 (`runs/run04_20261114/`) | 업로드 예정 (`03_SYNTHETIC_BENCHMARKS/...`) | 해당 없음 |
-| `run05_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/fixed2` | 로컬 `runs/run05_fixed2.console.log` (PASS 28 / FAIL 0) | 로컬 보존 (`runs/run05_20261114/`) | 업로드 예정 (`03_SYNTHETIC_BENCHMARKS/...`) | 해당 없음 |
-| `office03_20261114` | 2026-11-14 | Gazebo (Office) | `c804241` + `safety_chain_fix_20261113/fixed2` | 로컬 `experiments/safety_chain_fix_20261113/docs/MEMORY_POLICY_V2.md` (`explore_rep2/3` 성공 및 `explore_rep1`/`low_box_rep1` 실패 포함) | 로컬 보존 (`runs/office03_20261114/`, 4.0 GB) | 업로드 예정 (`02_GAZEBO_SIM/...`) | 미녹화 (헤드리스) |
+| `run03_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/baseline,fixed` | 로컬 `RESULTS_harness_baseline-run03_fixed-run04.md` (과거 중간 소스 2건 미확보) | 암호화봉인 `9752c5ba625f` | `03_SYNTHETIC_BENCHMARKS/20261114_safety_chain_fix/run03_20261114/` (**원격 복구 검증 완료**) | 해당 없음 |
+| `run04_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/fixed` | 로컬 `RESULTS_harness_baseline-run03_fixed-run04.md` (과거 중간 소스 1건 미확보) | 암호화봉인 `925af08fb0d9` | `03_SYNTHETIC_BENCHMARKS/20261114_safety_chain_fix/run04_20261114/` (**원격 복구 검증 완료**) | 해당 없음 |
+| `run05_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/fixed2` | 로컬 `runs/run05_fixed2.console.log` (과거 중간 소스 1건 미확보) | 암호화봉인 `3e7b025c628b` | `03_SYNTHETIC_BENCHMARKS/20261114_safety_chain_fix/run05_20261114/` (**원격 복구 검증 완료**) | 해당 없음 |
+| `run06_policy_20261114` | 2026-11-14 | 합성 하네스 | `c804241` + `safety_chain_fix_20261113/fixed2` | 로컬 `runs/run06_policy_20261114/` | 암호화봉인 `c3da47794fea` | `03_SYNTHETIC_BENCHMARKS/20261114_safety_chain_fix/run06_policy_20261114/` (**원격 복구 검증 완료**) | 해당 없음 |
+| `office04_20261115` | 2026-11-14 | Gazebo (Office) | `c804241` + `office_fixed,office_fixed2` | 로컬 25회 실행 (과거 `run_office2.py` 5회 미확보) | 암호화봉인 `6841d19843c9` | `02_GAZEBO_OFFICE_BENCHMARKS/20261114_safety_chain_fix/office04_20261115/` (**원격 해시 검증 완료 / 원격 복호화 `skipped_by_user`**) | 미녹화 (헤드리스) |
+| `office03_20261114` | 2026-11-14 | Gazebo (Office) | `c804241` + `safety_chain_fix_20261113` (실행 당시 코드 해시 연결 기록 미확보) | 로컬 12회 실행 (`MEMORY_POLICY_V2.md`, 원본 113개, 로컬 복원 225/225, SQLite·`ros2 bag info` 12/12) | 암호화봉인 `96e415ee6f79` | `02_GAZEBO_OFFICE_BENCHMARKS/20261114_safety_chain_fix/office03_20261114/` (**8개 업로드·원격 해시 7/7 완료 / 원격 복호화 `skipped_by_user` / `remote_backup_integrity_verified`**) | 미녹화 (헤드리스) |
 | `run_010` | 2026-11-13 | **실차 (LIMO)** | `real_auto_mapping_ready_20261113` | 로컬 `experiments/real_limo_field_20261113/FIELD_RESULTS_20261113.md` | 온보드/로컬 보존 (`map_001`, `map_002`) | 업로드 예정 (`01_REAL_ROBOT/...`) | 미등록 |
-| `final4` | 2026-11-13 | Gazebo + YOLO | `419e798` + 로컬 `Capstone1_limo_integrated_sim` | 로컬 `<WORKSPACE_PARENT>/Capstone1_limo_integrated_sim/fleet_control/integrated_sim/RESULTS.md` (12/13 PASS) | `$HOME/.local/share/robot-sim-projects/limo_integrated_sim/runs/` | 업로드 예정 (`02_GAZEBO_SIM/...`) | 미등록 |
+| `final4` | 2026-11-13 | Gazebo + YOLO | `419e798` + 로컬 `Capstone1_limo_integrated_sim` | `fleet_control/integrated_sim/RESULTS.md` (`29818e8` / `ed53d81` / PR #9 `b350efa`, 12/13 PASS; 풀스택 재실행 미검증) | `$HOME/.local/share/robot-sim-projects/limo_integrated_sim/runs/` | 업로드 예정 (`02_GAZEBO_SIM/...`) | 미등록 |
+
+---
+
+## 4. PR #9 · PR #10 병합 기준 검증 및 미검증 구분 (`origin/main` `a8132c7`)
+
+| 구분 | 대상 | 결과 | 실행 환경 / 한계 |
+|---|---|---|---|
+| **PASS** | `fleet_control/tests/run_checks.py` | **46/46 PASS** | PR #9(`dab07d1`) `git archive` 격리 + 호스트 ROS 2 Humble mock Nav2 |
+| **PASS** | `fleet_control` 단위·JS 시험 | `test_ownership` 37/37, `test_recovery` 14/14, `test_dedupe` 14/14, `test_agent_recovery` 2/2, `test_sim_motor_policy` 12/12, `test_auth_reload` 2/2, `test_cancel_results` 14/14, `test_runner_policy` 33/33, `test_visualization` 31/31, JS 3종 PASS | `git archive` 격리 검증 (`test_cancel_results`는 호스트 `rclpy`) |
+| **PASS** | `run_recorder.py` 경로 정책 (PR #10) | 합성 시험 **16/16 PASS** | `f63688e` 격리 검증 (신규 clone `local_data/` 미존재, `--dry-run`, 저장소 밖 fallback 포함) |
+| **이전 기준선** | `run_gazebo_checks.py` | 이전 **69/69 PASS** | PR #9 격리 검증에서는 Ignition Gazebo / `$HOME/rmf_isolated` 미비로 미재실행 |
+| **부분 검증** | `run_rmf_checks.py` | **47/51** | §7 타이밍 레이스 기존 한계, PR #9 격리 검증 미재실행 |
+| **미검증** | `dashboard_lab/tests/test_lab.py` | **미검증** | `aiohttp` 의존성 부재 |
+| **미검증** | `integrated_sim` 풀스택, GPU Video AI 실환경, LIMO 실차 안전·주행 전체, 실제 `rosbag2` 기록 | **미검증** | 실환경/실차 감독 시험 및 별도 GPU 런타임 필요 |
