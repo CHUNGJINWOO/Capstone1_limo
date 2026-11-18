@@ -39,6 +39,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
+find_package(action_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(map_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
@@ -46,6 +47,7 @@ find_package(nav2_costmap_2d REQUIRED)
 find_package(explore_lite_msgs REQUIRED)
 
 set(DEPENDENCIES
+  action_msgs
   rclcpp
   std_msgs
   sensor_msgs

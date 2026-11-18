@@ -15,6 +15,7 @@ class Harness:
     _on_goal_response=RosRobot._on_goal_response
     _set_mission=RosRobot._set_mission
     _do_nav=RosRobot._do_nav
+    def _nav2_goals(self): return dict(publishers=1, active_count=0)
     _on_fb=RosRobot._on_fb
     def __init__(self):self.active=None;self.last_mission={};self.lock=threading.RLock()
 class Handle:
@@ -70,6 +71,24 @@ class Tests(unittest.TestCase):
     def test_unknown_terminal_result_stays_uncertain(self):
         r,h,rec,nav,c=self.setup_goal();f=Future();f.set_result(NS(status=GoalStatus.STATUS_UNKNOWN));r._on_result(rec,f)
         self.assertEqual(nav,['RECONCILIATION_REQUIRED']);self.assertIsNone(rec['handle']);self.assertIs(r.active,rec)
+    def test_live_or_ambiguous_foreign_goals_prevent_submission(self):
+        for observed in ({'publishers': 1, 'active_count': 1},
+                         {'publishers': 2, 'active_count': 0},
+                         {'publishers': 0, 'active_count': None}):
+            with self.subTest(observed=observed):
+                robot = Harness()
+                robot.allow_missions = True
+                robot.execution_allowed = lambda: True
+                robot.get_publishers_info_by_topic = lambda _: []
+                robot.nav = NS(wait_for_server=lambda **kwargs: True)
+                robot._nav2_goals = lambda: observed
+                responses = []
+                command = {'mission_id': 'm', 'command_id': 'c', 'expires_at': time.time()+60,
+                           'payload': {'goal': {'frame_id': 'map', 'x': 1, 'y': 2}}}
+                robot._do_nav(command, lambda status, detail: responses.append((status, detail)))
+                self.assertEqual(responses[0][0], 'REJECTED')
+                self.assertIn('NAV_GOAL_OWNERSHIP_UNAVAILABLE', responses[0][1])
+                self.assertIsNone(robot.active)
     def test_submission_exception_does_not_free_robot_for_next_goal(self):
         r=Harness();out=[];r.allow_missions=True;r.execution_allowed=lambda:True;r.get_publishers_info_by_topic=lambda _:[]
         r.get_clock=lambda:NS(now=lambda:NS(to_msg=lambda:Time()))

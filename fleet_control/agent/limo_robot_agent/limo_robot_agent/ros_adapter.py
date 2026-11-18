@@ -63,7 +63,7 @@ class RosRobot(Node):
         self._stamp('scan'); self.scan_times.append(time.monotonic()); self.scan_beams.append(len(m.ranges)); self.scan_frame = m.header.frame_id
 
     def _on_nav_status(self, m):
-        self.nav_status = {'t': time.monotonic(), 'active': sum(1 for g in m.status_list if g.status in (GoalStatus.STATUS_ACCEPTED, GoalStatus.STATUS_EXECUTING, GoalStatus.STATUS_CANCELING)), 'total': len(m.status_list)}
+        self.nav_status = {'t': time.monotonic(), 'active': sum(1 for g in m.status_list if g.status not in (GoalStatus.STATUS_SUCCEEDED, GoalStatus.STATUS_CANCELED, GoalStatus.STATUS_ABORTED)), 'total': len(m.status_list)}
 
     def _nav2_goals(self):
         pubs = self.count_publishers('navigate_to_pose/_action/status')
@@ -195,6 +195,9 @@ class RosRobot(Node):
         if not self.nav.wait_for_server(timeout_sec=2.0): return rej('NAV2_UNAVAILABLE', 'navigate_to_pose action server not available')
         if not self.execution_allowed() or time.time() > cmd.get('expires_at', 0):
             ack('RECONCILIATION_REQUIRED', 'connection/deadline changed before Nav2 submission; no goal sent'); return
+        observed = self._nav2_goals()
+        if observed['publishers'] != 1 or observed['active_count'] != 0:
+            return rej('NAV_GOAL_OWNERSHIP_UNAVAILABLE', 'another or indeterminate NavigateToPose goal is present')
         goal = NavigateToPose.Goal(); goal.pose.header.frame_id = 'map'; goal.pose.header.stamp = self.get_clock().now().to_msg()
         goal.pose.pose.position.x, goal.pose.pose.position.y = x, y; goal.pose.pose.orientation.z, goal.pose.pose.orientation.w = math.sin(yaw / 2), math.cos(yaw / 2)
         rec = {'mission_id': mid, 'command_id': cmd['command_id'], 'handle': None, 'ack': ack, 'last_fb': 0.0, 'cancel_requested': False, 'cancel_acks': [], 'cancel_sent': False}

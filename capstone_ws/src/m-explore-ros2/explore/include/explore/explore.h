@@ -43,6 +43,7 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <tf2_ros/transform_listener.hpp>
 
+#include <action_msgs/msg/goal_status_array.hpp>
 #include <chrono>
 #include <cmath>
 #include <explore_lite_msgs/msg/explore_status.hpp>
@@ -75,7 +76,6 @@ class Explore : public rclcpp::Node
 {
 public:
   Explore();
-  ~Explore();
 
   void start();
   void stop(bool finished_exploring = false);
@@ -99,9 +99,16 @@ private:
   bool goalOnBlacklist(const geometry_msgs::msg::Point& goal);
 
   NavigationGoalHandle::SharedPtr navigation_goal_handle_;
-  // void
-  // goal_response_callback(std::shared_future<NavigationGoalHandle::SharedPtr>
-  // future);
+  void cancelOwnedGoal();
+  void sendOwnedGoal(const nav2_msgs::action::NavigateToPose::Goal& goal,
+                     bool returning);
+  bool externalGoalActive() const;
+  rclcpp::Subscription<action_msgs::msg::GoalStatusArray>::SharedPtr goal_status_sub_;
+  action_msgs::msg::GoalStatusArray::ConstSharedPtr goal_status_;
+  bool paused_{false};
+  bool return_pending_{false};
+  bool cancel_requested_{false};
+  bool ownership_uncertain_{false};
   void reachedGoal(const NavigationGoalHandle::WrappedResult& result,
                    const geometry_msgs::msg::Point& frontier_goal);
 
@@ -143,9 +150,7 @@ private:
   bool visualize_;
   bool return_to_init_;
   std::string robot_base_frame_;
-  bool resuming_ = false;
   bool goal_active_{false};
-  rclcpp_action::GoalUUID active_goal_id_;
 };
 }  // namespace explore
 
