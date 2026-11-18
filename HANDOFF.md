@@ -66,3 +66,14 @@
 - **실차 구동 금지**: 사용자 현장 입회, 배터리 완충 확인, 물리적 정지 준비, 명시적 승인 없이는 `--drive` 또는 `allow_motor_drive:=true`를 절대 실행하지 마세요.
 - **통합 경로 및 실험 스크립트 보호**: `fleet_control/` 및 `experiments/office_limo_sim_20261113` 경로는 실험 스크립트(`lf_env.sh`, `lf_setup.sh`, `offline_registration_test.py`, `office_limo_*.launch.py`)가 참조하므로 임의 이동·삭제를 금지합니다.
 - **민감정보 보호**: `Capstone1_limo/fleet_control/{data,secrets}`, `$HOME/.config/limo_field_20261113/`, `$HOME/.local/share/robot-sim-projects/limo_video_ai_preverify/real_limo_kit/secrets/` 내 토큰과 `.env`, DB는 절대 Git에 커밋하거나 Google Drive에 업로드하지 마세요.
+
+## 다음 현장 개발 우선순위
+
+1. 전원·USB 및 물리 정지 수단을 확인하고, 별도 승인 후 기존 실차 Frontier 맵핑을 시험한다.
+2. 지도·posegraph·rosbag을 확보하고 재로드한다.
+3. 현장 건물·층 정보를 확인해 Map Registry에 등록한다.
+4. 저장 지도 기반 Nav2 주행을 별도 승인 후 시험한다.
+5. 웹 지도·RGB·Depth 동시 모니터링을 검증한다.
+6. 웹 AUTO와 조이스틱 캘리브레이션·버튼 설정을 개발한다.
+
+기존 실차 실행 진입점은 현장 번들의 `start_real_auto_mapping.sh`다. 실제 주행은 현장 조건 확인과 별도 승인이 필요하다.

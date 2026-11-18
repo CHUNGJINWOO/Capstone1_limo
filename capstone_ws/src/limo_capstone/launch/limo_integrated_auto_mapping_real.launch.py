@@ -27,11 +27,12 @@ import os
 #   are NOT used here (see docs/CONFIG_SIM_VS_REAL.md).
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, GroupAction, Shutdown
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, GroupAction, OpaqueFunction, Shutdown
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node, SetRemap
+from launch_ros.parameter_descriptions import ParameterValue
 from nav2_common.launch import RewrittenYaml
 
 
@@ -63,6 +64,30 @@ def generate_launch_description():
     sensor_timeout_sec = LaunchConfiguration('sensor_timeout_sec', default='0.38')
     allow_motor_drive = LaunchConfiguration('allow_motor_drive', default='false')
     drive_mode = LaunchConfiguration('drive_mode', default='diff')
+    manual_probe = LaunchConfiguration('manual_mapping_probe')
+    manual_input = LaunchConfiguration('manual_mapping_input')
+    joy_device = LaunchConfiguration('manual_joy_device')
+    joy_linear_axis = LaunchConfiguration('manual_joy_linear_axis')
+    joy_turn_axis = LaunchConfiguration('manual_joy_turn_axis')
+    joy_deadman = LaunchConfiguration('manual_joy_deadman')
+
+    def validate_manual_probe(context):
+        if manual_probe.perform(context) == 'false':
+            return
+        if (allow_motor_drive.perform(context) != 'false'
+                or start_explore.perform(context) != 'false'
+                or drive_mode.perform(context) != 'diff'):
+            raise RuntimeError('manual_mapping_probe requires a locked base, Frontier off and diff drive')
+        if manual_input.perform(context) == 'web':
+            return
+        if not joy_device.perform(context).strip():
+            raise RuntimeError('Specify the enumerated manual_joy_device name')
+        try:
+            axes = [int(value.perform(context)) for value in (joy_linear_axis, joy_turn_axis, joy_deadman)]
+        except ValueError as exc:
+            raise RuntimeError('Supply the two observed axes and deadman button indices') from exc
+        if min(axes) < 0 or axes[0] == axes[1]:
+            raise RuntimeError('Supply distinct nonnegative axes and a nonnegative deadman index')
 
     declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='false')
     declare_estimator_type = DeclareLaunchArgument(
@@ -386,10 +411,13 @@ def generate_launch_description():
         convert_types=True,
     )
 
+    nav2_output = PythonExpression([
+        "'/nav2_cmd_vel_quarantined' if '", manual_probe, "' == 'true' else '/cmd_vel_raw'"
+    ])
     nav2_launch = GroupAction(
         actions=[
-            SetRemap(src='cmd_vel_smoothed', dst='/cmd_vel_raw'),
-            SetRemap(src='behavior_server:cmd_vel', dst='/cmd_vel_raw'),
+            SetRemap(src='cmd_vel_smoothed', dst=nav2_output),
+            SetRemap(src='behavior_server:cmd_vel', dst=nav2_output),
             SetRemap(src='odom', dst='/odom_nav2'),
             SetRemap(src='/odom', dst='/odom_nav2'),
             IncludeLaunchDescription(
@@ -401,6 +429,24 @@ def generate_launch_description():
                 }.items()
             )
         ]
+    )
+    manual_joy = GroupAction(
+        condition=IfCondition(PythonExpression([
+            "'", manual_probe, "' == 'true' and '", manual_input, "' == 'onboard'"
+        ])),
+        actions=[
+            Node(package='joy', executable='joy_node', name='manual_mapping_joy',
+                 parameters=[{'device_name': ParameterValue(joy_device, value_type=str),
+                              'autorepeat_rate': 20.0, 'sticky_buttons': False}],
+                 remappings=[('joy', '/manual_mapping/joy')]),
+            Node(package='teleop_twist_joy', executable='teleop_node', name='manual_mapping_teleop',
+                 parameters=[{'require_enable_button': True, 'enable_turbo_button': -1,
+                              'enable_button': ParameterValue(joy_deadman, value_type=int),
+                              'axis_linear.x': ParameterValue(joy_linear_axis, value_type=int),
+                              'axis_angular.yaw': ParameterValue(joy_turn_axis, value_type=int),
+                              'scale_linear.x': 0.10, 'scale_angular.yaw': 0.30}],
+                 remappings=[('joy', '/manual_mapping/joy'), ('cmd_vel', '/cmd_vel_raw')]),
+        ],
     )
 
     # 7. explore_lite Frontier Exploration
@@ -466,6 +512,12 @@ def generate_launch_description():
         declare_depth_mode,
         declare_sensor_timeout,
         declare_allow_motor,
+        DeclareLaunchArgument('manual_mapping_probe', default_value='false', choices=['true', 'false']),
+        DeclareLaunchArgument('manual_mapping_input', default_value='onboard', choices=['onboard', 'web']),
+        DeclareLaunchArgument('manual_joy_device', default_value=''),
+        DeclareLaunchArgument('manual_joy_linear_axis', default_value='-1'),
+        DeclareLaunchArgument('manual_joy_turn_axis', default_value='-1'),
+        DeclareLaunchArgument('manual_joy_deadman', default_value='-1'),
         declare_speed_profile,
         declare_drive_mode,
         declare_enable_stall_detector,
@@ -480,6 +532,7 @@ def generate_launch_description():
         declare_camera_pitch,
         declare_camera_yaw,
         log_lock_notice,
+        OpaqueFunction(function=validate_manual_probe),
         bad_speed_profile,
         log_deprecated_stall_arg,
         limo_base_launch,
@@ -500,6 +553,7 @@ def generate_launch_description():
         relay_f5,
         slam_launch,
         nav2_launch,
+        manual_joy,
         explore_node,
         stall_gate
     ])

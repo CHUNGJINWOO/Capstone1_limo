@@ -224,3 +224,7 @@ Google Drive에 업로드하는 모든 `<run_id>/` 폴더와 로컬 실험 폴�
 | **부분 검증** | `run_rmf_checks.py` | **47/51** | §7 타이밍 레이스 기존 한계, PR #9 격리 검증 미재실행 |
 | **미검증** | `dashboard_lab/tests/test_lab.py` | **미검증** | `aiohttp` 의존성 부재 |
 | **미검증** | `integrated_sim` 풀스택, GPU Video AI 실환경, LIMO 실차 안전·주행 전체, 실제 `rosbag2` 기록 | **미검증** | 실환경/실차 감독 시험 및 별도 GPU 런타임 필요 |
+
+## 2026-11-18 Depth TF와 잠금 수동 입력
+
+실차 비주행 관측에서 촬영 시각 TF 대기 전후 오류 상태 표본은 214/270과 38/5,976이었다. 이후 wheel odometry 중단으로 Gate FAILSAFE가 발생했다. 2026-11-18 로컬 격리 시험에서 수동 잠금 프로파일은 Nav2 속도 출력 4개를 별도 토픽으로 격리했다. 실차 웹 수동 주행 및 AUTO E2E는 미검증이다.

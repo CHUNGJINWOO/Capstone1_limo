@@ -40,3 +40,7 @@
 아래 경로들은 정식 경로와 `diff -rq` 대조 결과 100% 중복이 확인된 경로이므로 절대 수정하지 마세요.
 - `Capstone1_limo/src/limo_ros2` → 로컬 정식 보관본은 `archive/legacy_agilex_src/limo_ros2`
 - 루트의 구 개발 노트 및 산출물 중복 폴더 → 정식 경로는 로컬 `docs/dev_notes/` 및 [docs/deliverables](docs/deliverables) (비공개 학교 행정 문서는 [docs/PUBLICATION_POLICY.md](docs/PUBLICATION_POLICY.md)에 따라 로컬 전용 보존 및 커밋 제외)
+
+## 2026-11-18 Depth TF와 수동 잠금 프로파일
+
+`limo_depth_obstacles/depth_obstacle_filter_node.py`는 촬영 시각의 변환을 짧게 재시도하며 상태에 대기 통계를 포함한다. `limo_integrated_auto_mapping_real.launch.py`의 `manual_mapping_probe`는 기본 비활성이고, 활성 시 모터 잠금과 Frontier 비활성을 요구한다. 이 경로는 비주행 진단용이다.

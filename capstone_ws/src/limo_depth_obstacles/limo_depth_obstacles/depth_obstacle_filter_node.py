@@ -20,9 +20,11 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import PointCloud2
 from sensor_msgs_py import point_cloud2
 from std_msgs.msg import String
-from tf2_ros import Buffer, TransformListener
+from tf2_ros import Buffer, ExtrapolationException, TransformListener
 
 from limo_depth_obstacles.filtering import filter_points, stamp_age
+
+TF_WAIT_SEC = 0.15
 
 
 class DepthObstacleFilterNode(Node):
@@ -64,9 +66,13 @@ class DepthObstacleFilterNode(Node):
         self.last_processed = float('-inf')
         self.last_valid = float('-inf')
         self.last_stamp = None
+        self.pending_cloud = None
+        self.tf_samples = dict(received=0, attempted=0, future=0, expired=0, resolved=0)
+        self.tf_wait_ms_histogram = [0] * 16
         self.state = {'state': 'error', 'code': 'DEPTH_MISSING', 'message': 'No validated cloud yet'}
         self.previous_code = None
         self.create_timer(0.05, self.publish_status)
+        self.create_timer(0.01, self.retry_pending_cloud)
 
         self.get_logger().info("DepthObstacleFilterNode initialized with RELIABLE publisher for Nav2 costmaps.")
 
@@ -77,11 +83,21 @@ class DepthObstacleFilterNode(Node):
         self.state = {'state': 'error', 'code': code, 'message': message}
 
     def on_cloud(self, message):
+        self.tf_samples['received'] += 1
         now_mono = time.monotonic()
-        if now_mono - self.last_processed < 1.0 / self.p('processing_hz'):
+        if self.pending_cloud is not None or now_mono - self.last_processed < 1.0 / self.p('processing_hz'):
             return
         self.last_processed = now_mono
+        self.tf_samples['attempted'] += 1
+        self.process_cloud(message, now_mono + TF_WAIT_SEC)
 
+    def retry_pending_cloud(self):
+        if self.pending_cloud is not None:
+            self.process_cloud(*self.pending_cloud)
+
+    def process_cloud(self, message, deadline):
+        retrying = self.pending_cloud is not None
+        self.pending_cloud = None
         try:
             stamp = message.header.stamp.sec + message.header.stamp.nanosec / 1e9
             age = stamp_age(self.get_clock().now().nanoseconds / 1e9, stamp)
@@ -92,10 +108,30 @@ class DepthObstacleFilterNode(Node):
                 self.set_error('DEPTH_REPEATED_STAMP', 'Camera stamp is not advancing')
                 return
 
-            transform = self.tf.lookup_transform(
-                self.p('height_frame'), message.header.frame_id,
-                rclpy.time.Time.from_msg(message.header.stamp)
-            )
+            target, source = self.p('height_frame'), message.header.frame_id
+            try:
+                transform = self.tf.lookup_transform(
+                    target, source, rclpy.time.Time.from_msg(message.header.stamp)
+                )
+            except ExtrapolationException:
+                # A newer camera TF can arrive after this cloud. Wait without
+                # blocking the listener or changing the observation timestamp.
+                latest = self.tf.lookup_transform(target, source, rclpy.time.Time())
+                latest_stamp = latest.header.stamp.sec + latest.header.stamp.nanosec / 1e9
+                if latest_stamp != 0 and latest_stamp < stamp:
+                    if not retrying:
+                        self.tf_samples['future'] += 1
+                    if time.monotonic() < deadline:
+                        self.pending_cloud = (message, deadline)
+                        return
+                    self.tf_samples['expired'] += 1
+                raise
+
+            if retrying:
+                self.tf_samples['resolved'] += 1
+                wait_sec = time.monotonic() - (deadline - TF_WAIT_SEC)
+                bucket = max(0, min(15, int(wait_sec * 100)))
+                self.tf_wait_ms_histogram[bucket] += 1
 
             raw = point_cloud2.read_points(message, field_names=('x', 'y', 'z'), skip_nans=False)
             points = np.column_stack([raw[name].ravel() for name in ('x', 'y', 'z')])
@@ -135,6 +171,7 @@ class DepthObstacleFilterNode(Node):
 
     def publish_status(self):
         payload = dict(self.state)
+        payload['tf_timing'] = dict(self.tf_samples, resolved_wait_10ms_bins=self.tf_wait_ms_histogram)
         now_sec = self.get_clock().now().nanoseconds * 1e-9
         if payload['state'] == 'ready':
             if self.last_stamp is not None:
