@@ -93,6 +93,10 @@ def make_handler(fleet, auth, video_origins=()):
                 b = self._body(limit); rid = b.get('robot_id')
                 if not isinstance(rid, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,64}', rid): raise ApiError(400, 'bad_robot_id', 'robot_id must match [A-Za-z0-9_.-]{1,64}')
                 if not p.can_act_as_agent(rid): raise ApiError(403, 'forbidden', 'this token may not act as that robot')
+                if sub == '/agent/operation':
+                    return self._send(200, fleet.worker_operation(rid, b.get('agent_boot_id'), b))
+                if sub == '/agent/manual-bench':
+                    return self._send(200, fleet.pull_manual_bench(rid, b.get('agent_boot_id')))
                 if sub == '/agent/hello': return self._send(200, fleet.hello(rid, b.get('agent') or {}))
                 if sub == '/agent/reconcile': return self._send(200, fleet.reconcile(rid, b.get('agent_boot_id'), b.get('journal', {}), b.get('execution', {}), b.get('journal_ok') is True))
                 if sub == '/agent/state': return self._send(200, fleet.ingest_state(rid, int(b.get('seq', 0)), b.get('state') or {}, b.get('agent_boot_id')))
@@ -125,6 +129,12 @@ def make_handler(fleet, auth, video_origins=()):
                 if m:
                     if m.group(1) not in fleet.robots: raise ApiError(404, 'unknown_robot', 'no such robot')
                     return self._send(200, {'lease': fleet.lease_view(m.group(1))})
+                m = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/manual-bench', sub)
+                if m:
+                    return self._send(200, fleet.manual_preview_status(m.group(1)))
+                m = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/(mapping|bag)', sub)
+                if m:
+                    return self._send(200, fleet.operation_status(*m.groups()))
                 if sub == '/missions': return self._send(200, {'missions': fleet.missions(qs.get('robot_id'), qs.get('status'), min(int(qs.get('limit', 50)), 500))})
                 m = re.fullmatch(r'/missions/(m_[a-f0-9]{12})', sub)
                 if m: return self._send(200, fleet.mission(m.group(1)))
@@ -133,6 +143,12 @@ def make_handler(fleet, auth, video_origins=()):
             # ---------------- control endpoints
             if method == 'POST':
                 if not p.can_control(): raise ApiError(403, 'forbidden', 'role may not create or cancel missions')
+                m = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/manual-bench', sub)
+                if m:
+                    return self._send(200, fleet.manual_bench(m.group(1), p.name, self._body()))
+                operation = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/(mapping|bag)', sub)
+                if operation:
+                    return self._send(202, fleet.request_operation(*operation.groups(), p.name, self._body()))
                 if sub == '/missions':
                     b = self._body(); view, created = fleet.create_mission(str(b.get('robot_id', '')), str(b.get('type', 'navigate_to_pose')), b.get('goal'), b.get('idempotency_key'), str(b.get('note', ''))[:200], p.name)
                     return self._send(201 if created else 200, dict(view, created=created))

@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS commands(command_id TEXT PRIMARY KEY, robot_id TEXT N
   status TEXT NOT NULL, detail TEXT, seq INTEGER, attempts INTEGER DEFAULT 0, created_at REAL, sent_at REAL, acked_at REAL, expires_at REAL);
 CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL, robot_id TEXT, mission_id TEXT, level TEXT, kind TEXT, message TEXT, data_json TEXT);
 CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS operation_sessions(robot_id TEXT, kind TEXT, body TEXT NOT NULL, PRIMARY KEY(robot_id,kind));
+CREATE TABLE IF NOT EXISTS operation_requests(robot_id TEXT, kind TEXT, actor TEXT, idem TEXT, body TEXT NOT NULL,
+  PRIMARY KEY(robot_id,kind,actor,idem));
 CREATE TABLE IF NOT EXISTS locks(robot_id TEXT PRIMARY KEY, owner TEXT NOT NULL, epoch INTEGER NOT NULL, acquired_at REAL, expires_at REAL, ttl_s REAL, note TEXT);
 """
 

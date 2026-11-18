@@ -17,6 +17,56 @@
     <button id="mcreate" type="submit">임무 생성 (NavigateToPose)</button></form><div id="merr" class="bad"></div>
    <table id="missions"><thead><tr><th>mission</th><th>robot</th><th>목표</th><th>상태</th><th>진행</th><th></th></tr></thead><tbody></tbody></table></div>
  </section>
+ <section class="card" id="gamepadPanel">
+  <h2>웹 조이스틱 · 모의 입력</h2>
+  <form id="gamepadForm" class="mform">
+   <label>로봇 <input id="gpRobot" list="gpRobots" required pattern="[A-Za-z0-9_.-]{1,64}"></label>
+   <label>장치 <select id="gpDevice" required></select></label>
+   <label>왼쪽 스틱 Y 축 <input id="gpLinear" type="number" min="0" required></label>
+   <label><input id="gpInvertLinear" type="checkbox">전진 축 반전</label>
+   <label>오른쪽 스틱 X 축 <input id="gpTurn" type="number" min="0" required></label>
+   <label><input id="gpInvertTurn" type="checkbox">회전 축 반전</label>
+   <label>Deadman 버튼 <input id="gpDeadman" type="number" min="0" required></label>
+   <label>Deadzone <input id="gpDeadzone" type="number" min="0" max=".9" step=".01" value=".12" required></label>
+   <label>선속도 상한 (m/s) <input id="gpMaxLinear" type="number" min="0" max=".10" step=".01" value=".10" required></label>
+   <label>각속도 상한 (rad/s) <input id="gpMaxTurn" type="number" min="0" max=".30" step=".01" value=".30" required></label>
+   <button id="gpLease" type="button">제어권 획득·갱신</button><button id="gpScan" type="button">장치 확인</button><button type="submit">모의 입력 시작</button>
+   <button id="gpStop" type="button">중지</button>
+  </form>
+  <datalist id="gpRobots"></datalist>
+  <label>보정 [최소, 중심, 최대] · 전진 <input id="gpCalV" value="-1,0,1"></label>
+  <label>회전 <input id="gpCalW" value="-1,0,1"></label>
+  <button id="gpSaveProfile" type="button">장치 설정 저장</button>
+  <details><summary>버튼 매핑</summary>
+   <label>기능 <select id="gpAction">
+    <option value="mapping:START">맵핑 시작</option><option value="mapping:TOGGLE">일시 정지/재개</option>
+    <option value="mapping:SAVE">지도 저장</option><option value="mapping:STOP">맵핑 종료</option>
+    <option value="software">소프트웨어 정지 요청</option><option value="bag:TOGGLE">Bag 시작/종료</option>
+    <option value="video">영상 화면</option>
+   </select></label>
+   <label>버튼 번호 (조합은 +) <input id="gpChord" placeholder="5+6"></label>
+   <label>동작 <select id="gpGesture"><option value="short">짧게</option><option value="long">길게</option></select></label>
+   <button id="gpBind" type="button">매핑 추가</button><button id="gpClear" type="button">매핑 초기화</button>
+   <p id="gpBindings"></p>
+  </details>
+  <p id="gpInputs">스틱을 움직여 축 번호와 버튼 번호를 확인하세요.</p>
+  <p id="gpState" role="status">대기 중</p>
+  <p><a href="http://127.0.0.1:18210/">지도·RGB·Depth 시각화 콘솔</a></p>
+ </section>
+ <section class="card" id="operationsPanel">
+  <h2>Mapping Session · ROS Bag</h2>
+  <p id="opsRobot"></p><p id="opsLease"></p>
+  <p id="opsMap"></p><p id="opsBag"></p><p id="opsDetail" role="status"></p>
+  <div id="opsCommands">
+   <button data-operation="mapping:START">시작</button>
+   <button data-operation="mapping:PAUSE">일시 정지</button>
+   <button data-operation="mapping:RESUME">재개</button>
+   <button data-operation="mapping:SAVE">지도 저장</button>
+   <button data-operation="mapping:STOP">맵핑 종료</button>
+   <button data-operation="bag:START">Bag 시작</button><button data-operation="bag:STOP">Bag 종료</button>
+   <button data-operation="software">소프트웨어 정지 요청</button>
+  </div>
+ </section>
  <section class="card" id="aiPanel"><h2>AI 영상 (RGB + YOLO) <span id="aiState" class="badge off">연결 안 됨</span></h2>
   <div class="muted small">영상·AI 경로는 임무/안전 명령 통신과 분리된 별도 서버입니다. 별도 토큰(영상 서버 viewer)을 사용하며 관제 토큰을 보내지 않습니다. RGB만 사용한 2D 검출이며 거리(Depth)는 없습니다.</div>
   <form id="aiForm" class="mform"><label>영상 서버 주소<input id="aiBase" type="text" value="http://127.0.0.1:18172" size="26"></label><label>영상 서버 토큰<input id="aiTok" type="password" autocomplete="off"></label><button id="aiGo" type="submit">연결</button><button id="aiStop" type="button" class="small">중지</button></form>
@@ -25,4 +75,4 @@
    <div><div class="grid" id="aiStats"></div><table id="aiDets"><thead><tr><th>클래스</th><th>신뢰도</th><th>bbox (x1,y1,x2,y2)</th></tr></thead><tbody></tbody></table><div id="aiNote" class="muted small"></div></div></div></section>
  <section class="card"><h2>이벤트 로그</h2><div id="events"></div></section>
 </main>
-<script src="app.js"></script><script src="video_panel.js"></script></body></html>
+<script src="app.js"></script><script src="video_panel.js"></script><script src="gamepad_panel.js"></script><script src="operations_panel.js"></script></body></html>

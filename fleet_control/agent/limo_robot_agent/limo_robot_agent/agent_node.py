@@ -11,17 +11,21 @@ from rclpy.executors import MultiThreadedExecutor
 
 from . import core
 from .ros_adapter import RosRobot
+from .manual_web_bench import ManualWebBench
 
 
 def main(args=None):
     rclpy.init(args=args)
     tmp = rclpy.create_node('fleet_agent_params')
-    for n, d in (('server_url', 'http://127.0.0.1:8080'), ('token_file', ''), ('robot_id', 'pcu'), ('mode', 'real'), ('simulated', False), ('allow_missions', False), ('state_dir', os.path.expanduser('~/.local/state/limo_robot_agent')), ('period_s', 1.0), ('allow_sim_safety_gate', False)):
+    for n, d in (('server_url', 'http://127.0.0.1:8080'), ('token_file', ''), ('robot_id', 'pcu'), ('mode', 'real'), ('simulated', False), ('allow_missions', False), ('state_dir', os.path.expanduser('~/.local/state/limo_robot_agent')), ('period_s', 1.0), ('allow_sim_safety_gate', False), ('manual_web_bench', False)):
         tmp.declare_parameter(n, d)
     g = lambda n: tmp.get_parameter(n).value
     server_url, token_file, rid, mode, sim, allow, sdir, period = g('server_url'), g('token_file'), g('robot_id'), g('mode'), bool(g('simulated')), bool(g('allow_missions')), g('state_dir'), float(g('period_s'))
     g_sim_gate = g('allow_sim_safety_gate')
+    bench_enabled = g('manual_web_bench')
     tmp.destroy_node()
+    if bench_enabled and (mode != 'mock' or not sim or allow):
+        sys.exit('manual_web_bench requires mock mode, simulated=true and allow_missions=false')
     if not token_file or not os.path.isfile(token_file): sys.exit('token_file is required')
     if os.stat(token_file).st_mode & 0o077: print('WARNING: token file is readable by others; chmod 600 it', flush=True)
     token = open(token_file).read().strip()
@@ -30,12 +34,23 @@ def main(args=None):
     threading.Thread(target=ex.spin, daemon=True).start()
     info = {'agent_version': '0.1.0', 'boot_id': uuid.uuid4().hex[:12], 'host': socket.gethostname(), 'mode': mode, 'simulated': sim, 'missions_enabled': allow,
             'interlocks': ['missions_enabled', 'nav2_action_server_ready', 'no_publisher_on_/cmd_vel'], 'ros_domain_id': os.environ.get('ROS_DOMAIN_ID')}
-    agent = core.AgentCore(rid, server_url, token, robot.snapshot, robot, info, sdir, map_fn=robot.map_for_upload, period_s=period, log=lambda m: print(time.strftime('%H:%M:%S'), 'agent:', m, flush=True))
+    info['manual_web_bench'] = bench_enabled
+    bench = None
+    def snapshot():
+        state = robot.snapshot()
+        if bench:
+            state['manual_bench'] = bench.snapshot()
+        return state
+    agent = core.AgentCore(rid, server_url, token, snapshot, robot, info, sdir, map_fn=robot.map_for_upload, period_s=period, log=lambda m: print(time.strftime('%H:%M:%S'), 'agent:', m, flush=True))
     robot.execution_allowed = lambda: agent.connected
+    if bench_enabled:
+        bench = ManualWebBench(robot, agent)
     print(f'robot agent {rid} mode={mode} simulated={sim} missions_enabled={allow} -> {server_url}', flush=True)
     try: agent.run()
     except KeyboardInterrupt: pass
     finally:
+        if bench:
+            bench.close()
         agent.stop(); ex.shutdown(); robot.destroy_node()
         if rclpy.ok(): rclpy.shutdown()
 

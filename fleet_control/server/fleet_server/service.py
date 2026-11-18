@@ -8,7 +8,9 @@ The agent pulls commands in the response of every state post; an unacknowledged 
 import base64, json, math, threading, time, uuid
 from .recovery import RecoveryMixin
 from .ownership import OwnershipMixin
+from .mapping import MappingMixin
 
+MANUAL_BENCH_TTL = .25
 MISSION_TERMINAL = {'SUCCEEDED', 'FAILED', 'CANCELED', 'REJECTED', 'EXPIRED'}
 MISSION_INFLIGHT = {'DISPATCHED', 'ACCEPTED', 'EXECUTING', 'CANCELING', 'RECONCILIATION_REQUIRED'}
 CMD_RANK = {'PENDING': 0, 'SENT': 1, 'ACCEPTED': 2, 'EXECUTING': 3, 'SUCCEEDED': 4, 'FAILED': 4, 'CANCELED': 4, 'REJECTED': 4, 'EXPIRED': 4}
@@ -26,11 +28,12 @@ def _j(s):
     return json.loads(s) if s else None
 
 
-class Fleet(RecoveryMixin, OwnershipMixin):
+class Fleet(RecoveryMixin, OwnershipMixin, MappingMixin):
     def __init__(self, db, cfg):
         self.db, self.cfg, self.lock = db, cfg, threading.RLock()
         self.boot_id = uuid.uuid4().hex[:12]
         self.last_persist = {}
+        self.manual_benches = {}
         # restore persisted robots (they start as offline until their agent reports again)
         self.robots = {}
         for r in db.q('SELECT * FROM robots'):
@@ -39,6 +42,88 @@ class Fleet(RecoveryMixin, OwnershipMixin):
         self.db.event('server_started', f'server started (boot {self.boot_id}); {len(self.robots)} robot(s) restored as offline')
 
     # ---------------------------------------------------------------- agent side
+    def _manual_bench_robot(self, robot_id):
+        robot = self.robots.get(robot_id) or {}
+        agent = robot.get('agent') or {}
+        age = time.time() - (robot.get('state_ts') or 0)
+        if (agent.get('manual_web_bench') is not True or agent.get('mode') != 'mock'
+                or agent.get('simulated') is not True or agent.get('missions_enabled') is not False
+                or not robot.get('online') or not robot.get('reconciled')
+                or robot.get('reconciliation_required') or not 0 <= age <= 2):
+            self.manual_benches.pop(robot_id, None)
+            raise ApiError(409, 'manual_bench_unavailable', 'fresh reconciled mock bench Agent required')
+        if self.mapping_blocks_motion(robot_id):
+            self.manual_benches.pop(robot_id, None)
+            raise ApiError(409, 'mapping_active', 'mapping must reach STOPPED')
+        execution = (robot.get('state') or {}).get('execution') or {}
+        nav = execution.get('nav2_goals') or {}
+        if (execution.get('active') is not None or nav.get('known') is not True
+                or nav.get('publishers') != 1 or type(nav.get('active_count')) is not int
+                or nav['active_count'] != 0):
+            self.manual_benches.pop(robot_id, None)
+            raise ApiError(409, 'nav_ownership_unknown', 'Nav2 terminal or absent proof required')
+        if any(r['status'] not in MISSION_TERMINAL for r in self.db.q(
+                'SELECT status FROM missions WHERE robot_id=?', (robot_id,))):
+            self.manual_benches.pop(robot_id, None)
+            raise ApiError(409, 'robot_busy', 'finish existing missions before the bench test')
+        return agent
+
+    def manual_bench(self, robot_id, actor, body):
+        with self.lock:
+            lease = self.lease_view(robot_id)
+            if (not lease or lease['owner'] != actor or type(body.get('epoch')) is not int
+                    or lease['epoch'] != body['epoch']):
+                raise ApiError(409, 'lease_required', 'current owner and epoch required')
+            current = self.manual_benches.get(robot_id)
+            action = body.get('action')
+            if action == 'stop' and current and body.get('session_id') == current['id'] and current['epoch'] == lease['epoch']:
+                self.manual_benches.pop(robot_id)
+                self.db.event('manual_bench_stopped', actor, robot_id)
+                return {'stopped': True}
+            agent = self._manual_bench_robot(robot_id)
+            now = time.monotonic()
+            if action == 'start':
+                if (current and current['epoch'] == lease['epoch'] and current['boot'] == agent['boot_id']
+                        and current['until'] > now):
+                    raise ApiError(409, 'manual_bench_busy', 'another browser already owns the bench sample stream')
+                session = uuid.uuid4().hex
+                self.manual_benches[robot_id] = {'id': session, 'epoch': lease['epoch'], 'boot': agent['boot_id'],
+                                                  'seq': -1, 'until': now + MANUAL_BENCH_TTL, 'sample': None, 'ticket': uuid.uuid4().hex}
+                self.db.event('manual_bench_started', actor, robot_id)
+                return {'session_id': session, 'ticket': self.manual_benches[robot_id]['ticket']}
+            if (action != 'sample' or not current or current['id'] != body.get('session_id')
+                    or current['epoch'] != lease['epoch'] or current['boot'] != agent['boot_id']
+                    or now >= current['until'] or body.get('ticket') != current['ticket']):
+                raise ApiError(409, 'manual_bench_expired', 'start a fresh bench session')
+            seq, linear, turn, deadman = (body.get(k) for k in ('seq', 'linear', 'turn', 'deadman'))
+            if (type(seq) is not int or not current['seq'] < seq <= 2**53 - 1
+                    or type(deadman) is not bool or any(type(axis) not in (int, float)
+                                                        or not lo <= axis <= hi for axis, lo, hi in ((linear, 0, .10), (turn, -.30, .30)))):
+                raise ApiError(400, 'bad_joy_sample', 'expected increasing sequence and valid axes/deadman')
+            current.update(seq=seq, until=now + MANUAL_BENCH_TTL, ticket=uuid.uuid4().hex,
+                           sample={'linear': linear if deadman else 0., 'turn': turn if deadman else 0.,
+                                   'deadman': deadman})
+            return {'received': seq, 'ticket': current['ticket']}
+
+    def manual_preview_status(self, robot_id):
+        with self.lock:
+            current = self.manual_benches.get(robot_id)
+            return {'active': bool(current and current['until'] > time.monotonic())}
+
+    def pull_manual_bench(self, robot_id, boot_id):
+        with self.lock:
+            self.check_session(robot_id, boot_id)
+            self._manual_bench_robot(robot_id)
+            current = self.manual_benches.get(robot_id)
+            lease = self.lease_view(robot_id)
+            if not lease or not current or current['epoch'] != lease['epoch'] or current['boot'] != boot_id:
+                return {'sample': None}
+            remaining = min(current['until'] - time.monotonic(), lease['expires_at'] - time.time())
+            if remaining <= 0 or current['sample'] is None:
+                return {'sample': None}
+            return {'sample': dict(current['sample'], session_id=current['id'], seq=current['seq'],
+                                   ttl_s=remaining)}
+
     def hello(self, robot_id, agent):
         with self.lock:
             now = time.time(); r = self.robots.get(robot_id)
@@ -54,7 +139,9 @@ class Fleet(RecoveryMixin, OwnershipMixin):
                 r = self.robots[robot_id] = {'robot_id': robot_id, 'first_seen': now, 'last_seen': now, 'agent': agent, 'state': None, 'state_ts': None, 'map_version': None, 'map_meta': None, 'online': False}
                 self.db.event('robot_registered', f'robot {robot_id} registered', robot_id)
             r['agent'] = agent; r['last_seen'] = now
-            if boot != old_boot: r.pop('seq', None)
+            if boot != old_boot:
+                r.pop('seq', None)
+                self.manual_benches.pop(robot_id, None)
             r['reconciled'] = False
             r['reconciliation_required'] = False
             self._set_online(r, True, 'agent hello')
@@ -165,6 +252,10 @@ class Fleet(RecoveryMixin, OwnershipMixin):
             if idempotency_key:
                 ex = self.db.one('SELECT * FROM missions WHERE robot_id=? AND idempotency_key=?', (robot_id, idempotency_key))
                 if ex: return self._mission_view(ex), False
+            if self.mapping_blocks_motion(robot_id):
+                raise ApiError(409, 'mapping_active', 'mapping must reach STOPPED')
+            if self.robots[robot_id].get('agent', {}).get('manual_web_bench') is True:
+                raise ApiError(409, 'manual_bench_mode', 'destination goals are disabled in manual bench mode')
             self.check_creator_allowed(robot_id, created_by)          # atomic with the insert below (same lock)
             mid = 'm_' + uuid.uuid4().hex[:12]; now = time.time()
             self.db.x('INSERT INTO missions(mission_id,robot_id,type,goal_json,idempotency_key,status,detail,created_by,note,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
@@ -191,6 +282,10 @@ class Fleet(RecoveryMixin, OwnershipMixin):
             return self._mission_view(self.db.one('SELECT * FROM missions WHERE mission_id=?', (mission_id,)))
 
     def dispatch_next(self, robot_id):
+        if robot_id in self.robots and self.mapping_blocks_motion(robot_id):
+            return
+        if (self.robots.get(robot_id) or {}).get('agent', {}).get('manual_web_bench') is True:
+            return
         with self.lock:
             if not self.robots.get(robot_id, {}).get('reconciled') or self.robots[robot_id].get('reconciliation_required'): return
             if self.db.one(f"SELECT 1 AS x FROM missions WHERE robot_id=? AND status IN ({','.join('?' * len(MISSION_INFLIGHT))})", (robot_id, *sorted(MISSION_INFLIGHT))): return
