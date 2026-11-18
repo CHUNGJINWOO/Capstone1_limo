@@ -79,3 +79,11 @@
 기존 실차 실행 진입점은 현장 번들의 `start_real_auto_mapping.sh`다. 실제 주행은 현장 조건 확인과 별도 승인이 필요하다.
 
 Frontier 후보 및 Coordinator는 독립 계산·상태 추적 단계다. Agent 연결, 라이브 SLAM Mapping Goal 계약과 웹 AUTO는 미완료다. 기존 실차 자동 맵핑 진입점은 현장 배포본의 `start_real_auto_mapping.sh`이며, 모터 잠금 기동 후 Frontier 명령은 현장 안전 조건과 별도 구동 승인에 따른다.
+
+
+## 2026-11-18 선택 통합 후 남은 작업 소유 위치
+
+- 실차 현장 자동 맵핑은 기존 배포본의 `~/real_auto_mapping_ready_20261113/start_real_auto_mapping.sh`를 사용한다. 배터리, USB–UART, Gate와 물리 정지 수단을 확인하고 주행 전 별도 승인을 받는다. 지도·posegraph·rosbag 확보 후 건물·층을 확인해 Registry에 등록한다.
+- 공개 `fleet_control/`은 기존 Fleet 구현이며, 로컬 staging의 `fleet_control/`에 있는 웹 SLAM START/SAVE/STOP 및 rosbag 제어는 Server·Agent의 Lease/Journal 및 상태 처리 구조가 달라 일괄 교체하지 않았다. 소유권과 안전 차단을 유지하는 설계·통합 및 회귀 검증이 필요하다. 웹 AUTO와 실차 MANUAL은 미완성이다.
+- 공개 `capstone_ws/src/limo_capstone/`의 고정 지도 저장은 격리 합성 지도로 검증됐다. 현장 자동 맵핑 배포본 `experiments/real_auto_mapping_ready_20261113/`의 저장 경로와는 별도이며 실차에 이 수정본을 배포하거나 재시험하지 않았다. posegraph와 OccupancyGrid는 서로 다른 시각에 저장될 수 있다.
+- 후속 개발은 현장 지도 수집과 병행해 웹 Fleet 지도·RGB·Depth 모니터링을 다룬다. 기존 미추적 실험 및 데이터는 로컬 보관하고 공개하지 않는다.

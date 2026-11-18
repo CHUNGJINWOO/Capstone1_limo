@@ -12,7 +12,9 @@ Unified Experiment Lifecycle, Mapping, and Archival Manager for LIMO Pro:
 """
 import argparse
 import datetime
+import hashlib
 import json
+import math
 import os
 import shutil
 import signal
@@ -23,6 +25,74 @@ import yaml
 
 ACTIVE_SESSION_FILE = "/home/pcu/experiments/auto_mapping/active_session.json"
 BASE_EXPERIMENT_DIR = "/home/pcu/experiments/auto_mapping"
+
+
+def save_frozen_grid(map_base_path):
+    """Save one received SLAM grid and preserve its exact planar metadata."""
+    import rclpy
+    from nav_msgs.msg import OccupancyGrid
+    from rclpy.qos import DurabilityPolicy, QoSProfile
+    from PIL import Image
+
+    rclpy.init()
+    node = rclpy.create_node('mapping_snapshot_saver')
+    grid = []
+    qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
+    node.create_subscription(OccupancyGrid, '/map', grid.append, qos)
+    try:
+        deadline = time.monotonic() + 8
+        while not grid and time.monotonic() < deadline:
+            rclpy.spin_once(node, timeout_sec=0.1)
+        if not grid:
+            raise RuntimeError('No SLAM map received')
+        snapshot = grid[0]
+        if any(value not in (-1, 0, 100) for value in snapshot.data):
+            raise RuntimeError('Trinary snapshot required for exact map save')
+        topic = '/mapping_snapshot_saver/map'
+        if node.count_publishers(topic):
+            raise RuntimeError('Snapshot topic already has a publisher')
+        publisher = node.create_publisher(OccupancyGrid, topic, qos)
+        publisher.publish(snapshot)
+        result = subprocess.run([
+            'ros2', 'run', 'nav2_map_server', 'map_saver_cli',
+            '-f', map_base_path, '-t', topic, '--free', '0.196',
+            '--ros-args', '-p', 'save_map_timeout:=8.0',
+        ], capture_output=True, text=True, timeout=12.0)
+        if result.returncode:
+            raise RuntimeError('Map saver failed: ' + result.stderr)
+        width, height = snapshot.info.width, snapshot.info.height
+        with Image.open(map_base_path + '.pgm') as image:
+            if image.size != (width, height):
+                raise RuntimeError('Saved map dimensions differ from snapshot')
+            pixels = list(image.convert('L').getdata())
+        decoded = [100 if pixel == 0 else 0 if pixel == 254 else -1 if pixel == 205 else -999
+                   for y in range(height - 1, -1, -1)
+                   for pixel in pixels[y * width:(y + 1) * width]]
+        if decoded != list(snapshot.data):
+            raise RuntimeError('Saved map cells differ from snapshot')
+        q = snapshot.info.origin.orientation
+        pos = snapshot.info.origin.position
+        yaw = math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z))
+        yaml_path = map_base_path + '.yaml'
+        with open(yaml_path) as stream:
+            metadata = yaml.safe_load(stream)
+        metadata.update(resolution=float(snapshot.info.resolution), origin=[pos.x, pos.y, yaw])
+        temporary = yaml_path + '.tmp'
+        with open(temporary, 'x') as stream:
+            yaml.safe_dump(metadata, stream, sort_keys=False)
+        os.replace(temporary, yaml_path)
+        stamp = snapshot.header.stamp
+        identity = {'frame_id': snapshot.header.frame_id, 'stamp_sec': stamp.sec,
+                'stamp_nanosec': stamp.nanosec, 'width': width, 'height': height,
+                'resolution': snapshot.info.resolution, 'origin': metadata['origin']}
+        identity['sha256'] = hashlib.sha256(
+            json.dumps(identity, sort_keys=True, separators=(',', ':')).encode()
+            + bytes(value + 1 for value in snapshot.data)
+        ).hexdigest()
+        return identity
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 
 def cleanup_residual_nodes():
@@ -231,15 +301,14 @@ def cmd_save_map(args=None):
 
     # 1. Standard Map Saver CLI (PGM + YAML)
     print("[1/3] Querying nav2_map_server map_saver_cli...")
-    cmd_map_saver = [
-        'ros2', 'run', 'nav2_map_server', 'map_saver_cli',
-        '-f', map_base_path, '--free', '0.196',
-        '--ros-args', '-p', 'save_map_timeout:=8.0'
-    ]
-    res_saver = subprocess.run(cmd_map_saver, capture_output=True, text=True, timeout=12.0)
-    print(res_saver.stdout)
-    if res_saver.returncode != 0:
-        print(f"[WARN] map_saver_cli stderr: {res_saver.stderr}")
+    try:
+        snapshot = save_frozen_grid(map_base_path)
+    except Exception as exc:
+        print(f"[ERROR] Snapshot save failed: {exc}")
+        sess['map_saved'] = False
+        with open(ACTIVE_SESSION_FILE, 'w') as f:
+            json.dump(sess, f, indent=2)
+        sys.exit(1)
 
     # 2. SLAM Toolbox Map Serialization (.posegraph and .data)
     posegraph_base = os.path.join(map_dir, "slam_toolbox_posegraph")
@@ -283,6 +352,8 @@ def cmd_save_map(args=None):
                 'free_thresh': yaml_data.get('free_thresh'),
                 'saved_at_iso': datetime.datetime.now().isoformat()
             }
+            map_metadata['source_snapshot'] = snapshot
+            map_metadata['posegraph_consistency'] = 'serialized separately; exact snapshot equivalence not guaranteed'
             with open(os.path.join(map_dir, "map_metadata.json"), 'w') as mf:
                 json.dump(map_metadata, mf, indent=2)
             print("[SUCCESS] Map PGM and YAML saved and verified!")

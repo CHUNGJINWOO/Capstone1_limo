@@ -48,3 +48,7 @@
 ### Frontier 후보 및 Fleet Coordinator
 
 `explore_lite`의 `fleet_frontier_candidates`는 기존 Frontier 검색 결과를 `/fleet/frontier_candidates`에 발행하며 Nav2 Goal을 직접 제출하지 않는다. `frontier_fleet_coordinator.py`는 Fleet 임무 및 Agent 종료 증거를 연결하는 후보 코드다. 현재 Agent 실행 경로와 웹 AUTO에는 연결되지 않았으며 실차 주행은 미검증이다.
+
+### 고정 지도 저장
+
+`capstone_ws/src/limo_capstone/scripts/auto_mapping_experiment_manager.py`의 `save-map`은 `/map`의 한 스냅샷으로 PGM/YAML과 식별 메타데이터를 저장한다. `tests/map_roundtrip_ros.py`는 격리 ROS의 Nav2 저장·재로드 회귀 시험이다. posegraph 직렬화는 별도 요청이다.

@@ -229,4 +229,9 @@ Google Drive에 업로드하는 모든 `<run_id>/` 폴더와 로컬 실험 폴�
 
 실차 비주행 관측에서 촬영 시각 TF 대기 전후 오류 상태 표본은 214/270과 38/5,976이었다. 이후 wheel odometry 중단으로 Gate FAILSAFE가 발생했다. 2026-11-18 로컬 격리 시험에서 수동 잠금 프로파일은 Nav2 속도 출력 4개를 별도 토픽으로 격리했다. 실차 웹 수동 주행 및 AUTO E2E는 미검증이다.
 
-2026-11-18 선택 통합에서 Frontier Coordinator의 단일 Goal·취소·결과 소유권 시험 4개를 실행했다. 실제 로봇과 Gazebo 재시험은 수행하지 않았다. Nav2 map saver의 trinary UNKNOWN 픽셀 보존을 위해 기존 실험 관리자의 자유공간 임계값을 0.196으로 지정했으며, 이 경로의 원점 반올림 제거 및 동일 스냅샷 정합성은 별도 검증이 필요하다.
+2026-11-18 선택 통합에서 Frontier Coordinator의 단일 Goal·취소·결과 소유권 시험 4개를 실행했다. 실제 로봇과 Gazebo 재시험은 수행하지 않았다. Nav2 map saver의 trinary UNKNOWN 픽셀 보존을 위해 기존 실험 관리자의 자유공간 임계값을 0.196으로 지정했으며, 당시에는 이 경로의 원점 정밀도 및 동일 스냅샷 정합성이 미검증이었다.
+
+
+## 2026-11-18 선택 통합: 고정 지도 스냅샷
+
+격리 ROS 2 Humble에서 합성 trinary 3×2 지도를 실제 Nav2 map_saver_cli로 저장하고 map_server에서 재로드했다. UNKNOWN/FREE/OCCUPIED 각 2셀, 전체 6셀, 크기·해상도·원점 x/y/yaw가 일치했다. `capstone_ws/src/limo_capstone/tests/map_roundtrip_ros.py`로 재현한다. posegraph는 별도 서비스 요청으로 직렬화하므로 지도와 동일한 시각의 상태라고 보장하지 않는다. 실차 및 실제 posegraph 재로드는 이번 통합에서 SKIP이다. 전체 의존 패키지 빌드는 ydlidar_sdk 미설치로 실패했다.

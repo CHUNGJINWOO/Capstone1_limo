@@ -83,3 +83,5 @@
 웹 수동 입력은 모터 잠금 시험 단계다. 웹 AUTO START의 HTTP 404와 일반 Fleet 임무 경로의 Mapping Goal 409는 미해결이며, 웹 자동 맵핑 실차 주행은 검증되지 않았다.
 
 2026-11-18 선택 통합에서 Frontier 후보 발행기와 Fleet Coordinator를 추가했다. 이 코드는 Agent 실행 경로에 연결되지 않았고 웹 AUTO START 404 및 일반 Fleet 임무를 통한 Mapping Goal 409는 미해결이다. 실차 USB–UART 불안정과 웹 MANUAL 제어 미완료 상태도 유지한다.
+
+2026-11-18 추가 통합에서 실험 관리자의 지도 저장은 고정 스냅샷·셀 검증·원점 정밀도·식별 해시를 사용한다. 격리 합성 지도 Nav2 재로드만 검증했으며 실차 posegraph와 동일 시각의 지도라는 보장은 없다.
