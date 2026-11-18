@@ -136,7 +136,12 @@ class Store:
                 if old and old[0].cells.shape==g.cells.shape and np.array_equal(old[0].cells,g.cells):g.png=old[0].png
                 self.layers[name]=(g,now)
             for name,v in paths.items():self.paths[name]=(v,now)
-            if depth is not None:self.depth=(depth,now)
+            if depth is not None:
+                received = now
+                if self.depth and all(depth.get(k) == self.depth[0].get(k)
+                                      for k in ('frame_id', 'stamp_ns')):
+                    received = self.depth[1]
+                self.depth = (depth, received)
             self.kind=kind;self.session=session;self.sequence=seq;self.last=now;self.counters['received']+=1
             self.meta={k:p.get(k) for k in ['robot_id','ros_time_ns','clock_mode','explore','camera_info','metrics','unavailable','robot_pose']}
     def snapshot(self):
