@@ -77,3 +77,5 @@
 6. 웹 AUTO와 조이스틱 캘리브레이션·버튼 설정을 개발한다.
 
 기존 실차 실행 진입점은 현장 번들의 `start_real_auto_mapping.sh`다. 실제 주행은 현장 조건 확인과 별도 승인이 필요하다.
+
+Frontier 후보 및 Coordinator는 독립 계산·상태 추적 단계다. Agent 연결, 라이브 SLAM Mapping Goal 계약과 웹 AUTO는 미완료다. 기존 실차 자동 맵핑 진입점은 현장 배포본의 `start_real_auto_mapping.sh`이며, 모터 잠금 기동 후 Frontier 명령은 현장 안전 조건과 별도 구동 승인에 따른다.

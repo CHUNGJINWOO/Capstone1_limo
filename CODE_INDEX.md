@@ -44,3 +44,7 @@
 ## 2026-11-18 Depth TF와 수동 잠금 프로파일
 
 `limo_depth_obstacles/depth_obstacle_filter_node.py`는 촬영 시각의 변환을 짧게 재시도하며 상태에 대기 통계를 포함한다. `limo_integrated_auto_mapping_real.launch.py`의 `manual_mapping_probe`는 기본 비활성이고, 활성 시 모터 잠금과 Frontier 비활성을 요구한다. 이 경로는 비주행 진단용이다.
+
+### Frontier 후보 및 Fleet Coordinator
+
+`explore_lite`의 `fleet_frontier_candidates`는 기존 Frontier 검색 결과를 `/fleet/frontier_candidates`에 발행하며 Nav2 Goal을 직접 제출하지 않는다. `frontier_fleet_coordinator.py`는 Fleet 임무 및 Agent 종료 증거를 연결하는 후보 코드다. 현재 Agent 실행 경로와 웹 AUTO에는 연결되지 않았으며 실차 주행은 미검증이다.

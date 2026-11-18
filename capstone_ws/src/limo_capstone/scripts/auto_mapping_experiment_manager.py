@@ -233,7 +233,7 @@ def cmd_save_map(args=None):
     print("[1/3] Querying nav2_map_server map_saver_cli...")
     cmd_map_saver = [
         'ros2', 'run', 'nav2_map_server', 'map_saver_cli',
-        '-f', map_base_path,
+        '-f', map_base_path, '--free', '0.196',
         '--ros-args', '-p', 'save_map_timeout:=8.0'
     ]
     res_saver = subprocess.run(cmd_map_saver, capture_output=True, text=True, timeout=12.0)

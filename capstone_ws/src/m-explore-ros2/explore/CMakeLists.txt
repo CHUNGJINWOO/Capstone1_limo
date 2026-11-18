@@ -108,6 +108,13 @@ endif()
 install(TARGETS explore
   DESTINATION lib/${PROJECT_NAME})
 
+# Candidate output only: no action client or robot movement authority.
+add_executable(fleet_frontier_candidates
+  src/costmap_client.cpp src/frontier_search.cpp src/fleet_frontier_candidates.cpp)
+ament_target_dependencies(fleet_frontier_candidates ${DEPENDENCIES} geometry_msgs)
+target_link_libraries(fleet_frontier_candidates nav2_costmap_2d::filters tf2_ros::tf2_ros)
+install(TARGETS fleet_frontier_candidates DESTINATION lib/${PROJECT_NAME})
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
 #############

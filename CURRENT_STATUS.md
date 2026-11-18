@@ -81,3 +81,5 @@
 실차 비주행 시험에서 촬영 시각 TF 대기 수정 후 Depth 오류 상태 표본은 214/270에서 38/5,976으로 감소했다. 이후에도 USB–UART 통신 중단과 Gate FAILSAFE가 재발해 원인은 미확정이다. 실차 주행 전 전원·USB와 물리 정지 수단 검증이 필요하다.
 
 웹 수동 입력은 모터 잠금 시험 단계다. 웹 AUTO START의 HTTP 404와 일반 Fleet 임무 경로의 Mapping Goal 409는 미해결이며, 웹 자동 맵핑 실차 주행은 검증되지 않았다.
+
+2026-11-18 선택 통합에서 Frontier 후보 발행기와 Fleet Coordinator를 추가했다. 이 코드는 Agent 실행 경로에 연결되지 않았고 웹 AUTO START 404 및 일반 Fleet 임무를 통한 Mapping Goal 409는 미해결이다. 실차 USB–UART 불안정과 웹 MANUAL 제어 미완료 상태도 유지한다.
