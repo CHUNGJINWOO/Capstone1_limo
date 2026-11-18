@@ -52,7 +52,8 @@ class ManualWebBench:
             self.state = {'linear': v, 'turn': w, 'motor_output': False,
                           'deadline': started + sample['ttl_s'] if sample else 0.,
                           'sample_seq': sample['seq'] if sample else None,
-                          'session_id': sample['session_id'] if sample else None}
+                          'session_id': sample['session_id'] if sample else None,
+                          'deadman': bool(sample and sample.get('deadman') is True and terminal)}
             self.stop.wait(max(0., started + .05 - time.monotonic()))
 
     def snapshot(self):

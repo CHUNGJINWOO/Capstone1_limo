@@ -50,7 +50,16 @@ class RosRobot(Node):
         self.nav = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         # Evidence for operator recovery: which goals does the Nav2 action server itself consider active? (status topic is transient-local, published on change)
         self.nav_status = None
+        self.follow_path_status = None
+        self.follow_path_observed_active = False
+        self.follow_path_topic = 'follow_path/_action/status'
+        self.frontier_allowed = lambda _: False
+        self.fleet_goal_allowed = lambda: True
         self.create_subscription(GoalStatusArray, 'navigate_to_pose/_action/status', self._on_nav_status, QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL, reliability=ReliabilityPolicy.RELIABLE))
+        self.create_subscription(
+            GoalStatusArray, self.follow_path_topic, self._on_follow_path_status,
+            QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                       reliability=ReliabilityPolicy.RELIABLE))
         self.active = None                                             # dict(mission_id, command_id, handle, ack, last_fb_t)
         self.last_mission = {}
         self.tasks = collections.deque(); self.create_timer(0.05, self._run_tasks)
@@ -70,6 +79,28 @@ class RosRobot(Node):
         st = self.nav_status
         return {'source': 'navigate_to_pose/_action/status', 'known': pubs >= 1, 'publishers': pubs, 'active_count': (st['active'] if st else 0) if pubs >= 1 else None,
                 'received_status_array': st is not None, 'last_change_age_s': None if not st else round(time.monotonic() - st['t'], 1)}
+
+    def _on_follow_path_status(self, msg):
+        publishers = self.get_publishers_info_by_topic(self.follow_path_topic)
+        if len(publishers) != 1 or publishers[0].node_name != 'controller_server':
+            self.follow_path_status = None
+            return
+        terminal = (GoalStatus.STATUS_SUCCEEDED, GoalStatus.STATUS_CANCELED,
+                    GoalStatus.STATUS_ABORTED)
+        with self.lock:
+            active = any(g.status not in terminal for g in msg.status_list)
+            if active:
+                self.follow_path_observed_active = True
+            self.follow_path_status = (
+                tuple(publishers[0].endpoint_gid),
+                self.follow_path_observed_active and not active,
+            )
+
+    def follow_path_idle(self):
+        status = self.follow_path_status
+        publishers = self.get_publishers_info_by_topic(self.follow_path_topic)
+        return bool(status and status[1] and len(publishers) == 1
+                    and status[0] == tuple(publishers[0].endpoint_gid))
 
     def _on_odom(self, m): self._stamp('odom'); self.odom = (m.header.frame_id, m.pose.pose.position.x, m.pose.pose.position.y, yaw_of(m.pose.pose.orientation))
 
@@ -150,9 +181,13 @@ class RosRobot(Node):
         ready = self.nav.server_is_ready(); nav2 = {'status': 'ACTIVE_GOAL' if self.active else ('READY' if ready else 'UNAVAILABLE'), 'action_server_ready': bool(ready), 'action': 'navigate_to_pose'}
         with self.lock: mis = dict(self.last_mission) if self.last_mission else {}
         a = self.active
-        execution = {'active': None, 'pending_cancel_ids': [], 'nav2_goals': self._nav2_goals()}
+        execution = {'active': None, 'pending_cancel_ids': [], 'nav2_goals': self._nav2_goals(),
+                     'follow_path_idle': self.follow_path_idle()}
         if a:
             execution['active'] = {'mission_id': a['mission_id'], 'command_id': a['command_id'], 'goal_handle_available': a['handle'] is not None}
+            execution['active']['owner'] = a.get('owner', 'fleet')
+            if a['handle'] is not None:
+                execution['active']['goal_uuid'] = bytes(a['handle'].goal_id.uuid).hex()
             execution['pending_cancel_ids'] = [cid for cid, ack in a.get('cancel_acks', [])]
         return {'schema_version': 1, 'pose': pose, 'map': m, 'nav2': nav2, 'battery': bat, 'lidar': lidar, 'depth_camera': depth, 'safety_gate': gate, 'mission': mis, 'execution': execution, 'errors': errs}
 
@@ -165,6 +200,12 @@ class RosRobot(Node):
     # ------------------------------------------------------------ mission execution (called from the agent thread -> queued to the ROS thread)
     def start_navigate(self, cmd, ack): self.tasks.append(('nav', cmd, ack))
     def cancel_mission(self, cmd, ack): self.tasks.append(('cancel', cmd, ack))
+
+    def start_frontier(self, cmd, ack):
+        self.tasks.append(('nav', dict(cmd, goal_owner='frontier'), ack))
+
+    def cancel_frontier(self, cmd, ack):
+        self.tasks.append(('cancel', dict(cmd, goal_owner='frontier'), ack))
 
     def _run_tasks(self):
         while self.tasks:
@@ -181,27 +222,52 @@ class RosRobot(Node):
     def _do_nav(self, cmd, ack):
         mid, g = cmd.get('mission_id'), (cmd.get('payload') or {}).get('goal') or {}
         def rej(code, why): ack('REJECTED', f'{code}: {why}'); self._set_mission(mid, cmd['command_id'], 'REJECTED', f'{code}: {why}')
-        if not self.allow_missions: return rej('MISSIONS_DISABLED', 'mission execution is disabled on this agent')
+        owner = cmd.get('goal_owner', 'fleet')
+        if owner == 'frontier':
+            if not getattr(self, 'frontier_allowed', lambda _: False)(mid):
+                return rej('FRONTIER_FENCED', 'mapping session disabled')
+        elif not self.allow_missions or not getattr(self, 'fleet_goal_allowed', lambda: True)():
+            return rej('MISSIONS_DISABLED', 'mission execution is disabled on this agent')
         if not self.execution_allowed():
             ack('RECONCILIATION_REQUIRED', 'server not reconciled; no goal sent'); return
         if time.time() > cmd.get('expires_at', 0): return rej('EXPIRED', 'command expired while queued')
         try: x, y, yaw = float(g['x']), float(g['y']), float(g.get('yaw_rad', 0.0))
         except Exception: return rej('BAD_GOAL', 'goal needs numeric x, y')
         if g.get('frame_id') != 'map' or not all(math.isfinite(v) for v in (x, y, yaw)): return rej('BAD_GOAL', "goal frame must be 'map' with finite values")
-        if self.active: return rej('BUSY', f"mission {self.active['mission_id']} is still active")
+        active = self.active
+        if active: return rej('BUSY', f"mission {active['mission_id']} is still active")
         try: pubs = self.get_publishers_info_by_topic('/cmd_vel')
         except Exception: pubs = None
-        if pubs is None or (pubs and not self._motor_path_allowed(pubs)): return rej('MOTOR_PATH_ARMED', f'/cmd_vel publishers: {sorted(i.node_name for i in pubs) if pubs is not None else "unknown"}; stage 1 never sends goals while the motor path may be live')
+        if pubs is None or (pubs and (owner == 'frontier' or not self._motor_path_allowed(pubs))): return rej('MOTOR_PATH_ARMED', f'/cmd_vel publishers: {sorted(i.node_name for i in pubs) if pubs is not None else "unknown"}; stage 1 never sends goals while the motor path may be live')
         if not self.nav.wait_for_server(timeout_sec=2.0): return rej('NAV2_UNAVAILABLE', 'navigate_to_pose action server not available')
         if not self.execution_allowed() or time.time() > cmd.get('expires_at', 0):
             ack('RECONCILIATION_REQUIRED', 'connection/deadline changed before Nav2 submission; no goal sent'); return
-        observed = self._nav2_goals()
-        if observed['publishers'] != 1 or observed['active_count'] != 0:
-            return rej('NAV_GOAL_OWNERSHIP_UNAVAILABLE', 'another or indeterminate NavigateToPose goal is present')
-        goal = NavigateToPose.Goal(); goal.pose.header.frame_id = 'map'; goal.pose.header.stamp = self.get_clock().now().to_msg()
-        goal.pose.pose.position.x, goal.pose.pose.position.y = x, y; goal.pose.pose.orientation.z, goal.pose.pose.orientation.w = math.sin(yaw / 2), math.cos(yaw / 2)
-        rec = {'mission_id': mid, 'command_id': cmd['command_id'], 'handle': None, 'ack': ack, 'last_fb': 0.0, 'cancel_requested': False, 'cancel_acks': [], 'cancel_sent': False}
-        self.active = rec; self._set_mission(mid, cmd['command_id'], 'DISPATCHED', 'sending goal to Nav2')
+        # Both sources reserve the same slot before any async send. All production
+        # calls enter through the ROS task queue; the lock also protects direct callers.
+        with self.lock:
+            if self.active is not None:
+                return rej('BUSY', 'the goal slot is reserved')
+            if owner == 'frontier' and not self.frontier_allowed(mid):
+                return rej('FRONTIER_FENCED', 'mapping session changed before send')
+            if owner == 'fleet' and not getattr(self, 'fleet_goal_allowed', lambda: True)():
+                return rej('FLEET_FENCED', 'mapping or manual mode owns the goal slot')
+            observed = self._nav2_goals()
+            if observed['publishers'] != 1 or observed['active_count'] != 0:
+                return rej('NAV_GOAL_OWNERSHIP_UNAVAILABLE', 'another or indeterminate NavigateToPose goal is present')
+            if not self.execution_allowed() or time.time() > cmd.get('expires_at', 0):
+                return rej('EXPIRED', 'connection or deadline changed before send')
+            goal = NavigateToPose.Goal()
+            goal.pose.header.frame_id = 'map'
+            goal.pose.header.stamp = self.get_clock().now().to_msg()
+            goal.pose.pose.position.x, goal.pose.pose.position.y = x, y
+            goal.pose.pose.orientation.z, goal.pose.pose.orientation.w = math.sin(yaw / 2), math.cos(yaw / 2)
+            rec = {'mission_id': mid, 'command_id': cmd['command_id'], 'handle': None, 'owner': owner,
+                   'ack': ack, 'last_fb': 0.0, 'cancel_requested': False, 'cancel_acks': [], 'cancel_sent': False}
+            if owner == 'frontier':
+                self.follow_path_status = None
+                self.follow_path_observed_active = False
+            self.active = rec
+        self._set_mission(mid, cmd['command_id'], 'DISPATCHED', 'sending goal to Nav2')
         try: fut = self.nav.send_goal_async(goal, feedback_callback=lambda fb: self._on_fb(rec, fb))
         except Exception:
             ack('RECONCILIATION_REQUIRED', 'Nav2 submission outcome unknown; goal was not retried')
@@ -222,7 +288,12 @@ class RosRobot(Node):
             return
         if hasattr(self, 'get_logger'):
             self.get_logger().info('NAV2_ACCEPTED command=' + rec['command_id'] + ' goal=' + bytes(h.goal_id.uuid).hex())
-        rec['handle'] = h; rec['ack']('ACCEPTED', 'goal accepted by Nav2'); self._set_mission(rec['mission_id'], rec['command_id'], 'ACCEPTED', 'goal accepted by Nav2')
+        rec['handle'] = h
+        if rec.get('owner') == 'frontier':
+            rec['ack']('ACCEPTED', 'goal accepted by Nav2', {'goal_uuid': bytes(h.goal_id.uuid).hex()})
+        else:
+            rec['ack']('ACCEPTED', 'goal accepted by Nav2')
+        self._set_mission(rec['mission_id'], rec['command_id'], 'ACCEPTED', 'goal accepted by Nav2')
         if rec['cancel_requested']: self._request_cancel(rec)
         h.get_result_async().add_done_callback(lambda f: self._on_result(rec, f))
 
@@ -256,6 +327,9 @@ class RosRobot(Node):
 
     def _do_cancel(self, cmd, ack):
         mid = cmd.get('mission_id'); a = self.active
+        if a is not None and a.get('owner', 'fleet') != cmd.get('goal_owner', 'fleet'):
+            ack('REJECTED', 'goal belongs to another source')
+            return
         if a is None or a['mission_id'] != mid:
             lm = self.last_mission or {}
             if lm.get('active_mission_id') == mid and lm.get('state') == 'CANCELED':

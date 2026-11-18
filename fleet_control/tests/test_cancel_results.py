@@ -97,6 +97,52 @@ class Tests(unittest.TestCase):
             def send_goal_async(self,*args,**kw):raise TimeoutError('injected submission ambiguity')
         r.nav=Nav();r._do_nav({'mission_id':'m','command_id':'c','expires_at':time.time()+60,'payload':{'goal':{'frame_id':'map','x':1,'y':2}}},lambda s,*a:out.append(s))
         self.assertEqual(out,['RECONCILIATION_REQUIRED']);self.assertIsNotNone(r.active)
+    def test_fleet_and_frontier_share_the_first_goal_slot(self):
+        robot = Harness()
+        robot.allow_missions = True
+        robot.execution_allowed = lambda: True
+        robot.frontier_allowed = lambda _: True
+        robot.get_publishers_info_by_topic = lambda _: []
+        robot.get_clock = lambda: NS(now=lambda: NS(to_msg=lambda: Time()))
+        barrier = threading.Barrier(2, timeout=2)
+        sent, replies = [], []
+        robot.nav = NS(wait_for_server=lambda **_: barrier.wait() >= 0,
+                       send_goal_async=lambda *_, **__: sent.append(True) or Future())
+
+        def submit(owner):
+            robot._do_nav({'mission_id': owner, 'command_id': owner, 'goal_owner': owner,
+                           'expires_at': time.time() + 5,
+                           'payload': {'goal': {'frame_id': 'map', 'x': 1, 'y': 2}}},
+                          lambda status, *_: replies.append(status))
+
+        threads = [threading.Thread(target=submit, args=(owner,)) for owner in ('fleet', 'frontier')]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=3)
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(replies, ['REJECTED'])
+        self.assertIn(robot.active['owner'], ('fleet', 'frontier'))
+
+    def test_follow_path_terminal_requires_active_observation_after_reset(self):
+        r = Harness()
+        r.follow_path_topic = 'follow_path/_action/status'
+        r.follow_path_status = None
+        r.follow_path_observed_active = False
+        r.get_publishers_info_by_topic = lambda _: [NS(node_name='controller_server', endpoint_gid=[1])]
+        callback = lambda status: RosRobot._on_follow_path_status(
+            r, NS(status_list=[NS(status=status)]))
+        callback(GoalStatus.STATUS_CANCELED)
+        self.assertFalse(RosRobot.follow_path_idle(r))
+        callback(GoalStatus.STATUS_EXECUTING)
+        self.assertFalse(RosRobot.follow_path_idle(r))
+        callback(GoalStatus.STATUS_CANCELED)
+        self.assertTrue(RosRobot.follow_path_idle(r))
+        r.follow_path_status = None
+        r.follow_path_observed_active = False
+        callback(GoalStatus.STATUS_CANCELED)
+        self.assertFalse(RosRobot.follow_path_idle(r))
+
     def test_late_feedback_cannot_overwrite_terminal_display(self):
         r,h,rec,nav,c=self.setup_goal();r.active=None;r.last_mission={'state':'CANCELED'}
         r._on_fb(rec,NS());self.assertEqual(r.last_mission['state'],'CANCELED');self.assertEqual(nav,[])

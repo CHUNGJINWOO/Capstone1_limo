@@ -170,3 +170,9 @@ flowchart LR
 Perception·Localization·Safety·Bringup의 기존 launch와 패키지 배치를 유지했다. Mapping 명령의 중앙 계약은 `fleet_control/server/fleet_server/mapping.py`에 있고, Navigation의 기존 Mission·Lease·Recovery와 SQLite를 공유한다. 명령과 결과는 별도 Mapping/Bag 저널에 기록한다. 웹 Gamepad는 Teleoperation에서 소유 Lease 동안 모의 입력을 제공한다. Mapping이 STOPPED로 확인되기 전에는 Fleet 목적지 dispatch와 수동 입력을 차단한다. 모드 간 ROS 속도 및 Gate 연결은 기존 분리 제안 범위에 남아 있다.
 
 브라우저는 목적지 Goal, 영상, Mapping과 Bag을 서로 다른 계약으로 다룬다. 현재 Mapping/Bag 실행 증거는 격리 시험의 mock worker가 보낸다. 설치된 SLAM, Frontier, 저장기 또는 기록기와 연동하려면 실제 worker에서 상태·소유 프로세스·Goal UUID를 관측하고 별도 시험해야 한다. 동시 최초 Goal 제출을 위한 원자적 ROS 중재는 아직 없다.
+
+### 전체 기능 구현 우선 격리 경로
+
+`limo_fleet_bringup`은 기존 Perception·Localization·Navigation·Safety 노드 및 Fleet Bridge를 기능별 launch 모듈로 조합한다. Mapping은 Agent가 SLAM Toolbox와 Frontier 후보 프로세스를 소유한다. Fleet Server는 Mapping 명령 저널에 Frontier 슬롯 예약을 같은 Agent boot와 session으로 기록한다. Agent는 Fleet·Frontier 제출을 단일 ROS 작업 큐와 공유 Goal 슬롯으로 중재한다. PAUSE/STOP은 소유 Action 핸들이 반환한 terminal 결과를 기다린다.
+
+격리 속도 체인은 Nav2의 `/fleet/cmd_vel_nav`와 Lease가 검증된 웹 입력에서 샘플 하나를 골라 Smoother → `/cmd_vel_raw` → 기존 Safety Gate → `/cmd_vel_locked`로 전달한다. Bag recorder는 Agent 밖의 세션 Supervisor가 소유하며 익명 pipe로 Fleet 연결 상태를 갱신한다. 로봇별 RGB·Depth는 Agent에서 읽기 전용으로 수집해 Fleet 관제 화면에 표시한다. 인터페이스와 하네스는 [ISOLATED_E2E.md](fleet_control/docs/ISOLATED_E2E.md)에 정리했다.

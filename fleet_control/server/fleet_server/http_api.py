@@ -95,6 +95,8 @@ def make_handler(fleet, auth, video_origins=()):
                 if not p.can_act_as_agent(rid): raise ApiError(403, 'forbidden', 'this token may not act as that robot')
                 if sub == '/agent/operation':
                     return self._send(200, fleet.worker_operation(rid, b.get('agent_boot_id'), b))
+                if sub == '/agent/camera':
+                    return self._send(200, fleet.ingest_camera(rid, b.get('agent_boot_id'), b))
                 if sub == '/agent/manual-bench':
                     return self._send(200, fleet.pull_manual_bench(rid, b.get('agent_boot_id')))
                 if sub == '/agent/hello': return self._send(200, fleet.hello(rid, b.get('agent') or {}))
@@ -116,6 +118,10 @@ def make_handler(fleet, auth, video_origins=()):
                     return self._send(200, {'server': {'time': time.time(), 'boot_id': fleet.boot_id, 'version': __version__, 'api': API_VERSION}, 'robots': fleet.robots_view(),
                                             'missions': fleet.missions(limit=40), 'events': fleet.events(limit=80)})
                 if sub == '/robots': return self._send(200, {'robots': fleet.robots_view()})
+                camera = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/camera/(rgb|depth)\.jpg', sub)
+                if camera:
+                    frame, source = fleet.camera_frame(*camera.groups())
+                    return self._send(200, frame, 'image/jpeg', {'X-Camera-Source': source})
                 m = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})(/map\.png|/map\.json)?', sub)
                 if m:
                     rid = m.group(1)

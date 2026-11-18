@@ -1,5 +1,5 @@
 'use strict';
-const API = '/api/v1'; let token = sessionStorage.getItem('fleet_token') || '', role = '', data = null, mapImg = {}, mapVer = {};
+const API = '/api/v1'; let token = sessionStorage.getItem('fleet_token') || '', role = '', principalName = '', data = null, mapImg = {}, mapVer = {};
 const $ = id => document.getElementById(id);
 const uuid = () => ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ (Math.random() * 16) >> c / 4).toString(16));   // crypto.randomUUID needs a secure context (plain http on the tailnet is not)
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -15,7 +15,7 @@ async function start() {
   if (!token) return showLogin('');
   const r = await fetch(API + '/me', {headers: {'Authorization': 'Bearer ' + token}});
   if (!r.ok) { sessionStorage.removeItem('fleet_token'); return showLogin(r.status === 401 ? '토큰이 올바르지 않습니다' : '접속 실패 ' + r.status); }
-  const me = await r.json(); role = me.role; $('who').textContent = `${me.name} (${me.role})`; $('logout').classList.remove('hidden');
+  const me = await r.json(); role = me.role; principalName = me.name; $('who').textContent = `${me.name} (${me.role})`; $('logout').classList.remove('hidden');
   $('login').classList.add('hidden'); $('main').classList.remove('hidden');
   const canCtl = role === 'operator' || role === 'admin'; $('mform').querySelectorAll('input,select,button').forEach(e => e.disabled = !canCtl);
   if (!canCtl) $('merr').textContent = 'viewer 권한: 임무를 만들거나 취소할 수 없습니다';

@@ -99,6 +99,20 @@ class MappingTest(unittest.TestCase):
         self.fleet.robots['a']['agent']['boot_id'] = 'second'
         self.assertEqual(self.fleet.operation_status('a', 'mapping')['state'], 'UNKNOWN')
 
+    def test_frontier_reservation_does_not_exempt_other_active_goals(self):
+        robot = self.fleet.robots['a']
+        robot['agent'].update(mapping_fixture=False, isolated_ros_mapping=True)
+        session = self.start()
+        sid, cid = session['session_id'], '0' * 32
+        self.assertTrue(self.worker('reserve_goal', session_id=sid, goal_id=cid)['reserved'])
+        report = dict(owner='frontier', mission_id=sid, command_id=cid)
+        self.assertTrue(self.fleet.owns_mapping_goal('a', 'worker', report))
+        self.assertFalse(self.fleet.owns_mapping_goal('a', 'worker', dict(report, command_id='other')))
+        with self.assertRaises(ApiError):
+            self.worker('reserve_goal', session_id=sid, goal_id='1' * 32)
+        robot['state_ts'] = time.time() - 10
+        self.assertFalse(self.fleet.owns_mapping_goal('a', 'worker', report))
+
     def test_real_and_external_goal_rejected(self):
         r = self.fleet.robots['a']
         r['state']['execution']['nav2_goals']['active_count'] = 1

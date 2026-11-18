@@ -61,7 +61,7 @@ class RecoveryMixin:
                 else:
                     self.require_reconciliation(c, 'delivery/result/goal-handle ownership uncertain; no automatic goal replay')
                 reports.append({'command_id': c['command_id'], 'status': self.db.one('SELECT status FROM commands WHERE command_id=?', (c['command_id'],))['status']})
-            if active:
+            if active and not self.owns_mapping_goal(robot_id, boot_id, active):
                 owned = self.db.one('SELECT * FROM commands WHERE command_id=? AND robot_id=? AND mission_id=?',
                                     (active.get('command_id'), robot_id, active.get('mission_id')))
                 if not owned or owned['owner_boot_id'] != boot_id or owned['status'] in CMD_TERMINAL:
@@ -78,7 +78,8 @@ class RecoveryMixin:
 
     def check_execution(self, robot_id, execution):
         active = (execution or {}).get('active') or {}
-        if active:
+        boot = self.robots[robot_id]['agent'].get('boot_id')
+        if active and not self.owns_mapping_goal(robot_id, boot, active):
             owned = self.db.one('SELECT * FROM commands WHERE command_id=? AND robot_id=? AND mission_id=?',
                                 (active.get('command_id'), robot_id, active.get('mission_id')))
             if not owned:

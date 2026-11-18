@@ -260,3 +260,44 @@ Google Drive에 업로드하는 모든 `<run_id>/` 폴더와 로컬 실험 폴�
 - **격리 ROS PASS** — `explore_lite_msgs`, `explore_lite`, `limo_robot_agent` 빌드. Mock Nav2에서 외부 Goal 차단, 자기 UUID만 취소, ACK 이후 terminal 대기, 종료 후 다음 Frontier 제출을 재확인했다. 별도 속도 입력 선택과 만료 시험은 베이스 속도 발행을 사용하지 않았다.
 - **Mock Fleet·브라우저 PASS** — Agent/Mapping/Bag/Gamepad 32개 및 하위 케이스 6개, Fleet Lease·복구 37/37, 시각화 Python 32개·JavaScript 2개. Chrome에서 두 로봇의 제어권 전환, 모의 Mapping·Bag, Gamepad 버튼과 지도·RGB·Depth 및 영상 연결 장애를 재확인했다.
 - **현장 번들 정적 검사 PASS 22/22** — 기존 런치 구성을 검사했다. **SKIP** — 전체 Gazebo 재실행, 실제 USB 조이스틱, 실제 Mapping·Bag Worker, 실차. 모의 worker 결과는 실제 SLAM·rosbag 프로세스 검증과 구분한다.
+
+### Phase 3A 격리 rosbag Worker 부분 검증
+
+Fleet 웹 Bag START/STOP → 격리 모드 Agent → 실제 rosbag2를 실행했다. Recorder의 /map 구독을 확인한 뒤 RECORDING으로 보고했고, SIGINT 종료 후 metadata 및 `ros2 bag info`에서 /map 6개 메시지를 확인했다. 원본 합성 발행자를 종료하고 `ros2 bag play`의 /map을 별도 구독했다. 다른 세션·epoch·robot 차단과 중복 START, 미확정 상태 차단은 단위시험으로만 확인했다. Agent/Server 실제 재시작, 통신 단절, 프로세스 강제 종료 및 별도 recorder 보호의 전체 E2E는 미검증이다.
+
+### Phase 3A 장애 주입 부분 결과
+
+격리 ROS에서 독립 recorder 2개를 실행해 다른 session STOP 거부, 한 recorder 정상 종료 중 다른 recorder 생존을 확인했다. 별도 실행에서 recorder SIGKILL과 metadata 미생성 시 성공 판정이 거부됐다. 정상 웹 기록·재생을 수정 후 재실행했다. Agent/Mapping/Gamepad/Goal 36개와 하위 6개, Fleet Lease·Recovery 37개, Agent 빌드가 통과했다.
+
+Agent·Server 실제 재시작, 네트워크 단절·복구, SIGINT 지연 및 SIGTERM/SIGKILL 단계, 재전송 전체 HTTP E2E, 부분 metadata와 강제 종료 후 복구는 아직 실행하지 않았다. 기존 자원 보호 상한은 Worker 실행 중 검사하며 Agent 프로세스 자체가 강제 종료된 후 recorder가 살아남을 경우 독립 watchdog이 없어 이 한도는 보장되지 않는다. 전체 Phase 3A는 미완료다.
+
+전체 기능 구현 우선 작업에서 Bag opt-in 기동을 안전상 차단한 뒤 Agent 관련 핵심 시험 36개(하위 6개), Mock Nav2 소유 Goal 취소, Agent 빌드를 실행했다. 독립 Supervisor·실제 Mapping·속도 중재 E2E 및 실차 검증은 미실행이다.
+
+### 전체 기능 구현 우선 단계의 최소 검증
+
+- **빌드 PASS** — ROS 2 Humble에서 `explore_lite_msgs`, `explore_lite`, `limo_capstone`, `limo_depth_obstacles`, `limo_robot_agent`, `limo_fleet_bringup` 빌드. 변경된 두 패키지를 재빌드했다.
+- **핵심 PASS** — 단위·로컬 HTTP 시험 68개와 하위 6개, Fleet Lease·소유권 회귀 37/37, 명령 중복 방지 14/14. Mock Nav2에서 기존 Frontier의 소유 UUID 취소와 terminal 대기 3건, 단위시험에서 Fleet·Frontier 최초 슬롯 경쟁을 확인했다.
+- **Bag PASS** — 격리 API에서 실제 rosbag2 START/STOP과 metadata 검사. 실제 Linux Supervisor의 테스트 recorder를 사용해 Agent SIGKILL 뒤 자기 recorder 종료·UNKNOWN·다른 recorder 생존을 확인했다. 실제 rosbag2 장애 주입 매트릭스는 대기다.
+- **격리 ROS 정상 경로 PASS** — 합성 센서, 실제 SLAM/Frontier/Nav2로 START·PAUSE·SAVE·RESUME·STOP, 소유 Goal UUID의 CANCELED, YAML·PGM·posegraph·data 생성, 로봇별 지도 PNG와 RGB·Depth JPEG API를 확인했다. posegraph 응답 유실 주입에서 YAML·PGM 증거와 UNKNOWN이 보존됐다.
+- **잠금 속도 체인 PASS** — 실제 Smoother와 Gate가 있는 격리 그래프에서 AUTO와 MANUAL 입력을 선택했다. MANUAL 샘플 만료 후 영속도와 `/cmd_vel_locked` 상태를 확인했다. 한 회차에서 Nav2가 하위 FollowPath의 halt 응답 지연을 기록했다. 상위 Goal CANCELED와 후속 FollowPath 취소가 확인됐으며 반복 전환에서 하위 Action 종료 순서를 추가 확인한다.
+- **종료 PASS** — 앞선 하네스 실행에서 남은 조회용 Agent의 SIGTERM 처리를 수정했다. 새 실행은 전체 정상 경로와 MANUAL 타임아웃을 완료하고, SIGTERM으로 하네스와 소유 프로세스를 정리했다.
+- **문법 및 공백 PASS** — Python, JavaScript, Bash, `git diff --check`.
+- **SKIP / 최종 통합 대기** — systemd 서비스 호스트 시험, 실제 rosbag2 강제 종료·한도·복구 매트릭스, 실제 두 제출자의 타이밍 반복, 실제 Agent/Server 재시작 조합, 브라우저·실물 Gamepad, Gazebo 장애물 회피, 저장 지도·posegraph 재로드, 실차. 실행 절차와 PASS 조건은 [격리 통합 시험](fleet_control/docs/ISOLATED_E2E.md)을 따른다.
+
+### 2026-11-18 A–E 잠금 통합 검증 캠페인
+
+A–E 미커밋 스냅샷을 통합 HEAD `8b03e0f` 및 패치 해시로 고정했다. 아래 결과는 이번 캠페인의 새 증거다. 선행 빌드·Lease·Journal 회귀 기록을 재사용했다.
+
+| 범위 | 결과 |
+|---|---|
+| A · 실제 Bag 장애 | **PASS**. Agent·Supervisor·recorder SIGKILL, Fleet 중단 및 같은 DB 재시작, Lease 만료에서 소유 recorder 종료와 다른 recorder 생존을 확인했다. Fleet는 UNKNOWN을 유지하고 START 재실행을 거부했다. Supervisor 강제 종료 후 세션 저널이 SPAWNED에 머무는 결함을 수정해 UNKNOWN을 재확인했다. 실제 recorder를 사용한 낮은 시간·용량 한계와 디스크 부족 신호 주입도 PASS. 운영 상한의 장시간 소크와 실제 파일시스템 고갈 시험은 SKIP. |
+| B · Mapping 및 저장 | **PASS**. Chrome에서 START·PAUSE·SAVE·RESUME·STOP, 소유 Goal UUID CANCELED, YAML·PGM·posegraph 생성. Gazebo 저장 기준선의 미관측 픽셀 11,210개가 Map Server에서 자유 공간으로 로드되는 결함을 재현했다. free threshold를 0.196으로 바꾼 뒤 같은 Bag 입력으로 11,210개 모두 미관측 보존을 확인했다. 원본 posegraph 재로드로 115×109 지도를 재생성했다. |
+| C · Goal 및 전환 | **PASS**. 실제 DDS ActionServer에 동시 제출한 Fleet·Frontier 중 한 Goal만 수락됐고, 타 소스 취소는 거부됐다. 소유 UUID만 CANCELED. Gazebo에서 상위 NavigateToPose보다 하위 FollowPath 종료가 늦는 순서를 관측해 격리 PAUSE·STOP과 MANUAL 진입에 FollowPath 종결 조건을 추가했다. 활성 목표 중 수동 요청 거부, 종료 후 브라우저 MANUAL 선택, Deadman 해제 후 영속도, 모터 잠금을 확인했다. |
+| D · 브라우저 | **PASS**. 실제 Chrome에서 인증, Lease, 지도·RGB·Depth, Mapping·Bag 버튼과 완료 상태를 확인했다. 합성 Gamepad로 보정 프로필 저장, 버튼 조합 실행, Deadman 해제, 두 번째 로봇 전환 시 이전 영상과 Lease 정리를 확인했다. 실물 Gamepad는 SKIP. |
+| E · Gazebo 및 Launch | **PASS**. Gazebo Fortress의 360빔 LiDAR와 odom을 격리 잠금 Bringup에 연결했다. 실제 SLAM·Frontier와 Bag 실행, Nav2의 장애물 우회 경로 120점 및 장애물 x 구간의 횡방향 오프셋 최소 약 0.85 m를 확인했다. `/cmd_vel` publisher와 subscriber는 모두 0이었다. Gazebo 차체의 폐루프 주행 및 실차는 SKIP. |
+
+브라우저 하네스 조기 종료 시 lifecycle 노드가 남아 DDS Action publisher 수가 일시적으로 늘어나는 결함을 확인했다. 하네스가 자신이 시작한 세션 그룹을 정리하도록 수정하고 새 도메인에서 재검증했다. 변경 패키지 빌드, FollowPath 입장·철회 단위시험, 문법 및 공백 검사를 실행했다.
+
+### 최종 코드 리뷰 보완
+
+FollowPath의 이전 목표 terminal 상태가 다음 목표의 종료 증거로 재사용될 수 있어 Frontier 제출 때 증거를 초기화하고 이후 활성 상태 관측과 terminal을 요구한다. 관측을 놓치면 UNKNOWN으로 차단한다. 이 변경에 대한 목표·수동 전환 단위시험 26개와 하위 6개가 PASS했다. 기존 캠페인은 수정 전 코드에 대한 결과다.

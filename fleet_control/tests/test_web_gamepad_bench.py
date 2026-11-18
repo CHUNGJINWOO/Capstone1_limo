@@ -81,6 +81,20 @@ class ManualBenchTest(unittest.TestCase):
                     self.start()
                 self.nav.update(original)
 
+    def test_locked_arbiter_requires_follow_path_terminal(self):
+        self.agent['locked_velocity_arbiter'] = True
+        execution = self.robot['state']['execution']
+        with self.assertRaises(ApiError) as error:
+            self.start()
+        self.assertEqual(error.exception.code, 'controller_terminal_unproven')
+        execution['follow_path_idle'] = True
+        session = self.start()
+        self.sample(session)
+        execution['follow_path_idle'] = False
+        with self.assertRaises(ApiError):
+            self.pull()
+        self.assertNotIn('mock', self.fleet.manual_benches)
+
     def test_real_agent_cannot_start(self):
         self.agent.update(mode='real', simulated=False)
         with self.assertRaises(ApiError):

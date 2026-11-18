@@ -125,14 +125,14 @@
       if (attempt !== generation) return;
       const path = root + '/manual-bench';
       const result = await post(path, {action: 'start', epoch: lease.epoch});
-      if (!result.ok) throw Error((await result.json()).error?.message || '모의 입력 시작 거부');
+      if (!result.ok) throw Error((await result.json()).error?.message || '수동 입력 시작 거부');
       const {session_id: id, ticket} = await result.json();
       if (attempt !== generation) return;
       session = {path, id, epoch: lease.epoch, ticket, index: pad.index, device: pad.id,
         linear, turn, button, calV, calW, seq: 0, down: false, busy: false, stamp: pad.timestamp, changedAt: performance.now(),
         deadzone: number('gpDeadzone'), maxV: number('gpMaxLinear'), maxW: number('gpMaxTurn'),
         signV: $('gpInvertLinear').checked ? -1 : 1, signW: $('gpInvertTurn').checked ? -1 : 1};
-      state('모의 입력 준비 · Deadman 대기');
+      state('수동 입력 준비 · Deadman 대기');
     } catch (error) { state(error.message); }
     finally { starting = false; }
   };
@@ -206,9 +206,9 @@
       const rid = $('gpRobot').value;
       if (window.selectOperationRobot && !await window.selectOperationRobot(rid)) return;
       const root = '/robots/' + encodeURIComponent(rid);
-      const response = await post(root + '/lock', {action: 'acquire', ttl_s: 15}, 1000);
+      const response = await post(root + '/lock', {action: 'acquire', ttl_s: 60}, 1000);
       if (!response.ok) throw Error('Fleet Lease 획득 또는 갱신이 거부됐습니다.');
-      state('Fleet Lease 15초 · 모의 입력을 시작하세요.');
+      state('Fleet Lease 60초 · 작업 또는 수동 입력을 시작하세요.');
     } catch (error) { state(error.message); }
   };
   $('gpScan').onclick = scan;

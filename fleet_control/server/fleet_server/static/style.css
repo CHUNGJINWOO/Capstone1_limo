@@ -21,3 +21,6 @@ input,select,button{background:#0f1419;color:#e6e6e6;border:1px solid #2a3340;bo
 .aioverlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);color:#ff8a80;font-weight:600;text-align:center;padding:12px}
 #aiDets{width:100%;margin-top:8px}
 @media (max-width:900px){.aiwrap{grid-template-columns:1fr}}
+#robotVideo figure { margin: 0; }
+#robotVideo figcaption { margin-block: .4rem; }
+#robotVideo img { width: min(100%, 480px); height: auto; border-radius: .35rem; }

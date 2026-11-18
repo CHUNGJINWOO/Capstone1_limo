@@ -73,3 +73,7 @@
 - 제6 문서는 영상 그룹의 `fleet_control/dashboard/README.md`다. 공통 문서 그룹 5개에 대한 추적은 감사 목록을 따른다. 모의 Mapping·Bag 결과는 실제 ROS 실행 및 실차 검증과 구분한다.
 
 최종 재검증 기록과 이 문서를 포함한 복구본은 `local_data/raw_results/capstone18_git4_execution.0R5xNb/`에 보관한다.
+
+### 전체 기능 구현 우선 개발
+
+기존 `/tmp/capstone-public-integration-20261118`의 `integration/selected-20261118`에서 작업했다. 시작 시 GitHub main과 통합 HEAD는 `f1a87cb44916db4769cef575e6de9a19a1e555a8`였다. 작업 중 별도 Gazebo·LiDAR 증거 커밋으로 로컬 HEAD가 `8b03e0f`까지 전진했다. 종료 점검에서 GitHub main과 로컬 HEAD가 `8b03e0f`로 일치했다. 변경 경로가 겹치지 않아 두 커밋을 그대로 보존했다. 이번 검증의 HTTP 28943–28947 및 로컬 DDS 도메인 193, 195–202은 임시 사용했다. 다음 실행은 새로운 디렉터리와 비어 있는 포트·도메인을 지정한다.

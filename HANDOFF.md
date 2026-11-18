@@ -107,3 +107,17 @@ Fleet 테스트 서버와 Mock Nav2 Action Server를 별도 환경에 두고 Age
 11월 19일 기존 현장 번들의 로컬 실행 순서와 프로파일을 유지한다. 새 Fleet Mapping API는 모의 플래그를 등록한 worker 전용이다. UNKNOWN 세션에는 자동 재개나 Goal 제출이 없다. 후속 연결은 실제 Goal UUID 쌍의 종료 증거, SLAM 상태, 래스터와 posegraph의 개별 저장 결과, session이 시작한 rosbag만 종료하는 절차를 실제 worker로 연결한 뒤 격리 ROS에서 재시험한다. Depth는 기존 읽기 전용 콘솔에서 계속 볼 수 있다.
 
 4차 통합 이후 기능별 ROS 2 구조 정리의 기준은 공개 `main` `1ca1393d229a1a3e1727079d61f8a1210a9520ac`와 4차 선택 변경이다. 복구 위치는 `WORKTREES.md`에 기록했다. 실제 Mapping·Bag Worker부터 격리 환경에 연결한다. Goal terminal과 소유 프로세스 종료를 관측한 뒤 완료 상태를 보고하고, 게이트 속도 경로는 별도 검증한다.
+
+Phase 3A의 Bag Worker 웹 기록·재생은 격리 ROS에서 확인됐다. 중복 STOP, 실제 Agent/Server 재시작, 통신 단절, 녹화 중 비정상 종료·강제 종료 및 다른 recorder 보호 시험이 남았다. 연결 유실 중 recorder는 종료되지 않을 수 있으며 재시작 시 소유권 복구 없이 UNKNOWN으로 남는다. 이 상태에서 현장 적용을 진행하지 않는다.
+
+Phase 3A 격리 Worker는 실행 중 최대 300초, 파일 합계 256 MiB, 남은 디스크 1 GiB, Fleet 단절 5초를 검사해 recorder 종료를 요청한다. 프로세스 PID·start ticks·PGID·session·경로를 저널에 남기며 재시작 시 인수하지 않는다. Agent가 SIGKILL되면 검사 스레드도 함께 중지되므로 살아남은 recorder의 무제한 기록을 아직 방지하지 못한다. 이 한계와 잔여 장애 E2E를 해결하기 전 Phase 3B를 시작하지 않는다.
+
+이전 단계에서 `isolated_ros_bag`를 독립 Supervisor 부재로 fail-closed 처리했다. 기존 Bag 코드는 보존돼 있으며 활성화 전에 세션 단위 cgroup 및 독립 자원 감시를 연결해야 한다. 이후 격리 ROS Worker와 Depth 화면 연결을 추가했다.
+
+### 전체 통합 검증 인계
+
+현재 격리 경로에서 독립 Bag Supervisor와 실제 Mapping Worker를 사용할 수 있다. 새 하네스는 로컬 Fleet, 두 로봇, 합성 센서, 실제 SLAM·Nav2·rosbag2를 새 런 디렉터리에서 시작한다. 명령 결과의 UUID 및 세션 저널을 [격리 통합 매트릭스](fleet_control/docs/ISOLATED_E2E.md)에 따라 대조한다. UNKNOWN/FAILED의 원본 저널과 Bag·지도 파일을 보존한다. 실차 시나리오는 별도 승인 이후 기존 Runbook으로 진행한다.
+
+### 잠금 캠페인 후속 확인
+
+A–E 기준선과 캠페인 수정분은 별도 해시로 보존한다. 이전 기본 임계값으로 생성된 PGM/YAML은 Map Server가 미관측 셀을 자유 공간으로 해석할 수 있다. 캠페인은 원본을 보존하고 같은 Gazebo Bag으로 수정본을 별도 생성해 분류를 확인했다. 다음 검증 범위는 Gazebo에서의 폐루프 이동, 실물 Gamepad, 별도 승인 후 실차다. 격리 Launch의 모터 잠금과 기존 실차 진입점을 유지한다.

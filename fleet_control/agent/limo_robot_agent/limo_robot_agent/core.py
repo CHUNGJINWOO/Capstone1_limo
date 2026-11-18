@@ -153,7 +153,7 @@ class AgentCore:
 
     def run(self):
         self.running = True; backoff = 1.0
-        while self.running:
+        while self.running and not self.stop_evt.is_set():
             t0 = time.time()
             try:
                 if not self.connected: self._hello(); self.stats['reconnects'] += 1

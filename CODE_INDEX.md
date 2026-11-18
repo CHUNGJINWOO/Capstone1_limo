@@ -62,3 +62,15 @@
 - `fleet_control/server/fleet_server/mapping.py`와 `db.py`는 별도 Mapping/Bag 상태·요청 저널을 관리한다. Operator는 `/robots/{id}/mapping`, `/robots/{id}/bag`를 사용하고, 명시적 모의 worker는 `/agent/operation`을 사용한다.
 - `static/operations_panel.js`는 선택 로봇·Lease·Mapping·Bag을 표시한다. `static/gamepad_panel.js`는 장치별 보정과 버튼을 브라우저 로컬 프로필로 관리한다. 지도와 RGB는 Fleet 화면의 기존 패널, Depth는 기존 읽기 전용 시각화 콘솔을 사용한다.
 - `fleet_control/tests/test_mapping_session.py`는 독립 Bag 상태, 요청 재전송, 결과 유실, 외부 Goal 및 real Agent 차단을 시험한다.
+
+`limo_robot_agent/bag_worker.py`는 Fleet Bag 요청을 기록하고 `owned_bag.py`를 통해 자신이 시작한 rosbag2 프로세스만 관리한다. `isolated_ros_bag`은 mock·simulated·로컬 ROS에 한해 명시적으로 켠다.
+
+`owned_bag.py`는 소유한 PID·시작 tick·PGID를 확인해 신호를 보낸다. `bag_worker.py`의 자원 한도는 독립 Bag Supervisor가 감시한다.
+
+`agent_node.py`의 `isolated_ros_bag`는 기본 비활성이며 격리 mock 모드에서 Supervisor를 사용한다.
+
+### 격리 실제 ROS 작업자 및 통합 Launch
+
+- `fleet_control/agent/limo_robot_agent/limo_robot_agent/`의 `mapping_worker.py`는 SLAM·Frontier 및 지도 저장, `bag_supervisor.py`는 개별 기록 세션, `velocity_arbiter.py`는 Gate 앞 속도 선정, `camera_preview.py`는 이미지 수집을 담당한다.
+- `fleet_control/server/fleet_server/`의 `mapping.py`는 Mapping Goal 예약과 작업 상태, `static/camera_panel.js`와 `static/operations_panel.js`는 운영 화면 연동을 담당한다.
+- `capstone_ws/src/limo_fleet_bringup`은 기존 ROS 패키지를 재사용하는 잠금 전용 Launch의 진입점이다. 토픽·서비스·Action 매핑은 [ISOLATED_E2E.md](fleet_control/docs/ISOLATED_E2E.md)를 참조한다.

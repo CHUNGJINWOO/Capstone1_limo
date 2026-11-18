@@ -91,3 +91,17 @@
 웹 Gamepad를 통해 Fleet Lease를 획득한 운영자의 입력을 모의 Agent에서 속도 미리보기로 받는다. 축·Deadman 번호는 브라우저에서 확인한 값을 지정한다. 실물 Gamepad, Gate까지의 ROS 속도 연결, 실제 주행은 UNVERIFIED다.
 
 웹 Mapping/Bag의 명령 계약과 UI는 Mock 검증 단계다. 요청은 QUEUED/ACCEPTED와 실제 완료 보고를 구분한다. Goal terminal 누락·저장 중 worker 연결 유실은 UNKNOWN으로 차단하고 YAML/PGM과 posegraph 결과를 별도로 표시한다. 실제 Frontier·SLAM 저장·rosbag 프로세스 연결, Gate 속도 연결 및 실차 적용은 미구현 또는 미검증이다.
+
+격리 전용 Bag Worker는 실차 기본 비활성이다. 웹 START/STOP과 rosbag2 기록·재생을 격리 시험했으며, 장애 주입 회귀가 완료되지 않아 Phase 3A 전체 완료로 간주하지 않는다.
+
+Bag Worker의 독립 recorder 보호와 비정상 종료 판정은 격리 ROS에서 부분 통과했다. Agent 강제 종료 후 살아남은 recorder에 대한 독립 자원 watchdog 및 재시작·연결 단절 전체 시험은 미완료다.
+
+전체 기능 구현 이전에 Agent 강제 종료 후 Bag recorder가 무제한으로 남는 결함을 확인해 `isolated_ros_bag` 기동을 차단했다. 이후 독립 Supervisor, 실제 Mapping Worker 및 Gate 연결 Velocity Arbiter를 격리 경로에 추가했다.
+
+### 후속 전체 기능 구현 결과
+
+격리 ROS opt-in으로 독립 Bag Supervisor, 실제 Mapping Worker, 공유 Goal 중재, 모터 잠금 Velocity Arbiter를 연결했다. 한 관제 화면에 모드·Lease·Gate·명령 상태와 로봇별 RGB·Depth를 표시한다. 새 `limo_fleet_bringup`의 모듈형 launch는 기존 ROS 실행 파일을 사용한다. 실제 SLAM·Nav2·rosbag2를 합성 센서 환경에서 짧게 실행해 Mapping 수명주기, 지도·posegraph 저장과 Bag 정상 종료를 확인했다. 세부 범위와 잔여 검증은 [VALIDATION.md](VALIDATION.md)와 [ISOLATED_E2E.md](fleet_control/docs/ISOLATED_E2E.md)를 참조한다.
+
+### A–E 잠금 통합 검증 결과
+
+실제 Chrome·ROS 2·Gazebo Fortress에서 관제 명령, Goal 중재 및 수동 전환, Bag 장애 종료, Gazebo 센서와 Nav2 장애물 우회 계획을 확인했다. 세션 저널의 Supervisor 강제 종료 판정, FollowPath 종결 조건, 저장 지도 미관측 셀 분류, 하네스 프로세스 정리를 수정했다. Gazebo 폐루프 주행과 실차·실물 Gamepad 시험은 대기다. [VALIDATION.md](VALIDATION.md)

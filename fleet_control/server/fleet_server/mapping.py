@@ -1,4 +1,4 @@
-"""Separate Mapping and Bag command journal for an explicitly simulated worker."""
+"""Separate Mapping and Bag command journal for an operator operation worker."""
 import json
 import re
 import time
@@ -29,7 +29,10 @@ class MappingMixin:
             robot = self.robots[robot_id]
             lease = self.lease_view(robot_id)
             command = session['command']
+            worker_status = ((robot.get('state') or {}).get(kind + '_worker') or {}).get('status')
             if session['state'] not in ('STOPPED', 'UNKNOWN') and (
+                    worker_status in ('LOST', 'UNKNOWN', 'FAILED')
+                    or
                     session.get('server_boot') != self.boot_id
                     or time.time() - (robot.get('state_ts') or 0) > 3
                     or not robot.get('reconciled') or robot.get('reconciliation_required')
@@ -56,16 +59,19 @@ class MappingMixin:
                     'INSERT INTO operation_requests(robot_id,kind,actor,idem,body) VALUES(?,?,?,?,?)',
                     (session['robot_id'], session['kind'], session['owner'], c['idempotency_key'], json.dumps(c)))
 
-    def _operation_worker(self, robot_id):
+    def _operation_worker(self, robot_id, kind):
         from .service import ApiError
 
         r = self.robots.get(robot_id) or {}
         agent = r.get('agent') or {}
+        real_mapping = kind == 'mapping' and agent.get('isolated_ros_mapping') is True
         if (agent.get('mode') != 'mock' or agent.get('simulated') is not True
-                or agent.get('mapping_fixture') is not True or agent.get('missions_enabled') is not False
+                or not (agent.get('mapping_fixture') is True or
+                        agent.get('isolated_ros_' + kind) is True)
+                or (agent.get('missions_enabled') is not False and not real_mapping)
                 or not r.get('reconciled') or r.get('reconciliation_required')
                 or not 0 <= time.time() - (r.get('state_ts') or 0) < 3):
-            raise ApiError(409, 'worker_unavailable', 'fresh reconciled mock mapping worker required')
+            raise ApiError(409, 'worker_unavailable', 'fresh reconciled operation worker required')
         return r
 
     def request_operation(self, robot_id, kind, actor, body):
@@ -91,12 +97,15 @@ class MappingMixin:
                 return {'duplicate': True, 'command_id': command['command_id'], 'session_id': command['session_id']}
             if state['state'] not in STABLE[kind][action]:
                 raise ApiError(409, 'operation_state_conflict', state['state'])
-            r = self._operation_worker(robot_id)
+            r = self._operation_worker(robot_id, kind)
             if kind == 'mapping' and action in ('START', 'RESUME'):
                 nav = ((r.get('state') or {}).get('execution') or {}).get('nav2_goals') or {}
                 active = ((r.get('state') or {}).get('execution') or {}).get('active')
-                if (nav.get('known') is not True or nav.get('publishers') != 1
-                        or type(nav.get('active_count')) is not int or nav['active_count'] != 0 or active is not None):
+                starting_empty_graph = (action == 'START' and r['agent'].get('isolated_ros_mapping') is True
+                                        and nav.get('publishers') == 0 and nav.get('active_count') is None)
+                idle = (nav.get('known') is True and nav.get('publishers') == 1
+                        and type(nav.get('active_count')) is int and nav['active_count'] == 0)
+                if active is not None or not (idle or starting_empty_graph):
                     raise ApiError(409, 'nav_terminal_unproven', 'Nav2 idle evidence required')
                 if any(m['status'] not in ('SUCCEEDED', 'FAILED', 'CANCELED', 'REJECTED', 'EXPIRED')
                        for m in self.db.q('SELECT status FROM missions WHERE robot_id=?', (robot_id,))):
@@ -113,7 +122,8 @@ class MappingMixin:
             session = dict(robot_id=robot_id, kind=kind, session_id=sid, state=PENDING[action],
                            boot=r['agent']['boot_id'], server_boot=self.boot_id, owner=actor, epoch=lease['epoch'],
                            command=command, result=None,
-                           last_save=state.get('last_save') if action != 'START' else None)
+                           last_save=state.get('last_save') if action != 'START' else None,
+                           owned_goal=state.get('owned_goal') if action != 'START' else None)
             self._write_operation(session, new_command=True)
             return {'session_id': sid, 'command_id': command['command_id'], 'status': 'QUEUED'}
 
@@ -122,14 +132,37 @@ class MappingMixin:
 
         with self.lock:
             self.check_session(robot_id, boot)
-            self._operation_worker(robot_id)
             kind = body.get('kind')
             if kind not in ('mapping', 'bag'):
                 raise ApiError(400, 'bad_kind', 'mapping or bag required')
+            self._operation_worker(robot_id, kind)
             s = self.operation_status(robot_id, kind)
             c = s.get('command')
             if body.get('action') == 'poll':
-                return {'command': c if c and c['status'] == 'QUEUED' else None}
+                renew = (s['state'] in ('RECORDING', 'MAPPING', 'PAUSED')
+                         and s.get('session_id') == body.get('session_id')
+                         and s.get('boot') == boot)
+                response = {'command': c if c and c['status'] == 'QUEUED' else None}
+                if 'session_id' in body:
+                    response['renew'] = renew
+                return response
+            if kind == 'mapping' and body.get('action') == 'reserve_goal':
+                cid = body.get('goal_id')
+                prev = body.get('previous')
+                owned = s.get('owned_goal')
+                if (s['state'] != 'MAPPING' or s['boot'] != boot
+                        or s['session_id'] != body.get('session_id')
+                        or self.robots[robot_id]['agent'].get('isolated_ros_mapping') is not True
+                        or not isinstance(cid, str) or not re.fullmatch('[0-9a-f]{32}', cid)
+                        or (owned and (not isinstance(prev, dict) or owned != prev.get('command_id')
+                                      or cid == owned
+                                      or prev.get('status') not in ('SUCCEEDED', 'FAILED', 'CANCELED', 'REJECTED')
+                                      or (prev.get('status') != 'REJECTED' and
+                                          not re.fullmatch('[0-9a-f]{32}', str(prev.get('goal_uuid'))))))):
+                    raise ApiError(409, 'goal_reservation_required', 'live Mapping session and resolved prior Goal required')
+                s['owned_goal'] = cid
+                self._write_operation(s)
+                return {'reserved': True}
             if (not c or s['boot'] != boot or body.get('command_id') != c['command_id']
                     or body.get('session_id') != s['session_id']):
                 raise ApiError(409, 'operation_mismatch', 'session, command and boot must match')
@@ -170,6 +203,17 @@ class MappingMixin:
                 s['last_save'] = s['result']
             self._write_operation(s)
             return s
+
+    def owns_mapping_goal(self, robot_id, boot, active):
+        if active.get('owner') != 'frontier':
+            return False
+        robot = self.robots.get(robot_id) or {}
+        if (robot.get('agent') or {}).get('isolated_ros_mapping') is not True:
+            return False
+        s = self.operation_status(robot_id, 'mapping')
+        return (s['state'] in ('MAPPING', 'PAUSING', 'STOPPING')
+                and s.get('boot') == boot and s.get('session_id') == active.get('mission_id')
+                and s.get('owned_goal') == active.get('command_id'))
 
     def mapping_blocks_motion(self, robot_id):
         return self.operation_status(robot_id, 'mapping')['state'] not in ('IDLE', 'STOPPED')

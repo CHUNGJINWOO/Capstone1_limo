@@ -34,6 +34,7 @@ class Fleet(RecoveryMixin, OwnershipMixin, MappingMixin):
         self.boot_id = uuid.uuid4().hex[:12]
         self.last_persist = {}
         self.manual_benches = {}
+        self.camera_frames = {}
         # restore persisted robots (they start as offline until their agent reports again)
         self.robots = {}
         for r in db.q('SELECT * FROM robots'):
@@ -62,6 +63,9 @@ class Fleet(RecoveryMixin, OwnershipMixin, MappingMixin):
                 or nav['active_count'] != 0):
             self.manual_benches.pop(robot_id, None)
             raise ApiError(409, 'nav_ownership_unknown', 'Nav2 terminal or absent proof required')
+        if agent.get('locked_velocity_arbiter') is True and execution.get('follow_path_idle') is not True:
+            self.manual_benches.pop(robot_id, None)
+            raise ApiError(409, 'controller_terminal_unproven', 'FollowPath terminal evidence required')
         if any(r['status'] not in MISSION_TERMINAL for r in self.db.q(
                 'SELECT status FROM missions WHERE robot_id=?', (robot_id,))):
             self.manual_benches.pop(robot_id, None)
@@ -167,6 +171,36 @@ class Fleet(RecoveryMixin, OwnershipMixin, MappingMixin):
             res = self._deliver(robot_id)
             res['recovered_commands'] = self.recovered_command_ids(robot_id)         # operator-recovered commands: the agent may clear them from its own journal after re-checking Nav2
             return res
+
+    def ingest_camera(self, robot_id, boot, body):
+        kind, encoded, age = (body.get(k) for k in ('kind', 'jpeg_base64', 'source_age_s'))
+        if (kind not in ('rgb', 'depth') or not isinstance(encoded, str) or len(encoded) > 350_000
+                or type(age) not in (float, int) or not 0 <= age < 2):
+            raise ApiError(400, 'bad_camera_frame', 'invalid camera frame')
+        try:
+            frame = base64.b64decode(encoded, validate=True)
+        except ValueError:
+            raise ApiError(400, 'bad_camera_frame', 'invalid JPEG encoding') from None
+        if not frame.startswith(b'\xff\xd8\xff') or not frame.endswith(b'\xff\xd9'):
+            raise ApiError(400, 'bad_camera_frame', 'JPEG required')
+        with self.lock:
+            robot = self.check_session(robot_id, boot)
+            if robot['agent'].get('camera_preview') is not True:
+                raise ApiError(409, 'camera_disabled', 'camera preview disabled')
+            source = 'SIMULATED' if robot['agent'].get('simulated') else 'ROS'
+            self.camera_frames[robot_id, kind] = boot, time.monotonic() - age, frame, source
+        return {'ok': True}
+
+    def camera_frame(self, robot_id, kind):
+        with self.lock:
+            robot = self.robots.get(robot_id) or {}
+            value = self.camera_frames.get((robot_id, kind))
+            if not value or robot.get('online') is not True:
+                raise ApiError(404, 'camera_unavailable', 'camera data unavailable')
+            boot, timestamp, frame, source = value
+            if boot != (robot.get('agent') or {}).get('boot_id') or time.monotonic() - timestamp >= 3:
+                raise ApiError(404, 'camera_unavailable', 'camera data expired')
+            return frame, source
 
     def ingest_map(self, robot_id, version, meta, png_b64):
         with self.lock:

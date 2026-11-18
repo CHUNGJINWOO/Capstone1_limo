@@ -6,6 +6,7 @@
 <div id="login" class="card hidden"><h2>API 토큰 입력</h2><p class="muted">관제 서버 토큰(viewer, operator, admin 중 하나)을 입력하세요. 토큰은 이 브라우저 탭의 sessionStorage에만 저장됩니다.</p>
 <input id="tok" type="password" placeholder="Bearer token" autocomplete="off"><button id="go">접속</button><div id="loginerr" class="bad"></div></div>
 <main id="main" class="hidden">
+ <section class="card mform"><label>운영 로봇 <select id="opsSelect"></select></label></section>
  <section id="robots"></section>
  <section class="cols">
   <div class="card"><h2>지도와 로봇 위치 <select id="mapRobot"></select> <span id="mapinfo" class="muted"></span></h2>
@@ -17,8 +18,15 @@
     <button id="mcreate" type="submit">임무 생성 (NavigateToPose)</button></form><div id="merr" class="bad"></div>
    <table id="missions"><thead><tr><th>mission</th><th>robot</th><th>목표</th><th>상태</th><th>진행</th><th></th></tr></thead><tbody></tbody></table></div>
  </section>
+ <section class="card" id="robotVideo">
+  <h2>카메라 · 선택 로봇</h2>
+  <div class="cols">
+   <figure><figcaption>RGB · <span id="cameraRgbState">수신 대기</span></figcaption><img id="cameraRgb" alt="선택 로봇 RGB" hidden></figure>
+   <figure><figcaption>Depth · <span id="cameraDepthState">수신 대기</span> · 밝을수록 가까움 (0–5 m)</figcaption><img id="cameraDepth" alt="선택 로봇 Depth" hidden></figure>
+  </div>
+ </section>
  <section class="card" id="gamepadPanel">
-  <h2>웹 조이스틱 · 모의 입력</h2>
+  <h2>웹 게임패드 · <span id="gpMode">대기</span></h2>
   <form id="gamepadForm" class="mform">
    <label>로봇 <input id="gpRobot" list="gpRobots" required pattern="[A-Za-z0-9_.-]{1,64}"></label>
    <label>장치 <select id="gpDevice" required></select></label>
@@ -30,7 +38,7 @@
    <label>Deadzone <input id="gpDeadzone" type="number" min="0" max=".9" step=".01" value=".12" required></label>
    <label>선속도 상한 (m/s) <input id="gpMaxLinear" type="number" min="0" max=".10" step=".01" value=".10" required></label>
    <label>각속도 상한 (rad/s) <input id="gpMaxTurn" type="number" min="0" max=".30" step=".01" value=".30" required></label>
-   <button id="gpLease" type="button">제어권 획득·갱신</button><button id="gpScan" type="button">장치 확인</button><button type="submit">모의 입력 시작</button>
+   <button id="gpLease" type="button">제어권 획득·갱신</button><button id="gpScan" type="button">장치 확인</button><button type="submit">수동 입력 시작</button>
    <button id="gpStop" type="button">중지</button>
   </form>
   <datalist id="gpRobots"></datalist>
@@ -51,11 +59,10 @@
   </details>
   <p id="gpInputs">스틱을 움직여 축 번호와 버튼 번호를 확인하세요.</p>
   <p id="gpState" role="status">대기 중</p>
-  <p><a href="http://127.0.0.1:18210/">지도·RGB·Depth 시각화 콘솔</a></p>
  </section>
  <section class="card" id="operationsPanel">
   <h2>Mapping Session · ROS Bag</h2>
-  <p id="opsRobot"></p><p id="opsLease"></p>
+  <p id="opsRobot"></p><p id="opsLease"></p><p id="opsSafety"></p>
   <p id="opsMap"></p><p id="opsBag"></p><p id="opsDetail" role="status"></p>
   <div id="opsCommands">
    <button data-operation="mapping:START">시작</button>
@@ -68,11 +75,11 @@
   </div>
  </section>
  <section class="card" id="aiPanel"><h2>AI 영상 (RGB + YOLO) <span id="aiState" class="badge off">연결 안 됨</span></h2>
-  <div class="muted small">영상·AI 경로는 임무/안전 명령 통신과 분리된 별도 서버입니다. 별도 토큰(영상 서버 viewer)을 사용하며 관제 토큰을 보내지 않습니다. RGB만 사용한 2D 검출이며 거리(Depth)는 없습니다.</div>
+  <div class="muted small">영상·AI 경로는 임무/안전 명령 통신과 분리된 별도 서버입니다. 별도 토큰(영상 서버 viewer)을 사용하며 관제 토큰을 보내지 않습니다. 이 패널은 RGB 기반 2D 검출 결과를 표시합니다.</div>
   <form id="aiForm" class="mform"><label>영상 서버 주소<input id="aiBase" type="text" value="http://127.0.0.1:18172" size="26"></label><label>영상 서버 토큰<input id="aiTok" type="password" autocomplete="off"></label><button id="aiGo" type="submit">연결</button><button id="aiStop" type="button" class="small">중지</button></form>
   <div id="aiErr" class="bad"></div>
   <div class="aiwrap"><div class="aiimgbox"><img id="aiImg" alt="AI annotated frame" width="640" height="480"><div id="aiOverlay" class="aioverlay hidden"></div></div>
    <div><div class="grid" id="aiStats"></div><table id="aiDets"><thead><tr><th>클래스</th><th>신뢰도</th><th>bbox (x1,y1,x2,y2)</th></tr></thead><tbody></tbody></table><div id="aiNote" class="muted small"></div></div></div></section>
  <section class="card"><h2>이벤트 로그</h2><div id="events"></div></section>
 </main>
-<script src="app.js"></script><script src="video_panel.js"></script><script src="gamepad_panel.js"></script><script src="operations_panel.js"></script></body></html>
+<script src="app.js"></script><script src="video_panel.js"></script><script src="gamepad_panel.js"></script><script src="operations_panel.js"></script><script src="camera_panel.js"></script></body></html>
