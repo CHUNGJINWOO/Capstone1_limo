@@ -235,3 +235,28 @@ Google Drive에 업로드하는 모든 `<run_id>/` 폴더와 로컬 실험 폴�
 ## 2026-11-18 선택 통합: 고정 지도 스냅샷
 
 격리 ROS 2 Humble에서 합성 trinary 3×2 지도를 실제 Nav2 map_saver_cli로 저장하고 map_server에서 재로드했다. UNKNOWN/FREE/OCCUPIED 각 2셀, 전체 6셀, 크기·해상도·원점 x/y/yaw가 일치했다. `capstone_ws/src/limo_capstone/tests/map_roundtrip_ros.py`로 재현한다. posegraph는 별도 서비스 요청으로 직렬화하므로 지도와 동일한 시각의 상태라고 보장하지 않는다. 실차 및 실제 posegraph 재로드는 이번 통합에서 SKIP이다. 전체 의존 패키지 빌드는 ydlidar_sdk 미설치로 실패했다.
+
+### 2026-11-18 비실차 마무리
+
+- 격리 ROS 2 Humble Mock Nav2에서 실제 `explore_lite`를 빌드·실행했다. 외부 Goal 진행 중 Explorer 제출 0건, 일시 정지 시 Explorer UUID에만 취소 1건, 취소 ACK 후 추가 Goal 0건, 두 Goal의 terminal 이후 새 Frontier 제출을 확인했다. Fleet Adapter의 활성·복수·미확인 상태 거부와 기존 취소/복구 회귀 등 21개 시험 및 3개 하위 케이스가 통과했다. Fleet Lease·RMF 중재·재시작 복구 회귀는 37/37 통과했다.
+- 헤드리스 Chrome에서 합성 ROS 지도·Depth와 별도 viewer 인증을 사용한 모의 RGB 호스트의 JPEG가 함께 표시됐다. RGB 호스트 중단 시 Depth는 유지됐고 Depth ROS 소스 중단 시 오래됨 표시로 전환됐다. 대시보드 Python 32개와 JavaScript 2개 시험이 통과했다.
+- 기존 현장 번들의 정책 17개 및 실행 없는 launch 검사 22개가 통과했다. 격리 Nav2 지도 저장·재로드 6셀과 원점·해상도 일치. 합성 bag은 SIGINT 종료 후 `ros2 bag info`에서 28개 메시지(지도 9, Depth 19)를 확인했다. 합성 LaserScan으로 SLAM Toolbox posegraph와 data를 직렬화하고, 별도 SLAM 프로세스에서 두 파일을 읽었다. 현장 번들 전체 실행 및 실차 모터·Gate·센서 시험은 SKIP이다.
+
+### 2026-11-18 웹 Gamepad 모의 입력과 속도 선택
+
+- 별도 Fleet Server, ROS Agent, Mock Nav2 Action Server, 헤드리스 Chrome에서 Gamepad 객체를 주입했다. 비기본 축 5·3 및 버튼 7, 반전, 전진·제자리 회전·후진 차단, Deadman 해제, 타임스탬프 정지, 장치 끊김, 브라우저 종료, Lease 반환, 재전송·만료 및 Agent 새 boot ID의 영속도 초기화를 확인했다. 실행 중 /cmd_vel과 /cmd_vel_raw 발행자 수는 각각 0이었다. 기존 Agent의 SIGTERM 종료 대기 실패는 보존했으며 SIGINT 종료를 사용했다.
+- 격리 ROS의 별도 mock nav/manual 입력을 동시에 공급해 단일 선택, terminal 증거 없는 수동 입력 차단, 입력 만료 영속도를 확인했다. Agent/Goal/조이스틱 단위시험 28개(하위 케이스 6개)와 Fleet Lease 기존 회귀 37개가 통과했다.
+- 영상 E2E에서 합성 ROS 지도·Depth와 별도 인증 모의 RGB가 동시에 나왔고 입력 중단 표시를 다시 확인했다. 실물 USB Gamepad·Gate 속도 라우팅·실차 구동은 SKIP이다.
+
+### 2026-11-18 Mapping Session 및 관제 정리
+
+- Chrome + Fleet HTTP/SQLite + ROS Mock Nav2로 두 모의 로봇을 사용했다. 첫 Agent의 입력을 끊고 영속도·Nav2 유휴 상태를 확인한 뒤 Lease를 반환하고 둘째 로봇을 선택했다.
+- 둘째 로봇의 mock worker로 START/PAUSE/SAVE/RESUME/STOP 및 독립 Bag을 검증했다. YAML/PGM 성공과 posegraph 실패를 UI에서 구분했다. SQLite 단위시험에서 저장 중 worker 연결 유실, Goal 종료 불명, Agent boot 변경, 명령 재전송을 검증했다. 이번 시험에서 실제 Frontier·SLAM·bag 프로세스를 실행하는 시험은 수행하지 않았다.
+- 장치 프로필 저장, 짧은 조합, 긴 버튼 입력, Deadman 중복 차단을 Chrome 합성 Gamepad에서 확인했다. 읽기 전용 관제의 RGB 단절·지도/Depth 유지 E2E를 재실행했다.
+- 기존 현장 런치의 모터 잠금·Gate·Frontier 비활성 기본값 등 정적 검사 22/22 통과. 실물 Gamepad와 실차는 SKIP.
+
+### 2026-11-18 4차 선택 통합 재검증
+
+- **격리 ROS PASS** — `explore_lite_msgs`, `explore_lite`, `limo_robot_agent` 빌드. Mock Nav2에서 외부 Goal 차단, 자기 UUID만 취소, ACK 이후 terminal 대기, 종료 후 다음 Frontier 제출을 재확인했다. 별도 속도 입력 선택과 만료 시험은 베이스 속도 발행을 사용하지 않았다.
+- **Mock Fleet·브라우저 PASS** — Agent/Mapping/Bag/Gamepad 32개 및 하위 케이스 6개, Fleet Lease·복구 37/37, 시각화 Python 32개·JavaScript 2개. Chrome에서 두 로봇의 제어권 전환, 모의 Mapping·Bag, Gamepad 버튼과 지도·RGB·Depth 및 영상 연결 장애를 재확인했다.
+- **현장 번들 정적 검사 PASS 22/22** — 기존 런치 구성을 검사했다. **SKIP** — 전체 Gazebo 재실행, 실제 USB 조이스틱, 실제 Mapping·Bag Worker, 실차. 모의 worker 결과는 실제 SLAM·rosbag 프로세스 검증과 구분한다.

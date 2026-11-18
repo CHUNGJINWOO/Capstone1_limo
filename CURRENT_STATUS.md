@@ -85,3 +85,9 @@
 2026-11-18 선택 통합에서 Frontier 후보 발행기와 Fleet Coordinator를 추가했다. 이 코드는 Agent 실행 경로에 연결되지 않았고 웹 AUTO START 404 및 일반 Fleet 임무를 통한 Mapping Goal 409는 미해결이다. 실차 USB–UART 불안정과 웹 MANUAL 제어 미완료 상태도 유지한다.
 
 2026-11-18 추가 통합에서 실험 관리자의 지도 저장은 고정 스냅샷·셀 검증·원점 정밀도·식별 해시를 사용한다. 격리 합성 지도 Nav2 재로드만 검증했으며 실차 posegraph와 동일 시각의 지도라는 보장은 없다.
+
+2026-11-18 비실차 개발에서 Explorer UUID별 Goal 취소와 Fleet의 외부 Goal 관측 차단을 검증했다. 동일 Action 서버에 동시에 처음 제출하는 경우의 원자적 중재는 없으므로 현장 LOCAL_AUTO_MAPPING은 Explorer만 활성화한다. 합성 ROS 및 모의 영상 호스트에서 지도·RGB·Depth 동시 표시를 검증했으며, 현장 배포본 재설치와 실차 시험은 미실행이다.
+
+웹 Gamepad를 통해 Fleet Lease를 획득한 운영자의 입력을 모의 Agent에서 속도 미리보기로 받는다. 축·Deadman 번호는 브라우저에서 확인한 값을 지정한다. 실물 Gamepad, Gate까지의 ROS 속도 연결, 실제 주행은 UNVERIFIED다.
+
+웹 Mapping/Bag의 명령 계약과 UI는 Mock 검증 단계다. 요청은 QUEUED/ACCEPTED와 실제 완료 보고를 구분한다. Goal terminal 누락·저장 중 worker 연결 유실은 UNKNOWN으로 차단하고 YAML/PGM과 posegraph 결과를 별도로 표시한다. 실제 Frontier·SLAM 저장·rosbag 프로세스 연결, Gate 속도 연결 및 실차 적용은 미구현 또는 미검증이다.

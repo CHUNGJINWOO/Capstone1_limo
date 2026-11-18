@@ -52,3 +52,13 @@
 ### 고정 지도 저장
 
 `capstone_ws/src/limo_capstone/scripts/auto_mapping_experiment_manager.py`의 `save-map`은 `/map`의 한 스냅샷으로 PGM/YAML과 식별 메타데이터를 저장한다. `tests/map_roundtrip_ros.py`는 격리 ROS의 Nav2 저장·재로드 회귀 시험이다. posegraph 직렬화는 별도 요청이다.
+
+11-18 개발에서 `explore/src/explore.cpp`의 LOCAL_FRONTIER 취소는 수락된 Goal 핸들을 사용한다. `ros_adapter.py`는 다른 NavigateToPose 활성 Goal 또는 Action 서버 수 이상에서 Fleet Goal을 거부한다. 지도·RGB·Depth 동시 모니터링 진입점은 `fleet_control/dashboard/README.md`다. 영상 호스트의 `/api/v1/status`, `/api/v1/frame.jpg`와 Fleet 상태 API는 별개의 서비스다.
+
+웹 모의 수동 입력 진입점은 Fleet 화면의 `static/gamepad_panel.js`, 서버 `/robots/{id}/manual-bench`와 `/agent/manual-bench`, Agent `manual_web_bench.py`다. `ARCHITECTURE.md`의 11-18 항목에 ROS 노드 목록과 현재·제안 구조도를 정리했다.
+
+### 웹 운용 통합 (모의)
+
+- `fleet_control/server/fleet_server/mapping.py`와 `db.py`는 별도 Mapping/Bag 상태·요청 저널을 관리한다. Operator는 `/robots/{id}/mapping`, `/robots/{id}/bag`를 사용하고, 명시적 모의 worker는 `/agent/operation`을 사용한다.
+- `static/operations_panel.js`는 선택 로봇·Lease·Mapping·Bag을 표시한다. `static/gamepad_panel.js`는 장치별 보정과 버튼을 브라우저 로컬 프로필로 관리한다. 지도와 RGB는 Fleet 화면의 기존 패널, Depth는 기존 읽기 전용 시각화 콘솔을 사용한다.
+- `fleet_control/tests/test_mapping_session.py`는 독립 Bag 상태, 요청 재전송, 결과 유실, 외부 Goal 및 real Agent 차단을 시험한다.

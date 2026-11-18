@@ -64,3 +64,12 @@
 | 통합 시뮬레이션 (`integrated_sim`) | `18200` (MM), `18201` (WS), `18210` (AI TCP), `18211` (AI HTTP), `18212` (Proxy) | `181` (Robot), `182` (RMF) | `18210/18211`은 `dashboard`의 live/test gateway와도 겹칠 수 있으므로 실행 전 리스너 확인 필수 |
 | Dashboard Lab (`dashboard_lab`) | `18310` (개선 UI), `18311` (Baseline 비교), `18313` (Native 계측) | - | `8080, 18190, 18210, 18211` 바인딩 코드 수준 거부 |
 | RMF Web Storybook (`rmf_web_research`) | `18410` | - | 프론트엔드 오프라인 스토리북 전용 |
+
+## 2026-11-18 4차 선택 통합
+
+- 공개 `main` 기준은 `1ca1393d229a1a3e1727079d61f8a1210a9520ac`이다. 기존 통합 복사본 `/tmp/capstone-public-integration-20261118`의 `integration/selected-20261118`에서 Goal, 영상, 모의 Mapping·Bag·Gamepad, 공통 문서 후보 27개를 확인했다. 이 항목은 별도 작업트리 기록이다.
+- 원본 브랜치 `staging/fleet-control-on-progress-c804241`의 소스와 실험 데이터는 원래 위치에 보존한다. 기존 실차 자동 맵핑 번들도 그 위치를 유지한다.
+- 로컬 보존본은 원본 작업트리의 `local_data/raw_results/capstone18_git4.2VR6Cu/`다. `BASE_COMMIT`, `base-files.tar.gz`, `changes.patch`, 묶음별 패치, `files.tsv`, `SHA256SUMS`가 있다. 임시 통합 복사본이 사라지면 기준 커밋과 복구 패치를 사용한다.
+- 제6 문서는 영상 그룹의 `fleet_control/dashboard/README.md`다. 공통 문서 그룹 5개에 대한 추적은 감사 목록을 따른다. 모의 Mapping·Bag 결과는 실제 ROS 실행 및 실차 검증과 구분한다.
+
+최종 재검증 기록과 이 문서를 포함한 복구본은 `local_data/raw_results/capstone18_git4_execution.0R5xNb/`에 보관한다.
