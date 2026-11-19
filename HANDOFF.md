@@ -121,3 +121,9 @@ Phase 3A 격리 Worker는 실행 중 최대 300초, 파일 합계 256 MiB, 남�
 ### 잠금 캠페인 후속 확인
 
 A–E 기준선과 캠페인 수정분은 별도 해시로 보존한다. 이전 기본 임계값으로 생성된 PGM/YAML은 Map Server가 미관측 셀을 자유 공간으로 해석할 수 있다. 캠페인은 원본을 보존하고 같은 Gazebo Bag으로 수정본을 별도 생성해 분류를 확인했다. 다음 검증 범위는 Gazebo에서의 폐루프 이동, 실물 Gamepad, 별도 승인 후 실차다. 격리 Launch의 모터 잠금과 기존 실차 진입점을 유지한다.
+
+## 2026-11-20 공개 기준선과 후속 작업 감사
+
+실차 웹 관제는 구동 차단 상태다. 최신 실차 Launch에 Watchdog이 편입되지 않았으며 STM32 명령 timeout, 물리 E-Stop, 제동 거리, Depth 높이 실측, wheel odometry 안정화, localization 확인, 실차 Operator Recovery가 남았다. LIMO 연결과 모터 잠금 웹 시험은 미확인 상태다.
+
+현장 인계 기록상 원래 18190 런처가 해제된 워크트리의 소스를 참조한다. 별도 백업 Registry 사본에서 18190과 C103 표시를 확인한 기록은 현장 Registry 전환과 구분한다. Gate·실차 Launch 담당은 02b·03b·04를 미적용 상태로 관리한다. Fleet/Agent 담당은 CONTINUE_MAP Worker와 실차 복구를 맡는다.

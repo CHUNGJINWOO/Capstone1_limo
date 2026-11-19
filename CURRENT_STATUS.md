@@ -105,3 +105,9 @@ Bag Worker의 독립 recorder 보호와 비정상 종료 판정은 격리 ROS에
 ### A–E 잠금 통합 검증 결과
 
 실제 Chrome·ROS 2·Gazebo Fortress에서 관제 명령, Goal 중재 및 수동 전환, Bag 장애 종료, Gazebo 센서와 Nav2 장애물 우회 계획을 확인했다. 세션 저널의 Supervisor 강제 종료 판정, FollowPath 종결 조건, 저장 지도 미관측 셀 분류, 하네스 프로세스 정리를 수정했다. Gazebo 폐루프 주행과 실차·실물 Gamepad 시험은 대기다. [VALIDATION.md](VALIDATION.md)
+
+## 2026-11-20 공개 기준선과 후속 작업 감사
+
+- **Mapping, 로컬 격리 검증** — START/PAUSE/RESUME/SAVE/STOP, C103 등록과 지도 표시, 지도 클릭 좌표 변환과 Goal 제출 경로를 시험했다. SAVE는 UNVERIFIED 버전과 계보를 기록한다. NEW_MAP이 구현되어 있다. 부모 Pose Graph를 다시 읽는 독립 CONTINUE_MAP 시험은 성공했으나 Worker의 재로드·localization 확인·후속 버전 흐름은 미완성이다.
+- **Goal, 격리 ROS 2** — Frontier/Fleet 공유 슬롯, 소유 UUID에 대한 취소와 terminal 대조, 외부 Goal 감지, 재시작 시 이전 승인 무효화를 점검했다. 실차 Goal과 운영자 복구는 미검증·미구현 상태다.
+- **Watchdog, 격리 ROS 2와 단위시험** — 로컬에 구현되어 있다. 실제 주행 준비는 차단 상태다. 02b·03b·04는 적용 전 제안이며 03b·04는 Gate 사본에서 시험했다. 기존 Gazebo·실차 이력은 별도의 소스와 실행 조건에 해당한다.

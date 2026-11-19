@@ -301,3 +301,15 @@ A–E 미커밋 스냅샷을 통합 HEAD `8b03e0f` 및 패치 해시로 고정�
 ### 최종 코드 리뷰 보완
 
 FollowPath의 이전 목표 terminal 상태가 다음 목표의 종료 증거로 재사용될 수 있어 Frontier 제출 때 증거를 초기화하고 이후 활성 상태 관측과 terminal을 요구한다. 관측을 놓치면 UNKNOWN으로 차단한다. 이 변경에 대한 목표·수동 전환 단위시험 26개와 하위 6개가 PASS했다. 기존 캠페인은 수정 전 코드에 대한 결과다.
+
+## 2026-11-20 공개 기준선과 후속 작업 감사
+
+| 근거 | 환경·조건 | 관측 결과 |
+|---|---|---|
+| 11-20 초기 Watchdog 시험 | 격리 ROS 2, 이전 설치본 Gate | 서버 단절 Gate 출력 차단 4.42 s, lease 만료 3.32 s. 전제 미충족 INVALID와 이전 FAIL을 보존했다. |
+| 11-20 후속 회귀 | 스크립트별 의도 환경 | 76/76 PASS(격리 5, ROS 없이 11, ROS 57, Node 3). Watchdog 단위 15/15 PASS 포함. |
+| 11-20 후속 고장 주입 | 격리 ROS 2, 모터 잠금, 작업트리 Gate에 03b·04를 적용한 시험 사본. 구동 토픽 연결 없음. | 표준 실행의 Agent SIGKILL 0.27 s, SIGSTOP 0.28 s, 재시작 0.25 s. 서버 SIGSTOP 4.50 s, lease TTL 10 s 만료 3.31 s. 고장 시각부터 Gate 출력 0까지이며, Goal terminal 시점은 별도로 계측했다. |
+| 후속 Watchdog SIGSTOP 25 s | 같은 시험 사본 | 유효 재시험 두 회 각각 15/16, Gate 출력 0은 0.24 s·0.22 s. SIGCONT 후 재발견 관측 검사 FAIL 유지. Nav2 기동 전제 미충족 실행과 초기 스모크는 INVALID. Gate 요구를 끈 대조 시험은 기대대로 FAIL(10/12). |
+| CONTINUE_MAP | 독립 격리 Pose Graph 재로드 | 부모 셀 100% 보존, +3,215셀, 부모 해시 불변. 초기 자세가 틀리면 벽 중복. Worker 연결과 실차 시험은 미실행. |
+
+원본은 로컬 `local_data/raw_results/safety_watchdog_20261120*/`의 실행별 출력과 회귀 요약에서 확인했다. 후속 매니페스트의 `summary.txt` 해시가 불일치하여 해당 집계는 개별 실행 출력과 교차 확인했다. 이번 감사에서 기존 ROS 2, Gazebo, 실차 시험을 재실행하지 않았다.

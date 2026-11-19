@@ -77,3 +77,7 @@
 ### 전체 기능 구현 우선 개발
 
 기존 `/tmp/capstone-public-integration-20261118`의 `integration/selected-20261118`에서 작업했다. 시작 시 GitHub main과 통합 HEAD는 `f1a87cb44916db4769cef575e6de9a19a1e555a8`였다. 작업 중 별도 Gazebo·LiDAR 증거 커밋으로 로컬 HEAD가 `8b03e0f`까지 전진했다. 종료 점검에서 GitHub main과 로컬 HEAD가 `8b03e0f`로 일치했다. 변경 경로가 겹치지 않아 두 커밋을 그대로 보존했다. 이번 검증의 HTTP 28943–28947 및 로컬 DDS 도메인 193, 195–202은 임시 사용했다. 다음 실행은 새로운 디렉터리와 비어 있는 포트·도메인을 지정한다.
+
+## 2026-11-20 공개 기준선과 후속 작업 감사
+
+감사 시 연결된 Git 작업트리는 staging 한 개(`c804241a`)였고, 조회한 공개 main은 `ea2d9632`였다. 양쪽 고유 커밋 수는 staging 3개, 공개 main 33개다. 로컬 `fleet_control/`은 staging에 미추적이고 공개 main에는 별도 추적 버전이 있다. 실차 Launch·Gate·Depth·Frontier의 기존 변경은 담당자 검토 대상으로 보존한다.

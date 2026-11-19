@@ -176,3 +176,9 @@ Perception·Localization·Safety·Bringup의 기존 launch와 패키지 배치�
 `limo_fleet_bringup`은 기존 Perception·Localization·Navigation·Safety 노드 및 Fleet Bridge를 기능별 launch 모듈로 조합한다. Mapping은 Agent가 SLAM Toolbox와 Frontier 후보 프로세스를 소유한다. Fleet Server는 Mapping 명령 저널에 Frontier 슬롯 예약을 같은 Agent boot와 session으로 기록한다. Agent는 Fleet·Frontier 제출을 단일 ROS 작업 큐와 공유 Goal 슬롯으로 중재한다. PAUSE/STOP은 소유 Action 핸들이 반환한 terminal 결과를 기다린다.
 
 격리 속도 체인은 Nav2의 `/fleet/cmd_vel_nav`와 Lease가 검증된 웹 입력에서 샘플 하나를 골라 Smoother → `/cmd_vel_raw` → 기존 Safety Gate → `/cmd_vel_locked`로 전달한다. Bag recorder는 Agent 밖의 세션 Supervisor가 소유하며 익명 pipe로 Fleet 연결 상태를 갱신한다. 로봇별 RGB·Depth는 Agent에서 읽기 전용으로 수집해 Fleet 관제 화면에 표시한다. 인터페이스와 하네스는 [ISOLATED_E2E.md](fleet_control/docs/ISOLATED_E2E.md)에 정리했다.
+
+## 2026-11-20 공개 기준선과 후속 작업 감사
+
+공개 기준선의 Velocity Arbiter는 잠금 격리 구성에서 Nav2·수동 입력을 선택한다. 후속 로컬 격리 시험은 별도 Motion Watchdog을 사용했다. Nav2 → `/fleet/nav_cmd_vel` → Watchdog → `/cmd_vel_raw` → Safety Gate → 잠금 출력 경로다. Watchdog은 heartbeat·승인·입력 시간 초과와 비유한 속도를 검사하고 외부 Goal에서 정지·취소를 요청한다. Gate는 센서와 속도 경로를 감시한다. 최신 실차 Launch는 Watchdog 미통합 상태다.
+
+Fleet Server가 lease·Safety Context와 임무 상태를 관리한다. Agent가 로컬 journal과 Frontier/Fleet 공유 Goal 슬롯을 관리하고 UUID를 Nav2 결과와 대조한다. Mapping Worker는 자신이 기동한 SLAM·Frontier 프로세스와 세션을 관리한다. Frontier 후보 노드와 직접 제출형 Explore는 별개 경로다. `map→odom`은 SLAM, `odom→base_footprint`는 선택 추정기와 relay가 담당하는 경로가 있다. Scan normalizer·장애물 기억의 패키지 편입, 실차와 Gazebo 진입점 통합, 중복 구현 정리는 제안 상태다.

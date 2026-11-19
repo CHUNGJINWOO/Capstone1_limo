@@ -74,3 +74,9 @@
 - `fleet_control/agent/limo_robot_agent/limo_robot_agent/`의 `mapping_worker.py`는 SLAM·Frontier 및 지도 저장, `bag_supervisor.py`는 개별 기록 세션, `velocity_arbiter.py`는 Gate 앞 속도 선정, `camera_preview.py`는 이미지 수집을 담당한다.
 - `fleet_control/server/fleet_server/`의 `mapping.py`는 Mapping Goal 예약과 작업 상태, `static/camera_panel.js`와 `static/operations_panel.js`는 운영 화면 연동을 담당한다.
 - `capstone_ws/src/limo_fleet_bringup`은 기존 ROS 패키지를 재사용하는 잠금 전용 Launch의 진입점이다. 토픽·서비스·Action 매핑은 [ISOLATED_E2E.md](fleet_control/docs/ISOLATED_E2E.md)를 참조한다.
+
+## 2026-11-20 공개 기준선과 후속 작업 감사
+
+공개 기준 `ea2d9632`의 잠금 격리 런치는 [isolated_locked.launch.py](capstone_ws/src/limo_fleet_bringup/launch/isolated_locked.launch.py)에 있다. [Mapping Worker](fleet_control/agent/limo_robot_agent/limo_robot_agent/mapping_worker.py), [Fleet Mapping 상태 관리](fleet_control/server/fleet_server/mapping.py), [Velocity Arbiter](fleet_control/agent/limo_robot_agent/limo_robot_agent/velocity_arbiter.py)는 이 기준선에 포함된다.
+
+후속 로컬 구현에는 별도 프로세스 `motion_watchdog`, 격리 검증 런치, C103 등록 도구와 후속 회귀시험이 있다. Watchdog은 `/fleet/nav_cmd_vel`, `/fleet/agent_heartbeat`, Nav2 Action 상태를 받아 `/cmd_vel_raw`와 `/fleet/motion_watchdog/status`를 발행한다. Worker는 후보 토픽 `/fleet/frontier_candidates`와 SLAM 저장 서비스 `/slam_toolbox/serialize_map`을 사용한다. Goal 제출 액션은 `navigate_to_pose`다.
