@@ -76,6 +76,9 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
         real_bench = agent.get('mode') == 'real' and agent.get('simulated') is False
         locked_mock = (agent.get('mode') == 'mock' and agent.get('simulated') is True
                        and agent.get('locked_velocity_arbiter') is True)
+        if not self.agent_contract_ok(robot_id):
+            self.manual_benches.pop(robot_id, None)
+            raise ApiError(409, 'agent_protocol', 'incompatible agent protocol or safety contract for manual bench')
         if (agent.get('manual_web_bench') is not True or not (real_bench or locked_mock)
                 or (agent.get('missions_enabled') is not False and not locked_mock)
                 or not robot.get('online') or not robot.get('reconciled')
@@ -363,6 +366,10 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
                 continue
             if now >= c['expires_at']: continue
             if c['status'] == 'SENT' and now - (c['sent_at'] or 0) < self.cfg.resend_after_s: continue
+            if c['type'] not in ('cancel_mission', 'slam_stop', 'record_stop') and not self.agent_contract_ok(robot_id):
+                if c['type'] == 'navigate_to_pose':
+                    self.invalidate_movement(robot_id, 'agent protocol or safety contract incompatible at delivery')
+                continue
             if c['type'] == 'navigate_to_pose':
                 m = self.db.one('SELECT * FROM missions WHERE mission_id=?', (c['mission_id'],))
                 context = self.safety_context(robot_id)
@@ -379,7 +386,9 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
             if c['status'] == 'PENDING' and c['mission_id']: self._set_mission(c['mission_id'], 'DISPATCHED', 'command delivered to agent', only_if={'QUEUED', 'DISPATCHED'})
             out.append({'command_id': c['command_id'], 'robot_id': robot_id, 'mission_id': c['mission_id'], 'type': c['type'], 'seq': c['seq'], 'attempt': c['attempts'] + 1,
                         'payload': _j(c['payload_json']), 'issued_at': c['created_at'], 'expires_at': c['expires_at'], 'owner_boot_id': owner})
-        return {'ok': True, 'server_time': now, 'server_boot_id': self.boot_id, 'commands': out}
+        # R1.4.5: the normal state reply states the reconciliation flag explicitly (the blocked reply above already did); an Agent that
+        # requires an exact False then never has to treat an absent key as permission.
+        return {'ok': True, 'server_time': now, 'server_boot_id': self.boot_id, 'commands': out, 'reconciliation_required': False}
 
     def ack_command(self, robot_id, command_id, status, detail='', progress=None, agent_boot_id=None):
         if status not in ACK_STATUSES: raise ApiError(400, 'bad_status', f'status must be one of {sorted(ACK_STATUSES)}')
@@ -421,6 +430,8 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
         with self.lock,self.state_transaction():
             r=self.robots.get(robot_id)
             if not r:raise ApiError(404,'unknown_robot','no such robot')
+            if action != 'stop':
+                self.require_agent_contract(robot_id, f'slam_{action}')
             if action=='start':
                 if self.operation_status(robot_id)['state'] not in ('IDLE','STOPPED'):
                     raise ApiError(409,'mapping_active','web mapping session is active or UNKNOWN')
@@ -472,6 +483,8 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
         with self.lock, self.state_transaction():
             r = self.robots.get(robot_id)
             if not r: raise ApiError(404, 'unknown_robot', 'no such robot')
+            if action != 'stop':
+                self.require_agent_contract(robot_id, f'record_{action}')
             if action == 'start':
                 peer=(r.get('state') or {}).get('slam') or {}
                 if peer.get('status') in ('STARTING','RUNNING','SAVING','DEGRADED','STOP_REQUESTED','UNKNOWN') and peer.get('session_id')!=session_id:

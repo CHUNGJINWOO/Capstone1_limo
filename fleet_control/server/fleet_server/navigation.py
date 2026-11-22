@@ -45,7 +45,9 @@ class NavigationMixin:
                 'localized': self._nav_localized(robot_id, rec) if rec else False}
 
     def navigation_for_agent(self, robot_id):
-        """Desired localization state for the Agent (None outside NAVIGATION)."""
+        """Desired localization state for the Agent (None outside NAVIGATION or on contract mismatch)."""
+        if not self.agent_contract_ok(robot_id):
+            return None
         rec = self.mode_view(robot_id, advance=False)
         if rec is None:
             return None
@@ -148,8 +150,10 @@ class NavigationMixin:
             action = body.get('action')
             rec = self._nav_load(robot_id)
             if action == 'LOAD':
+                self.require_agent_contract(robot_id, 'navigation LOAD')
                 return self._nav_request_load(robot_id, actor, body, lease)
             if action == 'INITIAL_POSE':
+                self.require_agent_contract(robot_id, 'navigation INITIAL_POSE')
                 if not rec:
                     raise ApiError(409, 'no_map_loaded', 'load a map first')
                 try:

@@ -210,3 +210,21 @@ Details: `WEB_MAP_SAVE_20261120.md`.
 - `GET /api/v1/robots/{id}/map-saves` (any role): `{capability:{available,reason}, saves:[...]}`; each save has `status`, `stage`, `error_code`, `detail`, `manifest` (per-file size/sha256/save window), `consistency`, `result.map_version_id`.
 - `POST /api/v1/robots/{id}/map-save` (operator, Lease owner+epoch): `{epoch, idempotency_key, floor_id, area_id?, label, note?, threshold_policy?: "reject"|"derive"}` -> 202 QUEUED. Errors: `lease_required`, `map_save_unavailable` (Agent reason), `save_in_progress`, `policy_violation`, validation errors. Same `idempotency_key` returns the same save (`duplicate: true`).
 - `POST /api/v1/agent/map-save` (Agent token only): actions `poll|accept|stage|fail|bundle`. The server re-verifies per-file size+SHA-256 (`transfer_corrupt` 422 is retryable) and registers the map as UNVERIFIED (`source_mode=SLAM_SAVED_BUNDLE`).
+
+## 추가 Agent 경로 (R1.3, 2026-11-22)
+
+아래 3개 경로는 모두 `POST`, `Authorization: Bearer <agent-token>`(본문 `robot_id`와 일치하는 Agent 토큰, 불일치 시 403) 및 활성 세션 검증(`agent_boot_id` 일치, 불일치 시 409 `agent_session_mismatch`)을 요구합니다.
+
+- `POST /api/v1/agent/map-bundle` (body 상한 1 MiB, 구현: `http_api.py` → `navigation.py::agent_map_bundle`):
+  - 요청: `{"robot_id", "agent_boot_id", "map_version_id", "file": "map.yaml"|"map.pgm"}`.
+  - 동작/응답(200): 현재 `NAVIGATION` 모드(또는 `NAVIGATION` 종료 중인 `TRANSITIONING`)에서 서버가 요청 중인 `navigation_request.map_version_id`와 일치할 때만 Map Registry 체크섬 검증 후 파일 반환: `{"map_version_id", "file", "data_b64"}`.
+  - 주요 오류: 400 `bad_robot_id`, 403 `forbidden`, 405 `method_not_allowed`, 409 `agent_session_mismatch` / `not_requested`.
+- `POST /api/v1/agent/slam-map` (body 상한 6 MiB, 동시 업로드 세마포어 2, 구현: `http_api.py::_agent_slam_map`):
+  - 요청: `{"robot_id", "agent_boot_id", "command_id", "session_id", "floor_id", "yaml_b64", "pgm_b64", "posegraph_b64"?, "posegraph_data_b64"?}`.
+  - 동작/응답(200): 해당 `agent_boot_id` 소유의 활성 `slam_save`(또는 `manual_stop: true`인 `slam_stop`, 상태 `SENT|ACCEPTED|EXECUTING`) 명령과 `session_id`/`floor_id`가 일치할 때 Map Registry에 `source_mode="SLAM_LIVE_SNAPSHOT"`으로 등록하고 무결성 검증 후 반환: `{"map_version", "created", "integrity"}`.
+  - 주요 오류: 400 `bad_json` / `bad_robot_id` / `invalid_map` / `map_registry_rejected`, 403 `forbidden` / `invalid_save_command`, 404 `registry_unavailable`, 405 `method_not_allowed`, 409 `agent_session_mismatch` / `session_mismatch`, 413 `too_large`, 500 `registry_integrity_failed`, 503 `busy`.
+- `POST /api/v1/agent/manual-bench` (body 상한 1 MiB, 구현: `http_api.py` → `service.py::pull_manual_bench`):
+  - 요청: `{"robot_id", "agent_boot_id"}`.
+  - 동작/응답(200): `_manual_bench_robot` 조건(`manual_web_bench: true`, `real`+`missions_enabled: false` 또는 `locked_mock`, online/reconciled/신선 상태, 임무·매핑 비활성, Nav2 idle 증거)과 현재 Lease·`MANUAL` 모드·TTL을 만족하면 최신 조이스틱 샘플을 반환하고, 활성 샘플이 없거나 모드가 `MANUAL`이 아니면 `null`을 반환: `{"sample": {"linear", "turn", "deadman", "session_id", "seq", "ttl_s"} | null}`.
+  - 주요 오류: 400 `bad_robot_id`, 403 `forbidden`, 405 `method_not_allowed`, 409 `agent_session_mismatch` / `manual_bench_unavailable` / `robot_busy` / `mapping_unknown` / `mapping_active_or_unknown` / `nav_status_unknown_or_busy` / `mock_arbiter_not_ready`.
+

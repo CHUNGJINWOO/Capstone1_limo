@@ -8,7 +8,7 @@ from fleet_server.service import Fleet,ApiError
 class Tests(unittest.TestCase):
  def setUp(self):
   self.f=Fleet(DB(':memory:'),SimpleNamespace(offline_after_s=6,command_ttl_s=120,resend_after_s=1))
-  self.f.robots['R']={'online':True,'state_ts':time.time(),'state':{'slam':{'enabled':True,'status':'IDLE'},'recording':{'enabled':True,'status':'IDLE'}}}
+  self.f.robots['R']={'online':True,'state_ts':time.time(),'agent':{'boot_id':'b1','protocol_version':2,'safety_contract_version':1},'state':{'slam':{'enabled':True,'status':'IDLE'},'recording':{'enabled':True,'status':'IDLE'}}}
  def test_active_session_mismatch(self):
   self.f.robots['R']['state']['recording']={'enabled':True,'status':'RECORDING','session_id':'A'}
   with self.assertRaises(ApiError) as ctx:self.f.slam_command('R','start','B','operator')

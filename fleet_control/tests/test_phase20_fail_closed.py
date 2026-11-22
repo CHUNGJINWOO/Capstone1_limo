@@ -7,6 +7,12 @@ sys.path[:0]=[str(ROOT/'server'),str(ROOT/'agent/limo_robot_agent')]
 from fleet_server.ownership import OwnershipMixin
 from limo_robot_agent.core import AgentCore
 
+def valid_contract(a):
+ """R1.4.3: a motion command is refused unless the server contract is valid; these tests feed commands straight into AgentCore, so model the session a real hello/state reply would have produced."""
+ with a.lock:
+  a.server_boot='srv';a.server_protocol_boot='srv';a.server_protocol_version=2;a.server_safety_contract_version=1;a.server_reconciliation_required=False;a.connected=True;a.lease={'owner':'op','epoch':1,'expires_at':time.time()+300};a._contract_note_locked()
+ return a
+
 class Handler:
  def __init__(self): self.started=0
  def start_navigate(self,*args):self.started+=1
@@ -27,7 +33,7 @@ class T(unittest.TestCase):
 
  def test_command_body_conflict_persists_across_restart(self):
   with tempfile.TemporaryDirectory() as d:
-   h=Handler();a=AgentCore('r','http://invalid','',lambda:{},h,{'boot_id':'b'},d,log=lambda *_:None)
+   h=Handler();a=valid_contract(AgentCore('r','http://invalid','',lambda:{},h,{'boot_id':'b'},d,log=lambda *_:None))
    now=time.time();cmd={'command_id':'c','robot_id':'r','mission_id':'m','type':'navigate_to_pose','seq':1,'attempt':1,'payload':{'goal':{'x':1}},'issued_at':now,'expires_at':now+60,'owner_boot_id':'b'}
    a._on_command(cmd);self.assertEqual(h.started,1)
    a._on_command(dict(cmd,attempt=2));self.assertEqual(h.started,1)
@@ -55,7 +61,7 @@ class T(unittest.TestCase):
  def test_duplicate_owner_and_operation_mismatch_block(self):
   for field in ('owner_type','owner_id','operation_id','mission_id'):
    with self.subTest(field=field), tempfile.TemporaryDirectory() as d:
-    h=Handler();a=AgentCore('r','http://invalid','',lambda:{},h,{'boot_id':'b'},d,log=lambda *_:None)
+    h=Handler();a=valid_contract(AgentCore('r','http://invalid','',lambda:{},h,{'boot_id':'b'},d,log=lambda *_:None))
     now=time.time();cmd={'command_id':'c','robot_id':'r','mission_id':'m','type':'navigate_to_pose','seq':1,'payload':{'goal':{'x':1}},'issued_at':now,'expires_at':now+60,'owner_boot_id':'b','owner_type':'WEB','owner_id':'u','operation_id':'op'}
     a._on_command(cmd);changed=dict(cmd);changed[field]='different';a._on_command(changed)
     self.assertEqual(h.started,1);self.assertTrue(a.seen['c'].get('identity_conflict'));self.assertFalse(a.journal_ok)

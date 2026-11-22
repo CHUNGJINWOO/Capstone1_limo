@@ -40,7 +40,7 @@ class Guide(unittest.TestCase):
         self.unv = self.reg.register_map_bundle(floor_id='fl1', label='unverified', yaml_bytes=YAML, pgm_bytes=pgm(w=81), actor='t', actor_role='operator')['map_version']
         self.db = DB(':memory:'); self.f = Fleet(self.db, CFG); self.f.map_registry = self.reg
         self.f.robots['R'] = {'robot_id': 'R', 'online': True, 'reconciled': True, 'state_ts': time.time(), 'last_seen': time.time(),
-                              'agent': {'boot_id': 'a1', 'protocol_version': 2},
+                              'agent': {'boot_id': 'a1', 'protocol_version': 2, 'safety_contract_version': 1},
                               'state': {'execution': {'active': None, 'nav2_goals': {'active_count': 0}}}}
         self.f.safety_context = lambda rid: {'ok': True}           # unit level: the safety context is covered by its own tests / E2E
         self.f.dispatch_next = lambda rid: None                    # delivery to the Agent is the existing path (isolated E2E)

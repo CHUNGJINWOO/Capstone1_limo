@@ -36,7 +36,7 @@ class ModeTests(unittest.TestCase):
         self.f = Fleet(self.db, CFG)
         self.boot = 'b' * 12
         self.f.robots['R'] = {'robot_id': 'R', 'online': True, 'reconciled': True, 'state_ts': time.time(),
-                              'agent': {'boot_id': self.boot, 'mode': 'mock', 'simulated': True, 'mapping_worker': True,
+                              'agent': {'boot_id': self.boot, 'protocol_version': 2, 'safety_contract_version': 1, 'mode': 'mock', 'simulated': True, 'mapping_worker': True,
                                         'manual_web_bench': True, 'missions_enabled': True, 'locked_velocity_arbiter': True},
                               'state': idle_state()}
         self.epoch = self.f.lease_action('R', OP, 'acquire', 60)['epoch']

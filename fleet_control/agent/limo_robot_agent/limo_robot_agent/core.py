@@ -6,6 +6,9 @@ import hashlib, json, math, os, threading, time, urllib.error, urllib.request, u
 
 from .safety_protocol import (
     SAFETY_CONTRACT_VERSION,
+    SERVER_PROTOCOL_VERSION,
+    server_contract_valid,
+    lease_wellformed,
     is_valid_epoch,
     is_valid_id,
     is_valid_timestamp,
@@ -66,6 +69,12 @@ class AgentCore:
             self.seen = {}; self.journal_ok = False  # Fail closed; never overwrite the corrupt evidence.
         self.lock = threading.RLock(); self.pending_acks = []; self.seq = 0; self.running = False; self.connected = False; self.server_boot = None
         self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None; self.server_safety_contract_version = None; self.last_state_ok_mono = None
+        self.server_protocol_version = None; self.server_protocol_boot = None     # hello protocol_version, bound to the server boot that sent it
+        self.contract_generation = 0; self._contract_was_valid = False            # R1.4.3: +1 on every valid->invalid transition; commands/goals are stamped with it
+        # R1.4.4: shared serialization boundary between "the authority may change" (this run loop) and "the final local check + start of
+        # the local Nav2 submission" (RosRobot._do_nav Stage 3). Lock order everywhere: contract_fence -> RosRobot.lock -> AgentCore.lock.
+        # Only short critical sections hold it; nothing waits for a Future or the network while holding it.
+        self.contract_fence = threading.RLock()
         self.state_post_rtt_ms = None
         self.server_reconciliation_required = True
         self.stop_evt = threading.Event(); self.retry_delay = 0.; self.last_success = None
@@ -134,7 +143,32 @@ class AgentCore:
                 'navigation_request': dict(self.navigation_request) if isinstance(getattr(self, 'navigation_request', None), dict) else None,
                 'gate_reset_request': dict(self.gate_reset_request) if isinstance(getattr(self, 'gate_reset_request', None), dict) else None,
                 'safety_contract_version': self.server_safety_contract_version,
+                'contract_generation': self.contract_generation,
+                # Valid only for the server boot that sent it; any reconnect/boot change clears it (fail-closed: None).
+                'protocol_version': self.server_protocol_version if (self.server_boot and self.server_protocol_boot == self.server_boot) else None,
             }
+
+    def _contract_ok_locked(self):
+        """Execution authority: a valid server contract AND no server-side reconciliation pending (R1.4.4: a reconciliation_required=True
+        reply withdraws the authority like an invalid contract, so the False->True edge starts a new generation)."""
+        proto = self.server_protocol_version if (self.server_boot and self.server_protocol_boot == self.server_boot) else None
+        return (server_contract_valid({'protocol_version': proto, 'safety_contract_version': self.server_safety_contract_version})
+                and self.server_reconciliation_required is False
+                and self.connected is True
+                and self._lease_live_locked())             # R1.4.6: no live, well-formed lease from the current reply = no authority
+
+    def _lease_live_locked(self):
+        return lease_wellformed(self.lease) and float(self.lease['expires_at']) > time.time()   # the server never sends an expired lease            # R1.4.5: losing the server session (HTTP error, exception) is a withdrawal too
+
+    def _contract_note_locked(self):
+        """Call (lock held) after EVERY change of the contract fields. A valid->invalid transition starts a new generation, so approvals
+        (queued commands, live goals) stamped with an older generation can never become valid again by a later recovery."""
+        ok = self._contract_ok_locked()
+        lease_id = (self.lease.get('owner'), self.lease.get('epoch')) if ok else None
+        if self._contract_was_valid and (not ok or lease_id != getattr(self, '_contract_lease_id', None)):
+            # R1.4.6: a different lease (owner/epoch) also ends the previous approval, even without an invalid reply in between.
+            self.contract_generation += 1
+        self._contract_was_valid = ok; self._contract_lease_id = lease_id
 
     def is_execution_allowed(self, max_age_s=2.0):
         with self.lock:
@@ -219,6 +253,19 @@ class AgentCore:
                 sc_status, sc_detail = 'REJECTED', 'CLOCK_SKEW: safety_context issued_at is in the future'
             elif float(sc['expires_at']) <= now:
                 sc_status, sc_detail = 'EXPIRED', 'EXPIRED: safety_context expired on receipt'
+        if cmd.get('type') == 'navigate_to_pose':
+            # R1.4.3: the approval is fixed at RECEIPT. A motion command that arrives while the contract is invalid is refused for good
+            # (terminal REJECTED, journaled, never replayed), and an accepted one carries the generation it was admitted under. The run
+            # loop is the only writer of the contract fields, so check and stamp cannot be separated by an invalidation.
+            with self.lock:
+                contract_ok, generation = self._contract_ok_locked(), self.contract_generation
+                lease_id = (self.lease.get('owner'), self.lease.get('epoch')) if contract_ok else None
+            if not contract_ok and sc_status == 'OK':
+                sc_status, sc_detail = 'REJECTED', 'SERVER_DISCONNECTED_OR_STALE: motion command received while the server contract was invalid (SERVER_CONTRACT_INVALID at receipt)'
+            elif sc is not None and sc_status == 'OK' and (sc.get('lease_owner'), sc.get('lease_epoch')) != lease_id:
+                # R1.4.6: the same owner/epoch rule the execution stages apply, already at receipt (a later lease cannot adopt it)
+                sc_status, sc_detail = 'REJECTED', 'LEASE_MISMATCH: lease owner or epoch of the current reply differs from the command (at receipt)'
+            cmd = dict(cmd, contract_generation=generation)
         with self.lock:
             if cid in self.seen:
                 # Another delivery may have reserved the same ID since the
@@ -283,16 +330,21 @@ class AgentCore:
             self.log('operator recovery hint ignored for commands without Nav2 terminal evidence')
 
     def _hello(self):
-        with self.lock:
+        with self.contract_fence, self.lock:
             self.connected = False
             self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None
             self.server_safety_contract_version = None
+            self.server_protocol_version = None; self.server_protocol_boot = None
+            self._contract_note_locked()
             self.last_state_ok_mono = None
         r = self.http.post('/agent/hello', {'robot_id': self.robot_id, 'agent': self.agent_info})
         if self.server_boot and r.get('server_boot_id') != self.server_boot: self.log('server restarted; reconnected')
         changed = self.server_boot != r.get('server_boot_id')
-        self.server_boot = r.get('server_boot_id')
-        self.server_safety_contract_version = r.get('safety_contract_version')
+        with self.contract_fence, self.lock:                # stored raw (never coerced); validated strictly where it is used
+            self.server_boot = r.get('server_boot_id')
+            self.server_safety_contract_version = r.get('safety_contract_version')
+            self.server_protocol_version = r.get('protocol_version'); self.server_protocol_boot = self.server_boot
+            self._contract_note_locked()
         if changed: self.last_map_version = None
         with self.lock:
             journal = {k: dict(v) for k, v in self.seen.items()}
@@ -306,9 +358,10 @@ class AgentCore:
                     if record.get('status') not in TERMINAL:
                         record.update(status='RECONCILIATION_REQUIRED', detail='server requires reconciliation')
                     self._save()
-        with self.lock:
+        with self.contract_fence, self.lock:
             self.server_reconciliation_required = result.get('reconciliation_required') is not False
             self.connected = True
+            self._contract_note_locked()
             self.last_state_ok_mono = time.monotonic()
         self.log(f'connected and reconciled (boot {self.server_boot})')
 
@@ -350,38 +403,54 @@ class AgentCore:
                 self.state_post_rtt_ms = round((time.monotonic() - post_started) * 1000, 1)
                 self.last_success = time.time()
                 if resp.get('server_boot_id') != self.server_boot or resp.get('needs_reconcile'):
-                    with self.lock:
+                    with self.contract_fence, self.lock:
                         self.connected = False
                         self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None
                         self.server_safety_contract_version = None
+                        self.server_protocol_version = None; self.server_protocol_boot = None
+                        self._contract_note_locked()
                         self.last_state_ok_mono = None
                     continue  # Discard deliveries until a fresh ownership reconciliation.
-                with self.lock:
-                    self.server_reconciliation_required = resp.get('reconciliation_required') is True
+                with self.contract_fence, self.lock:          # R1.4.4: serialized with RosRobot's final check + submission start
+                    # R1.4.5: only the exact boolean False means "no reconciliation pending". True, a missing key, null, numbers, strings,
+                    # lists or objects all keep (or put) the authority withdrawn; nothing is coerced to False or to the previous value.
+                    self.server_reconciliation_required = resp.get('reconciliation_required') is not False
                     self.last_state_ok_mono = time.monotonic()
-                    if 'lease' in resp:
-                        self.lease = resp.get('lease')
+                    # R1.4.6: the server sends `lease` (a lease view or null) in EVERY state reply; it is re-read each time. A missing key,
+                    # null or a malformed lease leaves NO lease (never the previous one), which withdraws the authority below.
+                    lease = resp.get('lease')
+                    self.lease = dict(lease) if lease_wellformed(lease) else None
                     self.operating_mode = resp.get('operating_mode') if isinstance(resp.get('operating_mode'), dict) else None
                     self.navigation_request = resp.get('navigation_request') if isinstance(resp.get('navigation_request'), dict) else None
                     self.gate_reset_request = resp.get('gate_reset_request') if isinstance(resp.get('gate_reset_request'), dict) else None
-                    if 'safety_contract_version' in resp:
-                        self.server_safety_contract_version = resp.get('safety_contract_version')
+                    # R1.4.2: the server sends safety_contract_version in EVERY state reply, so it is taken from every reply; a missing key
+                    # becomes None (invalid) and never keeps the previous good value. The movement check and the active-goal monitor then fail
+                    # closed on their next evaluation (the monitor timers run every 0.1 s; cancel/STOP/read paths do not use the contract).
+                    self.server_safety_contract_version = resp.get('safety_contract_version')
+                    # protocol_version is a hello field and is normally absent here. A state reply can only WITHDRAW the approval (a value that
+                    # is not the exact int 2 replaces the stored one and is then refused); a valid 2 never repairs an invalid hello: only a new
+                    # hello (reconnect / needs_reconcile / boot change) can approve again.
+                    if 'protocol_version' in resp and not (type(resp['protocol_version']) is int and resp['protocol_version'] == SERVER_PROTOCOL_VERSION):
+                        self.server_protocol_version = resp.get('protocol_version'); self.server_protocol_boot = self.server_boot
+                    self._contract_note_locked()          # before any command of this reply is handled
                 for c in resp.get('commands', []): self._on_command(c)
                 self._apply_recovery(resp.get('recovered_commands') or [])
                 self._flush_acks(); self._maybe_upload_map(); backoff = 1.0; self.retry_delay = 0.
             except HttpError as e:
                 self.stats['failures'] += 1
-                with self.lock:
+                with self.contract_fence, self.lock:      # R1.4.5: same serialization and generation rule as every other withdrawal
                     self.connected = False
                     self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None
+                    self._contract_note_locked()
                     self.last_state_ok_mono = None
                 self.retry_delay = min(backoff, 10); backoff = min(backoff * 2, 10)
                 self.log(f'server error HTTP {e.status}; reconnect in {self.retry_delay:.0f}s'); self.stop_evt.wait(self.retry_delay)
             except Exception as e:
                 self.stats['failures'] += 1
-                with self.lock:
+                with self.contract_fence, self.lock:      # R1.4.5: same serialization and generation rule as every other withdrawal
                     self.connected = False
                     self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None
+                    self._contract_note_locked()
                     self.last_state_ok_mono = None
                 self.retry_delay = min(backoff, 10); backoff = min(backoff * 2, 10)
                 self.log(f'server unreachable ({type(e).__name__}); retry in {self.retry_delay:.0f}s'); self.stop_evt.wait(self.retry_delay)

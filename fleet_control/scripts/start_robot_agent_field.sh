@@ -2,7 +2,7 @@
 # Run ON the LIMO: (re)start ONLY the Robot Agent in the field's motor-locked configuration. Not the ROS stack, not the Gate, not 18190.
 #   usage: start_robot_agent_field.sh SERVER_URL TOKEN_FILE [extra ros2 -p args...]   (both required: no server address or token path is stored here)
 #          e.g.  start_robot_agent_field.sh http://127.0.0.1:18290 ~/.config/<dir>/agent-pcu.token -p map_save_enabled:=true
-#   env STATE_DIR (default ~/.local/state/limo_robot_agent_field_20261120), WS (default ~/Capstone1_limo/robot_ws), LOG (default $STATE_DIR/agent.out)
+#   env STATE_DIR (REQUIRED, absolute path; e.g. the field Agent used ~/.local/state/limo_robot_agent_field_20261120), WS (default ~/Capstone1_limo/robot_ws), LOG (default $STATE_DIR/agent.out)
 # Always allow_missions:=false. Keeps the Agent's ROS settings: domain 77, localhost only, rmw_fastrtps_cpp. No tokens are printed.
 #
 # After starting, judge readiness from the server (laptop): scripts/dds_ready_check.py. A NOT_READY Agent is not ready, whatever the process says.
@@ -13,7 +13,9 @@
 if [ $# -lt 2 ]; then echo "usage: $0 SERVER_URL TOKEN_FILE [extra ros2 -p args...]" >&2; exit 2; fi
 case "$1" in http://*|https://*) ;; *) echo "ABORT: SERVER_URL must start with http:// or https://" >&2; exit 2;; esac
 SERVER_URL=$1; TOKEN_FILE=$2; shift 2
-STATE_DIR=${STATE_DIR:-$HOME/.local/state/limo_robot_agent_field_20261120}; WS=${WS:-$HOME/Capstone1_limo/robot_ws}; LOG=${LOG:-$STATE_DIR/agent.out}
+[ -n "${STATE_DIR:-}" ] || { echo "ABORT: STATE_DIR must be set explicitly (no default: the state directory of another server must never be reused by accident)" >&2; exit 2; }
+case "$STATE_DIR" in /*) ;; *) echo "ABORT: STATE_DIR must be an absolute path" >&2; exit 2;; esac
+WS=${WS:-$HOME/Capstone1_limo/robot_ws}; LOG=${LOG:-$STATE_DIR/agent.out}; mkdir -p "$STATE_DIR"; chmod 700 "$STATE_DIR"
 source /opt/ros/humble/setup.bash; source "$WS/install/setup.bash"
 export ROS_DOMAIN_ID=77 ROS_LOCALHOST_ONLY=1 RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 if pgrep -f 'install/limo_robot_agent/lib/limo_robot_agent/robot_agent' >/dev/null; then echo "ABORT: a robot_agent is already running (stop it first)"; exit 2; fi

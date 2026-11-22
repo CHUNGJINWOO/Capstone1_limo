@@ -187,7 +187,9 @@ class RecoveryTests(unittest.TestCase):
         with self.assertRaises(ApiError):self.fleet.ingest_state('r',998,bad,a.boot_id)
 
     def test_expired_and_old_sequence_commands_never_reach_handler(self):
-        a,r=self.agent();self.stop_agent(a)
+        a,r=self.agent()
+        from fleet_server.auth import Principal   # R1.4.6: motion needs a live lease in the current reply (as for any real mission)
+        self.fleet.lease_action('r',Principal('op','operator'),'acquire',300);wait(lambda:a.lease is not None);self.stop_agent(a)
         def command(cid,seq,age=0,expiry=120):return {'command_id':cid,'robot_id':'r','owner_boot_id':a.boot_id,'mission_id':'m_x','type':'navigate_to_pose','seq':seq,'issued_at':time.time()-age,'expires_at':time.time()+expiry,'payload':{'goal':GOAL}}
         a._on_command(command('expired',1,10,-1));a._on_command(command('old-issued',2,200,10))
         self.assertEqual(r.backend['starts'],0)

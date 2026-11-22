@@ -65,7 +65,7 @@ class GateResetMixin:
         if r is None: return b + ['UNKNOWN_ROBOT']
         if not r.get('online'): b.append('AGENT_OFFLINE')
         if not r.get('reconciled') or r.get('reconciliation_required'): b.append('AGENT_NOT_RECONCILED')
-        if (r.get('agent') or {}).get('protocol_version') != 2: b.append('AGENT_PROTOCOL')
+        if not self.agent_contract_ok(robot_id): b.append('AGENT_PROTOCOL')
         if ((r.get('agent') or {}).get('capabilities') or {}).get('gate_reset') is not True and (r.get('agent') or {}).get('gate_reset') is not True:
             b.append('AGENT_GATE_RESET_UNSUPPORTED')
         lease = self.lease_view(robot_id)
@@ -162,7 +162,7 @@ class GateResetMixin:
     def gate_reset_for_agent(self, robot_id):
         """Deliver a QUEUED request exactly once to the Agent boot it was issued for."""
         rec = self._gr_advance(robot_id)
-        if not rec or rec['status'] != 'QUEUED':
+        if not rec or rec['status'] != 'QUEUED' or not self.agent_contract_ok(robot_id):
             return None
         rec.update(status='DELIVERED', delivered_at=time.time())
         self._gr_save(rec)

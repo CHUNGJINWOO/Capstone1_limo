@@ -31,7 +31,7 @@ class Readiness(unittest.TestCase):
     def setUp(self):
         self.db = DB(':memory:'); self.f = Fleet(self.db, cfg())
         self.f.robots['R'] = {'robot_id': 'R', 'online': True, 'reconciled': True, 'state_ts': time.time(), 'last_seen': time.time(),
-                              'agent': {'boot_id': 'a1', 'protocol_version': 2},
+                              'agent': {'boot_id': 'a1', 'protocol_version': 2, 'safety_contract_version': 1},
                               'state': {'safety_gate': dict(GATE_OK), 'motion_watchdog': dict(WD_OK)}}
         self.epoch = self.f.lease_action('R', OPER, 'acquire', 120)['epoch']
 

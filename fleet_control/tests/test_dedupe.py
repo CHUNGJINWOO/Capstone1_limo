@@ -11,52 +11,61 @@ from fleet_server.auth import Principal
 RES = []
 def check(n, ok, d=''): RES.append(ok); print(f"  [{'PASS' if ok else 'FAIL'}] {n} {d}")
 
-# ---- (1) agent: the same command delivered three times (lost ack / server restart) is executed once
-class Handler:
-    def __init__(self): self.runs = 0
-    def start_navigate(self, cmd, ack): self.runs += 1; ack('ACCEPTED', 'ok'); ack('SUCCEEDED', 'done')
-    def cancel_mission(self, cmd, ack): ack('SUCCEEDED', 'x')
-sent = []
-class FakeHttp:
-    n = 0
-    issued = time.time()
-    def __init__(self, *a, **k): pass
-    def post(self, path, body, timeout=None):
-        if path == '/agent/hello': return {'server_boot_id': 'b1'}
-        if path == '/agent/state':
-            FakeHttp.n += 1
-            cmds = [{'command_id': 'c_dup', 'robot_id': 't', 'owner_boot_id': 'test-boot', 'seq': 1, 'issued_at': FakeHttp.issued, 'expires_at': FakeHttp.issued+120, 'type': 'navigate_to_pose', 'mission_id': 'm_x', 'payload': {'goal': {}}}] if FakeHttp.n <= 3 else []
-            return {'server_boot_id': 'b1', 'commands': cmds}
-        sent.append((path, body.get('status'))); return {'ok': True}
-core.Http = FakeHttp
-h = Handler(); d = tempfile.mkdtemp()
-a = core.AgentCore('t', 'http://x', 'tok', lambda: {}, h, {'boot_id': 'test-boot'}, d, period_s=0.05, log=lambda m: None)
-import threading; th = threading.Thread(target=a.run, daemon=True); th.start(); time.sleep(1.0); a.stop()
-check('agent executed the re-delivered command exactly once', h.runs == 1, f'runs={h.runs}')
-check('agent counted the duplicate deliveries', a.stats['duplicates_ignored'] == 2, str(a.stats))
-check('agent re-acknowledged the stored final status for the duplicates', sum(1 for p, s in sent if s == 'SUCCEEDED') >= 3, str(sent)[:120])
-a2 = core.AgentCore('t', 'http://x', 'tok', lambda: {}, Handler(), {}, d, log=lambda m: None)
-check('de-duplication survives an agent restart (state file)', 'c_dup' in a2.seen and a2.seen['c_dup']['status'] == 'SUCCEEDED')
+def main():
+    # ---- (1) agent: the same command delivered three times (lost ack / server restart) is executed once
+    class Handler:
+        def __init__(self): self.runs = 0
+        def start_navigate(self, cmd, ack): self.runs += 1; ack('ACCEPTED', 'ok'); ack('SUCCEEDED', 'done')
+        def cancel_mission(self, cmd, ack): ack('SUCCEEDED', 'x')
+    sent = []
+    class FakeHttp:
+        n = 0
+        issued = time.time()
+        def __init__(self, *a, **k): pass
+        def post(self, path, body, timeout=None):
+            if path == '/agent/hello': return {'server_boot_id': 'b1', 'protocol_version': 2}     # R1.4.3: a motion command is refused unless the server contract is valid, so the fake server speaks it
+            if path == '/agent/state':
+                FakeHttp.n += 1
+                cmds = [{'command_id': 'c_dup', 'robot_id': 't', 'owner_boot_id': 'test-boot', 'seq': 1, 'issued_at': FakeHttp.issued, 'expires_at': FakeHttp.issued+120, 'type': 'navigate_to_pose', 'mission_id': 'm_x', 'payload': {'goal': {}}}] if FakeHttp.n <= 3 else []
+                return {'server_boot_id': 'b1', 'safety_contract_version': 1, 'reconciliation_required': False, 'lease': {'owner': 'op', 'epoch': 1, 'expires_at': time.time() + 300}, 'commands': cmds}
+            sent.append((path, body.get('status'))); return {'ok': True}
+    orig_http = core.Http
+    core.Http = FakeHttp
+    try:
+        h = Handler(); d = tempfile.mkdtemp()
+        a = core.AgentCore('t', 'http://x', 'tok', lambda: {}, h, {'boot_id': 'test-boot'}, d, period_s=0.05, log=lambda m: None)
+        import threading; th = threading.Thread(target=a.run, daemon=True); th.start(); time.sleep(1.0); a.stop()
+        check('agent executed the re-delivered command exactly once', h.runs == 1, f'runs={h.runs}')
+        check('agent counted the duplicate deliveries', a.stats['duplicates_ignored'] == 2, str(a.stats))
+        check('agent re-acknowledged the stored final status for the duplicates', sum(1 for p, s in sent if s == 'SUCCEEDED') >= 3, str(sent)[:120])
+        a2 = core.AgentCore('t', 'http://x', 'tok', lambda: {}, Handler(), {}, d, log=lambda m: None)
+        check('de-duplication survives an agent restart (state file)', 'c_dup' in a2.seen and a2.seen['c_dup']['status'] == 'SUCCEEDED')
+    finally:
+        core.Http = orig_http
 
-# ---- (2)(3) server
-class Cfg: offline_after_s = 6.0; command_ttl_s = 120.0; resend_after_s = 5.0
-db = DB(os.path.join(tempfile.mkdtemp(), 'f.db')); f = Fleet(db, Cfg()); f.hello('r1', {'boot_id':'unit','protocol_version':2,'safety_contract_version':1}); f.reconcile('r1','unit',{}, {},True)
-ex = {'active':None,'nav2_goals':{'known':True,'active_count':0,'received_status_array':True,'age_s':0.}}
-state = {'safety_gate':{'boot_id':'g','status':'NORMAL','age_s':0.,'fault_epoch':1,'fault_latched':False,'cmd_blocked':False,'movement_permitted':True},'operation_mode':'NAVIGATION','operation_revision':1,'map_epoch':1,'localization_epoch':1,'map_version_id':'m','localization_map_version_id':'m','map_verified':True,'localization_status':'CONFIRMED','execution':ex}
-f.ingest_state('r1',1,state,'unit'); lease = f.lease_action('r1',Principal('t','operator'),'acquire')['epoch']
-g = {'frame_id': 'map', 'x': 1, 'y': 2}
-m1, c1 = f.create_mission('r1', 'navigate_to_pose', g, 'key-A', '', 't',lease); m2, c2 = f.create_mission('r1', 'navigate_to_pose', g, 'key-A', '', 't',lease)
-check('same idempotency_key -> same mission, created only once', m1['mission_id'] == m2['mission_id'] and c1 and not c2)
-m3, _ = f.create_mission('r1', 'navigate_to_pose', g, 'key-B', '', 't',lease); check('different key -> new mission', m3['mission_id'] != m1['mission_id'])
-cmds = f.ingest_state('r1', 2, state, 'unit')['commands']; cid = cmds[0]['command_id']
-check('exactly one command delivered at a time per robot', len(cmds) == 1 and cmds[0]['mission_id'] == m1['mission_id'])
-check('un-acked command is not re-sent immediately', f.ingest_state('r1', 3, state, 'unit')['commands'] == [])
-f.cfg.resend_after_s = 0.0; again = f.ingest_state('r1', 4, state, 'unit')['commands']
-check('un-acked command is re-sent with the SAME command_id (attempt 2)', len(again) == 1 and again[0]['command_id'] == cid and again[0]['attempt'] == 2)
-r = f.ack_command('r1', cid, 'ACCEPTED'); check('first ack applied', not r['duplicate'])
-r = f.ack_command('r1', cid, 'ACCEPTED'); check('duplicate ack ignored', r['duplicate'])
-f.ack_command('r1', cid, 'SUCCEEDED', 'done'); r = f.ack_command('r1', cid, 'EXECUTING'); check('stale (regressing) ack ignored', r['duplicate'] and f.mission(m1['mission_id'])['status'] == 'SUCCEEDED')
-r = f.ack_command('r1', cid, 'FAILED'); check('terminal state is final (conflicting later ack ignored)', f.mission(m1['mission_id'])['status'] == 'SUCCEEDED')
-try: f.ack_command('r2', cid, 'ACCEPTED'); check('ack from another robot refused', False)
-except ApiError as e: check('ack from another robot refused', e.status == 404)
-print(f'\nTOTAL {sum(RES)}/{len(RES)} passed'); sys.exit(0 if all(RES) else 1)
+    # ---- (2)(3) server
+    class Cfg: offline_after_s = 6.0; command_ttl_s = 120.0; resend_after_s = 5.0
+    db = DB(os.path.join(tempfile.mkdtemp(), 'f.db')); f = Fleet(db, Cfg()); f.hello('r1', {'boot_id':'unit','protocol_version':2,'safety_contract_version':1}); f.reconcile('r1','unit',{}, {},True)
+    ex = {'active':None,'nav2_goals':{'known':True,'active_count':0,'received_status_array':True,'age_s':0.}}
+    state = {'safety_gate':{'boot_id':'g','status':'NORMAL','age_s':0.,'fault_epoch':1,'fault_latched':False,'cmd_blocked':False,'movement_permitted':True},'operation_mode':'NAVIGATION','operation_revision':1,'map_epoch':1,'localization_epoch':1,'map_version_id':'m','localization_map_version_id':'m','map_verified':True,'localization_status':'CONFIRMED','execution':ex}
+    f.ingest_state('r1',1,state,'unit'); lease = f.lease_action('r1',Principal('t','operator'),'acquire')['epoch']
+    g = {'frame_id': 'map', 'x': 1, 'y': 2}
+    m1, c1 = f.create_mission('r1', 'navigate_to_pose', g, 'key-A', '', 't',lease); m2, c2 = f.create_mission('r1', 'navigate_to_pose', g, 'key-A', '', 't',lease)
+    check('same idempotency_key -> same mission, created only once', m1['mission_id'] == m2['mission_id'] and c1 and not c2)
+    m3, _ = f.create_mission('r1', 'navigate_to_pose', g, 'key-B', '', 't',lease); check('different key -> new mission', m3['mission_id'] != m1['mission_id'])
+    cmds = f.ingest_state('r1', 2, state, 'unit')['commands']; cid = cmds[0]['command_id']
+    check('exactly one command delivered at a time per robot', len(cmds) == 1 and cmds[0]['mission_id'] == m1['mission_id'])
+    check('un-acked command is not re-sent immediately', f.ingest_state('r1', 3, state, 'unit')['commands'] == [])
+    f.cfg.resend_after_s = 0.0; again = f.ingest_state('r1', 4, state, 'unit')['commands']
+    check('un-acked command is re-sent with the SAME command_id (attempt 2)', len(again) == 1 and again[0]['command_id'] == cid and again[0]['attempt'] == 2)
+    r = f.ack_command('r1', cid, 'ACCEPTED'); check('first ack applied', not r['duplicate'])
+    r = f.ack_command('r1', cid, 'ACCEPTED'); check('duplicate ack ignored', r['duplicate'])
+    f.ack_command('r1', cid, 'SUCCEEDED', 'done'); r = f.ack_command('r1', cid, 'EXECUTING'); check('stale (regressing) ack ignored', r['duplicate'] and f.mission(m1['mission_id'])['status'] == 'SUCCEEDED')
+    r = f.ack_command('r1', cid, 'FAILED'); check('terminal state is final (conflicting later ack ignored)', f.mission(m1['mission_id'])['status'] == 'SUCCEEDED')
+    try: f.ack_command('r2', cid, 'ACCEPTED'); check('ack from another robot refused', False)
+    except ApiError as e: check('ack from another robot refused', e.status == 404)
+    print(f'\nTOTAL {sum(RES)}/{len(RES)} passed'); sys.exit(0 if all(RES) else 1)
+
+
+if __name__ == '__main__':
+    main()

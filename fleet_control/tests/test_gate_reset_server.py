@@ -30,7 +30,7 @@ class GateResetServer(unittest.TestCase):
     def make(self, db=None):
         f = Fleet(db or self.db, CFG)
         f.robots['R'] = {'robot_id': 'R', 'online': True, 'reconciled': True, 'state_ts': time.time(),
-                         'agent': {'boot_id': 'agentboot1', 'protocol_version': 2, 'gate_reset': True, 'mode': 'mock'},
+                         'agent': {'boot_id': 'agentboot1', 'protocol_version': 2, 'safety_contract_version': 1, 'gate_reset': True, 'mode': 'mock'},
                          'state': {'safety_gate': {'status': 'FAILSAFE_SENSOR_TIMEOUT', 'reset_view': gate_view()},
                                    'mapping_worker': {'status': 'IDLE'},
                                    'motion_watchdog': {'state': 'MOTION_AUTHORIZED', 'agent_boot_matches': True}}}

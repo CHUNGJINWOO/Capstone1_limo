@@ -1,0 +1,39 @@
+# R1.1 done, P6 applied (laptop), R1.2 proposal, R2 defect item (2026-11-22, Claude)
+
+Not done: no robot access of any kind, no robot file changed, no Watchdog/Server/Agent source edited, no commit/push/PR, G1 branch and backups untouched. The only repository changes: `scripts/start_robot_agent_field.sh` (P6), the new `tests/test_agent_server_contract_20261123.py`, and this document plus the common-document entries.
+
+## 1. Verification criteria (from existing real-robot logs only; no new run)
+| Name | Start event | End event | Provisional limit | Existing evidence (v4_isolated_01, log-time resolution about 1 s) |
+|---|---|---|---|---|
+| `T_agent` | the `robot_agent` process starts (`ros2 run … robot_agent`; first Agent log line / process start time) | Agent log `connected and reconciled` and the server shows the robot `online` + `reconciled` | 30 s | about 1 s (run 1), about 0.2-1 s (run 2) |
+| `T_launch` | `start_robot_agent_field.sh` is invoked (harness timestamp taken immediately before the call) | same end event | 90 s (includes the DDS slot precheck, about 43 s, and the fixed 4 s warm-up wait) | about 48 s and about 47 s |
+Both clocks must be taken by the harness, not read afterwards from file times. The old "30 s" condition of the runbook stays **UNDETERMINED** (no start event, not enforced); it is not reinterpreted retroactively. The limits are provisional (user decision 2026-11-22) and the 90 s limit assumes the precheck runs.
+
+## 2. P6 applied on the laptop (robot script unchanged)
+`fleet_control/scripts/start_robot_agent_field.sh` now requires `SERVER_URL`, `TOKEN_FILE` and `STATE_DIR` (absolute); `mkdir -p` + `chmod 700` of the state directory; header updated. The patch applied cleanly to the G1 version (`fc5035fc…`); `bash -n` OK.
+Agent-not-started tests on the real file (all exit before any ROS command; no Agent process started by the tests; no state directory created): no arguments rc 2, one argument rc 2, `ftp://` rc 2, no `STATE_DIR` rc 2, empty `STATE_DIR` rc 2, relative `STATE_DIR` rc 2. The success path was **not** run. Compatibility: argument order and the extra `-p` pass-through are unchanged; the only new requirement is `STATE_DIR`; callers are documents only (previous finding), which should be updated when the robot script is replaced. The G1 commit still holds the pre-P6 version, so the change is an uncommitted diff of one file. Robot copy still the old `9a4e30ef…`.
+
+## 3. R1.1 contract test: `tests/test_agent_server_contract_20261123.py` (11 tests, Server-only, no ROS)
+Reuses the safety-context fixture (`test_safety_context_v1`) and the existing contract documents. Checks: Agent constants (`SAFETY_CONTRACT_VERSION`, `protocol_version` in `core.py`) equal the Server's (hello response, 5 literals, safety-context check, gate-reset blockers); a mismatching or malformed version (1, 3, `True`, `'2'`, `2.0`; safety 0, 2, `True`, `'1'`, `None`), a missing `protocol_version` / `safety_contract_version` / `boot_id`, and an empty/blank/non-string/over-long `boot_id` all give `safety_context` None with reason `AGENT_PROTOCOL` and a refused mission (and `AGENT_PROTOCOL` in the gate-reset blockers); the baseline is admitted; every `/agent/*` path the Agent uses is served by `http_api.py`; the documents state `protocol_version: 2` and `safety_contract_version: 1`. It stays valid before and after R1.2 (verified on both trees).
+### Results
+| Item | Result |
+|---|---|
+| New contract test, real tree | PASS 11/11 |
+| Existing contract tests | PASS: `test_r3_r4_contract` 2, `test_phase20r_lease_contract` 2, `test_manual_admission_contract_model_20261120` 15, `test_registry_authoring_api` 12, `test_manual_control_bench_contract` 5 (with `PYTHONPATH=server`) |
+| `test_locked_graph_contract_characterization` | **SKIP/not runnable here**: `ModuleNotFoundError: geometry_msgs` (the laptop shell has no ROS) |
+| Safety context suites | PASS: v1 5, types 4, regression 24, sync 5 |
+| Whole `tests/` in one `unittest discover` run | 784 tests, 4 failures, 65 errors, 17 skipped: errors are ROS imports (`geometry_msgs`, `std_srvs`, `rclpy`) and a missing `CAPSTONE45_SNAPSHOT`; `test_recovery` (14) passes alone but fails inside the combined run, so there is a cross-test interference/timing effect in discover mode that I did **not** investigate. No baseline comparison on an unmodified tree was run: those results are **not** shown to be pre-existing, only unrelated to the two changed files by inspection. |
+### Contract drift findings
+1. **No version mismatch today** (both sides 2 and 1).
+2. The numbers are duplicated: `protocol_version` literal in 5 Server places + 1 Agent keyword; the Server's `safety_contract_version` is a bare `1` twice (service response, safety check) against the Agent constant.
+3. **Documentation drift:** `docs/API.md` does not mention 3 routes the Agent uses and the Server serves: `/agent/map-bundle`, `/agent/slam-map`, `/agent/manual-bench` (the test pins this set; adding them to the document must shrink `DOC_GAP`).
+4. `gate_reset_blockers` checks only `protocol_version`, not `safety_contract_version`; the safety-context check checks both. Not changed (behaviour decision for the owner).
+5. A hello is **accepted** with any version values (the server records them); the refusal happens later at the admission checks. This is what the tests pin.
+
+## 4. R1.2 (not applied)
+State check (read-only): `service.py`, `safety.py`, `gate_reset.py`, `core.py`, `safety_protocol.py` are byte-identical to the G1 commit (SHA256 compared), last modified 2026-11-21, no uncommitted tracked change in this scope; no peer session reported an open edit; 21 Codex-related processes are running on the machine but nothing in scope changed. The Codex fixes of 11-20/21 are already inside the G1 snapshot, so the base is stable. Ownership of the *future* edit is unconfirmed: that needs the user's decision.
+Patch `local_data/raw_results/real_limo_integ_claude_20261122/r1_1_01/patches/R1_2_constants.patch` (sha256 `469acc20…`, 21 changed lines; made and tested on scratch copies, not applied): Agent `safety_protocol.py` gets `PROTOCOL_VERSION = 2`; `core.py` uses it; Server `safety.py` gets `PROTOCOL_VERSION`/`SAFETY_CONTRACT_VERSION`; `service.py` and `gate_reset.py` import them and replace the 6 literals. Behaviour identical. On the scratch tree: contract test 11/11, `test_r3_r4_contract`, `test_phase20r_lease_contract`, safety-context v1/regression/sync, `test_manual_control_bench_contract`, `test_recovery` all PASS.
+Approvals needed: (a) confirm no open Codex edit on those 3 Server files; (b) approve applying the patch to the working tree (own and Codex-authored files, uncommitted); (c) after it, rerun Phase 4/5 isolated suites and the Agent shutdown matrix (they need ROS, so a ROS-enabled shell) before any deploy; the robot would then need a v5 Agent deployment because `core.py`/`safety_protocol.py` change (not asked now).
+
+## 5. R2 defect item kept (Watchdog not edited)
+`motion_watchdog` ends with rc 1 and `ExternalShutdownException` after SIGTERM or an ignored SIGINT (laptop isolated-domain probe, exit time 0.16 s, never hangs); normal SIGINT gives rc 0. Proposed fix, to be approved separately: in `main()` catch `ExternalShutdownException` next to `KeyboardInterrupt` **only when a stop signal was received** (a flag set by the signal handler) so a genuine shutdown caused by an error still returns non-zero; keep the final zero-velocity publish in a `try`. Regression tests (extend the shutdown matrix with `--target motion_watchdog`): SIGINT/SIGTERM/second-signal -> rc 0, exit under 1 s, no ghost node; an injected fatal exception in a callback -> rc non-zero with a traceback; a killed upstream context (without a signal) -> non-zero; a last zero Twist is published on SIGINT when the context is still alive (the case where it is possible).

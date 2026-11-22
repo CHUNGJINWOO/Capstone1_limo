@@ -9,6 +9,7 @@ from pathlib import Path
 import time
 
 SAFETY_CONTRACT_VERSION = 1
+SERVER_PROTOCOL_VERSION = 2      # the Fleet Server hello protocol this Agent is built for (exact int, no bool/float/str)
 MAX_EPOCH = (1 << 63) - 1
 MAX_ID_LEN = 256
 MAX_TIMESTAMP_S = 1e12
@@ -259,6 +260,23 @@ class GateObservationTracker:
         return result
 
 
+def lease_wellformed(lease):
+    """Structure of the Fleet lease view (ownership.lease_view): non-empty owner, exact non-negative int epoch, valid expiry timestamp.
+    Expiry against the clock and owner/epoch against a command stay where they were (movement/active-goal checks)."""
+    return (isinstance(lease, dict) and _is_nonempty_str(lease.get('owner')) and _is_nonneg_int(lease.get('epoch'))
+            and _is_valid_ts(lease.get('expires_at')))
+
+
+def server_contract_valid(ss):
+    """Fail-closed check of the server contract carried by a session snapshot: BOTH versions must be present exact ints.
+    A missing, null, bool, float, string or different value is invalid (R1.4.1: a missing protocol_version used to pass)."""
+    if not isinstance(ss, dict):
+        return False
+    pv, sv = ss.get('protocol_version'), ss.get('safety_contract_version')
+    return (type(pv) is int and pv == SERVER_PROTOCOL_VERSION
+            and type(sv) is int and sv == SAFETY_CONTRACT_VERSION)
+
+
 def compute_movement_permitted(
     *,
     allow_missions,
@@ -341,7 +359,7 @@ def compute_movement_permitted(
         or not _is_finite_num(ss_age)
         or ss_age < 0
         or ss_age > max_state_age_s
-        or ss.get('safety_contract_version') != SAFETY_CONTRACT_VERSION
+        or not server_contract_valid(ss)
         or not _is_nonempty_str(ss.get('server_boot_id'))
     ):
         reasons.append('SERVER_DISCONNECTED_OR_STALE')
@@ -400,6 +418,10 @@ def verify_navigation_execution(
     ss = session_ctx if isinstance(session_ctx, dict) else {}
     if ss.get('connected') is not True or sc['server_boot_id'] != ss.get('server_boot_id'):
         return False, 'REJECTED', 'SESSION_MISMATCH: disconnected or server_boot_id changed', None
+    stamp = cmd.get('contract_generation')
+    if stamp is not None and ss.get('contract_generation') != stamp:
+        # R1.4.3: the contract was invalidated (and possibly recovered) after this command was received; the old approval is dead.
+        return False, 'REJECTED', 'CONTRACT_GENERATION_CHANGED: server contract was invalidated after this command was received', None
 
     cmd_issued = cmd.get('issued_at')
     cmd_expires = cmd.get('expires_at')
@@ -503,6 +525,11 @@ def check_active_goal_safety(
     ss = session_ctx if isinstance(session_ctx, dict) else {}
     if ss.get('reconciliation_required') is True:
         return 'SERVER_RECONCILIATION_REQUIRED'
+    if not server_contract_valid(ss):
+        return 'SERVER_CONTRACT_INVALID'          # an active goal is cancelled when the session's contract is lost or invalid
+    stamp = active_rec.get('contract_generation')
+    if stamp is not None and ss.get('contract_generation') != stamp:
+        return 'SERVER_CONTRACT_INVALID'          # R1.4.3: an invalidation after this goal was admitted is a latched obligation: a later recovery keeps the generation changed
     ss_age = ss.get('last_state_age_s')
     if (
         ss.get('connected') is not True

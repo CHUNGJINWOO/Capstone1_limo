@@ -25,7 +25,7 @@ class MappingSessionTests(unittest.TestCase):
         self.f = Fleet(DB(':memory:'), SimpleNamespace(offline_after_s=6, command_ttl_s=120, resend_after_s=1))
         self.boot = 'b' * 12
         self.f.robots['R'] = {'online': True, 'reconciled': True, 'state_ts': time.time(),
-                              'agent': {'boot_id': self.boot, 'mode': 'sim', 'simulated': True, 'mapping_worker': True},
+                              'agent': {'boot_id': self.boot, 'protocol_version': 2, 'safety_contract_version': 1, 'mode': 'sim', 'simulated': True, 'mapping_worker': True},
                               'state': {'execution': {'active': None, 'nav2_goals': dict(IDLE_NAV)},
                                         'mapping_worker': {'status': 'IDLE'}, 'slam': {'enabled': False, 'status': 'UNAVAILABLE'}}}
         self.epoch = self.f.lease_action('R', OP, 'acquire', 60)['epoch']

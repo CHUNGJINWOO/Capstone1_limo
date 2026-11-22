@@ -7,6 +7,15 @@ import math
 import time
 
 class SafetyMixin:
+    def agent_contract_ok(self, robot_id):
+        r = self.robots.get(robot_id) or {}
+        return agent_contract_valid(r.get('agent'))
+
+    def require_agent_contract(self, robot_id, context='control'):
+        from .service import ApiError
+        if not self.agent_contract_ok(robot_id):
+            raise ApiError(409, 'agent_protocol', f'incompatible agent protocol or safety contract for {context}')
+
     def _sc_fail(self, robot_id, reason):
         """Record the FIRST failing check of safety_context (diagnostics only; the admission decision is unchanged)."""
         if not hasattr(self, 'safety_context_reasons'): self.safety_context_reasons = {}
@@ -27,7 +36,7 @@ class SafetyMixin:
         if self.db.one('SELECT 1 FROM meta WHERE k=?', ('gate_boot_reconciliation:'+robot_id,)):
             return self._sc_fail(robot_id, 'GATE_BOOT_RECONCILIATION')
         agent = r.get('agent') or {}
-        if type(agent.get('protocol_version')) is not int or agent['protocol_version'] != 2 or type(agent.get('safety_contract_version')) is not int or agent['safety_contract_version'] != 1 or not valid_id(agent.get('boot_id')):
+        if not agent_contract_valid(agent):
             return self._sc_fail(robot_id, 'AGENT_PROTOCOL')
         ttl = self.cfg.command_ttl_s
         if not finite_number(ttl) or ttl <= 0: return self._sc_fail(robot_id, 'COMMAND_TTL')
@@ -153,6 +162,15 @@ class SafetyMixin:
 
 def valid_id(value):
     return isinstance(value, str) and bool(value.strip()) and len(value) <= 256
+
+
+def agent_contract_valid(agent):
+    """Strict Agent-Server safety contract check (protocol_version==2, safety_contract_version==1, valid boot_id)."""
+    if not isinstance(agent, dict):
+        return False
+    if type(agent.get('protocol_version')) is not int or agent['protocol_version'] != 2 or type(agent.get('safety_contract_version')) is not int or agent['safety_contract_version'] != 1 or not valid_id(agent.get('boot_id')):
+        return False
+    return True
 
 def valid_epoch(value):
     return type(value) is int and 0 <= value < 2**63

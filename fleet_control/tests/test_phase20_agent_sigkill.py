@@ -13,6 +13,8 @@ class HoldHandler:
 
 def child(root,conn):
  h=HoldHandler(conn);a=AgentCore('r','http://invalid','',lambda:{},h,{'boot_id':'old'},root,log=lambda *_:None);h.agent=a
+ with a.lock:    # R1.4.3: motion commands need a valid server contract (the session a real hello/state reply would give)
+  a.server_boot='srv';a.server_protocol_boot='srv';a.server_protocol_version=2;a.server_safety_contract_version=1;a.server_reconciliation_required=False;a.connected=True;a.lease={'owner':'op','epoch':1,'expires_at':time.time()+300};a._contract_note_locked()
  now=time.time();a._on_command({'command_id':'c','robot_id':'r','mission_id':'m','type':'navigate_to_pose','seq':1,'payload':{'goal':{'x':1}},'issued_at':now,'expires_at':now+60,'owner_boot_id':'old'})
 
 class Tests(unittest.TestCase):

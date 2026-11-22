@@ -592,7 +592,19 @@ class RosRobot(Node):
             return self.map_version, dict(self.map_meta), self.map_png
 
     # ------------------------------------------------------------ mission execution (called from the agent thread -> queued to the ROS thread)
-    def start_navigate(self, cmd, ack): self.tasks.append(('nav', cmd, ack))
+    def _submission_fence(self):
+        """The AgentCore's contract_fence when session_fn is bound to an AgentCore (production wiring and the AgentCore-based tests);
+        otherwise a private lock (stand-alone RosRobot tests with synthetic sessions, where nobody else changes the authority)."""
+        owner = getattr(self.session_fn, '__self__', None)
+        fence = getattr(owner, 'contract_fence', None)
+        if fence is None:
+            fence = self.__dict__.setdefault('_own_submission_fence', threading.RLock())
+        return fence
+
+    def start_navigate(self, cmd, ack):
+        if isinstance(cmd, dict) and 'contract_generation' not in cmd and callable(self.session_fn):    # direct callers: stamp at enqueue time
+            cmd = dict(cmd, contract_generation=(self.session_fn() or {}).get('contract_generation'))
+        self.tasks.append(('nav', cmd, ack))
     def cancel_mission(self, cmd, ack): self.tasks.append(('cancel', cmd, ack))
 
     def _publish_heartbeat(self):
@@ -857,6 +869,7 @@ class RosRobot(Node):
             'goal_sent_mono': None,
             'fault_cancel_reason': None,
             'safety_context': sc2,
+            'contract_generation': cmd.get('contract_generation'),      # R1.4.3: the obligation to cancel follows this generation
         }
         # Persist intent before the ROS submission. This is deliberately before
         # the submission lock to avoid inverting AgentCore/ROS lock ordering;
@@ -876,7 +889,11 @@ class RosRobot(Node):
         fut = None
         abort_pre = None
         send_failed = False
-        with self.lock:
+        # R1.4.4: the final check and the START of the local submission are one step with respect to authority changes: the Agent run
+        # loop takes the same contract_fence to change the contract/reconciliation state. Whichever enters first is linearized first:
+        # an invalidation that enters first makes Stage 3 refuse; one that waits for us happens after send_goal_async was called and is
+        # then handled as a latched cancel duty (the goal record carries the old generation). Nothing below waits for the Future.
+        with self._submission_fence(), self.lock:
             ok3, st3, detail3, sc3 = self._verify_nav_preconditions(cmd)
             if not ok3:
                 abort_pre = (st3, f'ABORTED_PRE_SEND: {detail3}')

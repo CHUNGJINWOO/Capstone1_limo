@@ -96,6 +96,8 @@ class OperatingModeMixin:
             why = 'server restarted'
         elif not lease or lease['epoch'] != rec.get('epoch') or lease['owner'] != rec.get('owner'):
             why = 'lease expired or changed'
+        elif not self.agent_contract_ok(robot_id):
+            why = 'agent protocol or safety contract incompatible'
         elif rec['mode'] != 'TRANSITIONING' and (r.get('agent') or {}).get('boot_id') != rec.get('agent_boot'):
             why = 'agent restarted'
         elif (rec.get('transition') or {}).get('state') in ('STOPPING_PREVIOUS', 'VERIFYING_IDLE', 'CONFIRMING') and \
@@ -119,6 +121,9 @@ class OperatingModeMixin:
         if rec is None:
             return None
         t = rec.get('transition') or {}
+        if not self.agent_contract_ok(robot_id):
+            return {'mode': 'IDLE', 'operation_mode': 'IDLE', 'revision': rec['revision'], 'epoch': None,
+                    'transition_state': t.get('state'), 'server_boot': rec.get('server_boot')}
         # While a transition is still stopping a NAVIGATION mission, the operation producer keeps NAVIGATION so the
         # mission's Safety Context stays valid and its cancel ends with a Nav2 result instead of a reconciliation.
         # Velocity is already zero: the Arbiter selects nothing while the mode is TRANSITIONING.
@@ -158,6 +163,8 @@ class OperatingModeMixin:
                 raise ApiError(409, 'lease_required', 'current owner and epoch required')
             if target == 'MAPPING':
                 self._mapping_real_block(robot_id)                  # real-robot block first: its reason must stay visible
+            if target != 'IDLE':
+                self.require_agent_contract(robot_id, f'{target} mode')
             if target in ('MAPPING', 'NAVIGATION'):
                 self.require_ready(robot_id, f'{target} mode')      # Phase 4: profile flag, or always for a real Agent
             rec = self.mode_view(robot_id) or self._mode_new('IDLE', None, 'first mode request')
@@ -319,6 +326,8 @@ class OperatingModeMixin:
         state = r.get('state') or {}
         if not r.get('online') or not r.get('reconciled') or r.get('reconciliation_required'):
             return 'agent offline or not reconciled'
+        if t.get('to') != 'IDLE' and not self.agent_contract_ok(robot_id):
+            return 'agent protocol or safety contract incompatible'
         if not 0 <= time.time() - (r.get('state_ts') or 0) <= STATE_FRESH_S:
             return 'agent report stale'
         if (r.get('state_ts') or 0) <= t.get('requested_at', 0):

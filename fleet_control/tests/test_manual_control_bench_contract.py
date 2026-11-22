@@ -26,7 +26,8 @@ class ManualBenchContract(unittest.TestCase):
         self.fleet.db = FakeDB()
         self.fleet.manual_benches = {}
         self.fleet.robots = {'pcu': {'agent': {'manual_web_bench': True, 'mode': 'real',
-            'simulated': False, 'missions_enabled': False, 'boot_id': 'boot1'},
+            'simulated': False, 'missions_enabled': False, 'boot_id': 'boot1',
+            'protocol_version': 2, 'safety_contract_version': 1},
             'state_ts': time.time(), 'online': True, 'reconciled': True,
             'state': {'execution': {'active': None, 'nav2_goals': {'known': True, 'publishers': 1,
                 'active_count': 0, 'received_status_array': True, 'age_s': 0.0}}}}}

@@ -103,3 +103,31 @@ fixed2 Gate 코드에서 fault_epoch는 프로세스 시작 시 0으로 초기�
 - VALIDATION: 각 합성 테스트 명령/결과와 기존 회귀의 정책 충돌을 구분해 추가.
 - CODE_INDEX: `safety.py`, 신규 서버 테스트, 이 계약 파일을 추가.
 - DECISIONS: 사용자 승인 전 C-01 확정 또는 안전 정책 확정으로 변경하지 않음.
+
+## Agent의 서버 프로토콜 확인과 Mapping STOP 예외 (R1.4.1, 2026-11-23)
+- Agent는 hello 응답의 `protocol_version`을 가공 없이 보관하며 그 값은 응답을 준 server boot에만 유효합니다. 재연결(hello 재시작), server boot 변경, `needs_reconcile`에서 폐기하고, 상태 응답에 같은 필드가 오면 그 값으로 교체한 뒤 다시 판정합니다. 이동 허가(`compute_movement_permitted`)와 진행 중인 goal 감시(`check_active_goal_safety`, 사유 `SERVER_CONTRACT_INVALID`)는 `protocol_version`이 정확한 정수 2이고 `safety_contract_version`이 정확한 정수 1일 때만 통과합니다(누락·null·bool·float·문자열·다른 값은 모두 거부). 읽기, 취소, STOP 경로는 이 검사를 쓰지 않습니다.
+- Fleet Server는 비호환 Agent(`agent_contract_ok` 거짓)의 Mapping Worker에게 START/RESUME/PAUSE/SAVE, `reserve_goal`, `renew`를 주지 않습니다. 예외: 그 Agent 자신의 boot·세션에 이미 속한 STOP 하나만 `poll`로 전달하고 `accept`/`result`를 받으며, 결과는 최초 1회만 기록하고 서버 이벤트로 남깁니다. 이 예외는 STOP이 전달·기록됨을 뜻할 뿐 물리 정지를 검증하지 않습니다.
+
+### R1.4.2 정정 (2026-11-23)
+- `safety_contract_version`은 서버의 모든 상태 응답에 들어 있으므로 Agent는 **매 응답에서** 이 값을 읽습니다. 키가 없거나 정확한 정수 1이 아니면 직전의 정상 값을 유지하지 않고 즉시 무효가 되어 새 이동 명령이 거부되고 진행 중 goal은 감시 주기(0.1 s)에서 `SERVER_CONTRACT_INVALID`로 취소 요청됩니다. 이후 유효한 응답이 오면 계약은 다시 유효해지지만, 무효 동안 거부된 명령은 재실행하지 않습니다. 취소 요청의 성공은 로봇의 실제 정지를 뜻하지 않습니다.
+- `protocol_version`의 승인 지점은 hello뿐입니다. 상태 응답에는 보통 없으며(정상), 있고 정확한 정수 2가 아니면 승인을 철회합니다. 유효한 2가 와도 무효 hello를 복구하지 않으며 새 hello(재연결, `needs_reconcile`, server boot 변경)만 다시 승인할 수 있습니다.
+- 비호환 Mapping Worker의 STOP `poll`은 boot와 `session_id`가 모두 그 STOP이 속한 세션과 일치할 때만 STOP을 돌려줍니다(없거나 다른 `session_id`면 `command: null`, `renew: false`).
+
+### R1.4.3 계약 세대 (2026-11-23)
+- Agent는 서버 계약이 유효에서 무효가 되는 모든 순간(무효 응답, 키 누락·오류값, hello 재시작, boot 변경, `needs_reconcile`)마다 `contract_generation`을 1 올립니다. 복구해도 내려가지 않습니다.
+- `navigate_to_pose`는 **수신 시점**에 계약이 유효할 때만 받아들이며(무효면 종결 REJECTED, 큐에 넣지 않고 재전달돼도 재실행하지 않음), 받아들인 명령은 그 시점의 세대를 가집니다. 실행 단계(Stage 1·2·3)마다 현재 세대와 같아야 하며 다르면 `CONTRACT_GENERATION_CHANGED`로 거부됩니다.
+- 실행 중 goal은 제출 시점의 세대를 가지며, 세대가 달라지면 이후 정상 응답이 와도 모니터는 계속 `SERVER_CONTRACT_INVALID`로 취소를 요청합니다(의무는 goal 종료 시에만 사라지고 새 goal에는 승계되지 않음). 취소 요청 성공은 Nav2 취소 완료나 로봇 정지를 뜻하지 않으며, 0.1 s 모니터 주기는 정지시간 보장이 아닙니다.
+- Cancel/STOP 경로와 Watchdog·Gate의 독립 정지는 이 계약에 종속시키지 않습니다.
+
+### R1.4.4 제출 원자성과 재조정 철회 (2026-11-23)
+- Agent의 실행 권한 = 유효한 서버 계약 **그리고** `reconciliation_required`가 정확히 False. 상태 응답에서 True가 오면 계약 무효와 똑같이 세대가 증가하고, 이후 False가 와도 이전 세대의 명령·goal 승인은 되살아나지 않습니다.
+- 권한 필드의 변경(Agent 실행 루프)과 Nav2 제출 직전의 최종 검사 및 로컬 `send_goal_async` 호출 시작(RosRobot Stage 3)은 같은 `contract_fence`로 직렬화됩니다(락 순서 `contract_fence -> RosRobot.lock -> AgentCore.lock`, Future 대기는 락 밖). 무효화가 먼저면 제출 0건, 제출이 먼저면 그 goal에 취소 의무가 남습니다. 이미 떠난 요청을 Nav2가 실행하는 구간은 취소 의무로만 제한되며 정지시간 보장이 아닙니다.
+
+### R1.4.5 권한 철회 경로 통일과 재조정 플래그 (2026-11-23)
+- Agent의 실행 권한 = 유효한 계약 + `reconciliation_required`가 정확한 Boolean `False` + 서버 세션 연결(`connected`). 셋 중 하나라도 잃으면(HTTP 오류·통신 예외 포함) `contract_fence` 아래에서 세대가 증가하고, 대기 명령은 거부되며 실행 중 goal은 즉시 취소가 요청됩니다(기존 3 s 단절 유예는 이 경로에서 더 이상 적용되지 않음).
+- Fleet Server의 정상 상태 응답은 이제 `reconciliation_required: false`를 명시합니다(차단 응답과 reconcile 응답은 원래 명시). Agent는 정확한 `false`만 인정하며 누락·null·숫자·문자열·배열·객체는 모두 재조정 필요로 취급합니다. v4 Agent는 영향 없음, v5 Agent는 이 서버 변경 이후에만 운동이 허용되므로 서버를 먼저 배포합니다. 계약 버전 변경은 하지 않습니다.
+
+### R1.4.6 Lease는 매 상태 응답에서 다시 확인 (2026-11-23)
+- 상태 응답의 `lease` 키는 필수입니다(서버는 매번 Lease view 또는 null을 보냄). Agent는 매 응답에서 다시 읽으며, 누락·null·구조 오류(owner 빈 문자열, epoch가 int가 아님, 만료 시각 오류)·만료된 Lease는 모두 "Lease 없음"으로 처리해 실행 권한을 철회합니다(세대 증가). 이전 응답의 Lease를 재사용하지 않습니다.
+- Lease 소유자·epoch가 바뀌면 유효→유효 전이라도 세대가 증가하며, 명령의 safety context에 적힌 Lease가 현재 응답의 Lease와 다르면 수신 시점에 거부합니다.
+- 운동 승인 필수 필드: hello `server_boot_id`·`protocol_version`(정수 2), 상태 응답 `server_boot_id`(일치)·`safety_contract_version`(정수 1)·`reconciliation_required`(정확한 false)·`lease`(유효), 그리고 연결 상태. `protocol_version`은 상태 응답에서 선택이며 철회만 가능합니다.

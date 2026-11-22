@@ -18,12 +18,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'agent', 'limo_
 
 
 def _ensure_ros_stubs():
-    try:
-        import rclpy  # noqa: F401
-        return
-    except ModuleNotFoundError:
-        pass
-
+    # P2 (R1.4.1): this suite is written against the stub Node/ActionClient (robot.nav.sent_goals etc.), so the stubs are installed
+    # even when a real rclpy exists. Whatever was in sys.modules is saved and restored in tearDownModule, together with any
+    # limo_robot_agent modules that were imported against the real packages before this module loaded.
     rclpy = types.ModuleType('rclpy')
     rclpy_node = types.ModuleType('rclpy.node')
     rclpy_action = types.ModuleType('rclpy.action')
@@ -122,7 +119,7 @@ def _ensure_ros_stubs():
             self.subs[topic] = cb
             return cb
 
-        def create_timer(self, period, cb):
+        def create_timer(self, period, cb, **kwargs):          # ros_adapter passes clock=...
             self.timers.append((period, cb))
             return cb
 
@@ -171,6 +168,9 @@ def _ensure_ros_stubs():
                     ),
                 )
 
+    rclpy_clock = types.ModuleType('rclpy.clock')          # ros_adapter imports Clock/ClockType (added after this suite was written)
+    rclpy_clock.Clock = lambda **kwargs: types.SimpleNamespace(kwargs=kwargs)
+    rclpy_clock.ClockType = types.SimpleNamespace(STEADY_TIME=1)
     rclpy_node.Node = _StubNode
     rclpy_action.ActionClient = _action_client_factory
     rclpy_qos.DurabilityPolicy = _Durability
@@ -207,9 +207,10 @@ def _ensure_ros_stubs():
     unique_identifier_msgs_msg = types.ModuleType('unique_identifier_msgs.msg')
     unique_identifier_msgs_msg.UUID = lambda uuid: types.SimpleNamespace(uuid=uuid)
 
-    sys.modules.update({
+    stubs = {
         'rclpy': rclpy,
         'rclpy.node': rclpy_node,
+        'rclpy.clock': rclpy_clock,
         'rclpy.action': rclpy_action,
         'rclpy.qos': rclpy_qos,
         'action_msgs': action_msgs,
@@ -225,7 +226,29 @@ def _ensure_ros_stubs():
         'tf2_ros': tf2_ros,
         'unique_identifier_msgs': unique_identifier_msgs,
         'unique_identifier_msgs.msg': unique_identifier_msgs_msg,
-    })
+    }
+    global _REAL_ROS_PRESENT
+    try:
+        import importlib.util
+        _REAL_ROS_PRESENT = importlib.util.find_spec('rclpy') is not None and 'rclpy' not in sys.modules or (
+            'rclpy' in sys.modules and hasattr(sys.modules['rclpy'], 'init'))
+    except Exception:
+        _REAL_ROS_PRESENT = False
+    saved = {k: sys.modules.get(k) for k in stubs}
+    for name in [m for m in sys.modules if m == 'limo_robot_agent' or m.startswith('limo_robot_agent.')]:
+        saved[name] = sys.modules.pop(name)                    # re-import the Agent against the stubs
+    sys.modules.update(stubs)
+    return saved
+
+
+def _restore_ros_stubs(saved):
+    if not saved:
+        return
+    for k, prev in saved.items():
+        if prev is None:
+            sys.modules.pop(k, None)
+        else:
+            sys.modules[k] = prev
 
 
 class StubFuture:
@@ -281,10 +304,33 @@ class StubGoalHandle:
         return self.result_future
 
 
-_ensure_ros_stubs()
+_REAL_ROS_PRESENT = False
+_SAVED_ROS_MODULES = _ensure_ros_stubs()
 
-from action_msgs.msg import GoalStatus  # noqa: E402
-from limo_robot_agent import core, ros_adapter, safety_protocol  # noqa: E402
+try:
+    from action_msgs.msg import GoalStatus  # noqa: E402
+    from limo_robot_agent import core, ros_adapter, safety_protocol  # noqa: E402
+    import importlib, pkgutil, limo_robot_agent as _pkg                  # import every Agent module NOW, while the stubs exist: RosRobot imports
+    for _m in pkgutil.iter_modules(_pkg.__path__):                       # some of them lazily, and other suites that share this fixture build
+        try: importlib.import_module('limo_robot_agent.' + _m.name)      # robots after tearDownModule has removed the stubs
+        except Exception: pass
+except BaseException:
+    _restore_ros_stubs(_SAVED_ROS_MODULES)
+    _SAVED_ROS_MODULES = None
+    raise
+
+
+def tearDownModule():
+    global _SAVED_ROS_MODULES
+    if _SAVED_ROS_MODULES:
+        if _REAL_ROS_PRESENT:
+            # Modules imported while the stubs were installed keep references to the stub classes: drop them, then put back what was
+            # there before (real rclpy and any earlier limo_robot_agent import), so a real-ROS test module in this process binds real classes.
+            # (Other suites that share this stub fixture cannot run in the same process then: run them without ROS sourced.)
+            for name in [m for m in sys.modules if m == 'limo_robot_agent' or m.startswith('limo_robot_agent.')]:
+                sys.modules.pop(name, None)
+        _restore_ros_stubs(_SAVED_ROS_MODULES)
+    _SAVED_ROS_MODULES = None
 
 
 def _make_gate_msg(
@@ -375,6 +421,7 @@ def _make_ready_robot(allow_missions=True):
         'agent_boot_id': 'agt-boot-1',
         'last_state_age_s': 0.1,
         'safety_contract_version': 1,
+        'protocol_version': 2,
         'lease': {'owner': 'op-alice', 'epoch': 7, 'expires_at': now_w + 30.0},
     }
     robot._producer_state = {
@@ -564,6 +611,7 @@ class TestSafetyContextV1(unittest.TestCase):
             'agent_boot_id': 'agt-boot-1',
             'last_state_age_s': 0.1,
             'safety_contract_version': 1,
+            'protocol_version': 2,
             'lease': {'owner': 'op-alice', 'epoch': 7, 'expires_at': time.time() + 30.0},
         }
         snap = robot.snapshot()
@@ -684,9 +732,9 @@ class TestSafetyContextV1(unittest.TestCase):
             def fake_post(path, body, timeout=None):
                 if path == '/agent/hello':
                     posted_hellos.append(body)
-                    return {'server_boot_id': 'srv-boot-1', 'safety_contract_version': 1}
+                    return {'server_boot_id': 'srv-boot-1', 'safety_contract_version': 1, 'protocol_version': 2}
                 if path == '/agent/reconcile':
-                    return {'commands': []}
+                    return {'commands': [], 'reconciliation_required': False}   # the real reconcile reply always carries this key (R1.4.4 reads it as authority)
                 if '/ack' in path:
                     received_acks.append((path, body))
                     return {'ok': True}
@@ -696,6 +744,8 @@ class TestSafetyContextV1(unittest.TestCase):
             agent._hello()
             self.assertTrue(agent.connected)
             self.assertEqual(agent.server_safety_contract_version, 1)
+            with agent.lock:   # R1.4.6: the lease a state reply would carry (motion commands need one at receipt)
+                agent.lease = {'owner': 'op-alice', 'epoch': 7, 'expires_at': time.time() + 60.0}
 
             # Command missing safety_context rejected by AgentCore when require_safety_context=True
             agent._on_command(_make_cmd(cmd_id='cmd-no-sc', seq=6, sc=None, owner_boot_id='new-boot-2'))
@@ -1029,6 +1079,7 @@ class TestSafetyContextV1(unittest.TestCase):
             )
             agent.server_boot = 'srv-boot-1'
             agent.server_safety_contract_version = 1
+            agent.server_protocol_version = 2; agent.server_protocol_boot = 'srv-boot-1'   # as a real hello of server boot srv-boot-1 would set
             agent.connected = True
             agent.server_reconciliation_required = False  # synthetic reconciled session
             agent.last_state_ok_mono = time.monotonic()
@@ -1174,7 +1225,7 @@ class TestSafetyContextV1(unittest.TestCase):
         lease_box = [{'owner': 'op-alice', 'epoch': 7, 'expires_at': time.time() + 60.0}]
         robot3.session_fn = lambda: {
             'connected': True, 'server_boot_id': 'srv-boot-1', 'agent_boot_id': 'agt-boot-1',
-            'last_state_age_s': 0.0, 'lease': lease_box[0], 'safety_contract_version': 1,
+            'last_state_age_s': 0.0, 'lease': lease_box[0], 'safety_contract_version': 1, 'protocol_version': 2,
         }
         robot3.start_navigate(_make_cmd(cmd_id='c-lease', mission_id='m-lease', sc=_valid_safety_context()), lambda s, d='', pr=None: acks3.append((s, d)))
         robot3._run_tasks()
@@ -1202,6 +1253,7 @@ class TestSafetyContextV1(unittest.TestCase):
             )
             agent4.server_boot = 'srv-boot-1'
             agent4.server_safety_contract_version = 1
+            agent4.server_protocol_version = 2; agent4.server_protocol_boot = 'srv-boot-1'   # as a real hello of server boot srv-boot-1 would set
             agent4.connected = True
             agent4.server_reconciliation_required = False  # synthetic reconciled session
             agent4.last_state_ok_mono = time.monotonic()

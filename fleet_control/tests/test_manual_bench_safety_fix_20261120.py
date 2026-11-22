@@ -16,7 +16,7 @@ class BenchSafety(unittest.TestCase):
         self.mapping='IDLE';f.mapping_blocks_motion=lambda _:self.mapping not in ('IDLE','STOPPED')
         self.lease={'owner':'op','epoch':3,'expires_at':time.time()+30};f.lease_view=lambda _:self.lease
         f.robots={'r':{'online':True,'reconciled':True,'state_ts':time.time(),
-          'agent':{'manual_web_bench':True,'mode':'real','simulated':False,'missions_enabled':False,'boot_id':'a'},
+          'agent':{'manual_web_bench':True,'mode':'real','simulated':False,'missions_enabled':False,'boot_id':'a','protocol_version':2,'safety_contract_version':1},
           'state':{'execution':{'active':None,'nav2_goals':{'known':True,'publishers':1,'active_count':0,'received_status_array':True,'age_s':0.}}}}}
         f.check_session=lambda *args:None
     def start(self): return self.f.manual_bench('r','op',{'action':'start','epoch':3})['session_id']

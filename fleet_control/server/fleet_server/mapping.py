@@ -129,7 +129,7 @@ class MappingMixin:
         if agent.get('mode') == 'real' or agent.get('simulated') is False:
             raise ApiError(409, 'mapping_real_blocked', 'real-robot mapping is blocked until field safety conditions clear')
 
-    def _mapping_worker_robot(self, robot_id):
+    def _mapping_worker_robot(self, robot_id, *, allow_stop=False):
         from .service import ApiError
 
         r = self.robots.get(robot_id) or {}
@@ -140,6 +140,8 @@ class MappingMixin:
         # E-Stop are unresolved. Only simulated/mock or isolated-ROS agents may host the worker.
         if agent.get('simulated') is not True or agent.get('mode') not in ('mock', 'sim'):
             raise ApiError(409, 'mapping_real_blocked', 'real-robot mapping is blocked until field safety conditions clear')
+        if not allow_stop and not self.agent_contract_ok(robot_id):
+            raise ApiError(409, 'agent_protocol', 'incompatible agent protocol or safety contract for mapping')
         if (not r.get('reconciled') or r.get('reconciliation_required')
                 or not 0 <= time.time() - (r.get('state_ts') or 0) < WORKER_STALE_S):
             raise ApiError(409, 'worker_unavailable', 'fresh reconciled mapping worker required')
@@ -181,7 +183,7 @@ class MappingMixin:
                         'status': command['status']}
             if state['state'] not in STABLE[action]:
                 raise ApiError(409, 'operation_state_conflict', state['state'])
-            r = self._mapping_worker_robot(robot_id)
+            r = self._mapping_worker_robot(robot_id, allow_stop=(action == 'STOP'))
             if action in ('START', 'RESUME'):
                 self.require_mode(robot_id, 'MAPPING', 'mode_not_mapping')
                 self._require_mapping_slot_free(robot_id, r, action)
@@ -302,9 +304,23 @@ class MappingMixin:
             self.check_session(robot_id, boot)
             if body.get('kind') != self.KIND:
                 raise ApiError(400, 'bad_kind', 'mapping required')
-            self._mapping_worker_robot(robot_id)
+            # R1.4.1: with an incompatible Agent contract the worker may ONLY receive, accept and report a STOP that already belongs to
+            # its own boot and session. START/RESUME/PAUSE/SAVE, goal reservation and lease renewal stay refused.
+            stop_only = not self.agent_contract_ok(robot_id)
+            self._mapping_worker_robot(robot_id, allow_stop=True)
             s = self.operation_status(robot_id)
             c = s.get('command')
+            if stop_only:
+                own_stop = bool(c and c.get('action') == 'STOP' and s.get('boot') == boot)     # accept/result: command id and session id are matched below
+                act = body.get('action')
+                if act == 'poll':
+                    # R1.4.2: boot AND session must both match the session that owns the STOP (poll used to ignore a foreign session_id)
+                    mine = own_stop and isinstance(body.get('session_id'), str) and body.get('session_id') == s.get('session_id')
+                    resp = {'command': c if mine and c['status'] == 'QUEUED' else None}
+                    if 'session_id' in body: resp['renew'] = False       # never keep an incompatible worker's session alive
+                    return resp
+                if act not in ('accept', 'result') or not own_stop:
+                    raise ApiError(409, 'agent_protocol', 'incompatible agent protocol or safety contract: only the existing session\'s STOP is allowed')
             if body.get('action') == 'poll':
                 renew = (s['state'] in ('MAPPING', 'PAUSED') and s.get('session_id') == body.get('session_id')
                          and s.get('boot') == boot)
