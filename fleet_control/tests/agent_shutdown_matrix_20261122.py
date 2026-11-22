@@ -136,28 +136,219 @@ def run_case(E, scenario, sig, ign, idx):
     return res
 
 
+def _proc_env(a):
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', ROS_DOMAIN_ID=str(a.domain), ROS_LOCALHOST_ONLY='1', RMW_IMPLEMENTATION='rmw_fastrtps_cpp')
+    for k in ('http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY'):
+        env.pop(k, None)
+    env['PYTHONPATH'] = f"{a.agent_src}:{env.get('PYTHONPATH', '')}"
+    return env
+
+
+def run_watchdog_cases(E, only):
+    env = _proc_env(E.a)
+    cases = [
+        ('wd_INT_norm', 'INT', False, 'normal'),
+        ('wd_INT_ign', 'INT', True, 'normal'),
+        ('wd_TERM_norm', 'TERM', False, 'normal'),
+        ('wd_TERM_dup', 'TERM', False, 'duplicate'),
+        ('wd_abnormal_ext_shutdown', None, False, 'ext_shutdown'),
+        ('wd_abnormal_internal_exc', None, False, 'internal_exc'),
+    ]
+    results = []
+    for name, sig, ign, mode in cases:
+        if only and name not in only:
+            continue
+        res = dict(case=name, target='motion_watchdog', mode=mode, signal=sig, sigint_ignored=ign)
+        shm0 = shm_names()
+        log = E.out / f'{name}.log'
+        if mode == 'ext_shutdown':
+            code = (
+                'import sys, rclpy\n'
+                'from limo_robot_agent import motion_watchdog as mw\n'
+                'orig = mw.MotionWatchdog.__init__\n'
+                'def patched(self):\n'
+                '    orig(self)\n'
+                '    self.create_timer(0.4, lambda: rclpy.try_shutdown())\n'
+                'mw.MotionWatchdog.__init__ = patched\n'
+                'sys.exit(mw.main())\n'
+            )
+            cmd = [sys.executable, '-c', code]
+        elif mode == 'internal_exc':
+            code = (
+                'import sys\n'
+                'from limo_robot_agent import motion_watchdog as mw\n'
+                'orig = mw.MotionWatchdog.tick\n'
+                'n = {"c": 0}\n'
+                'def patched(self):\n'
+                '    n["c"] += 1\n'
+                '    if n["c"] >= 3:\n'
+                '        raise RuntimeError("injected_watchdog_fault")\n'
+                '    return orig(self)\n'
+                'mw.MotionWatchdog.tick = patched\n'
+                'sys.exit(mw.main())\n'
+            )
+            cmd = [sys.executable, '-c', code]
+        else:
+            cmd = [sys.executable, '-m', 'limo_robot_agent.motion_watchdog']
+        pre = (lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)) if ign else None
+        t0 = time.time()
+        proc = subprocess.Popen(cmd, env=env, stdout=open(log, 'w'), stderr=subprocess.STDOUT, start_new_session=True, preexec_fn=pre)
+        if mode in ('normal', 'duplicate'):
+            time.sleep(1.0)
+            s = signal.SIGINT if sig == 'INT' else signal.SIGTERM
+            t0 = time.time()
+            os.kill(proc.pid, s)
+            if mode == 'duplicate':
+                time.sleep(0.02)
+                try:
+                    os.kill(proc.pid, s)
+                except ProcessLookupError:
+                    pass
+        try:
+            rc = proc.wait(TIMEOUT_S)
+            res.update(exited=True, rc=rc, exit_s=round(time.time() - t0, 3))
+        except subprocess.TimeoutExpired:
+            res.update(exited=False, rc=None, exit_s=None)
+            proc.kill(); proc.wait()
+        text = log.read_text(errors='replace')
+        res['traceback'] = 'Traceback' in text
+        res['tail'] = text.strip().splitlines()[-4:]
+        time.sleep(0.6)
+        res['ghost_nodes'] = [n for n in ros_nodes(E.a.domain) if 'watchdog' in n or 'fleet' in n]
+        res['new_shm'] = sorted(shm_names() - shm0)
+        if mode in ('normal', 'duplicate'):
+            ok = res['exited'] and res['rc'] == 0 and not res['traceback'] and not res['ghost_nodes'] and not res['new_shm'] and 'stopped cleanly' in text
+        elif mode == 'ext_shutdown':
+            ok = res['exited'] and res['rc'] != 0 and 'ABNORMAL_EXTERNAL_SHUTDOWN' in text and not res['ghost_nodes'] and not res['new_shm']
+        else:
+            ok = res['exited'] and res['rc'] != 0 and 'ABNORMAL_EXCEPTION' in text and 'injected_watchdog_fault' in text and not res['ghost_nodes'] and not res['new_shm']
+        res['result'] = 'PASS' if ok else 'FAIL'
+        print(json.dumps({k: res[k] for k in ('case', 'result', 'rc', 'exit_s', 'traceback', 'ghost_nodes', 'new_shm') if k in res}), flush=True)
+        results.append(res)
+    return results
+
+
+def run_mock_robot_cases(E, only):
+    env = _proc_env(E.a)
+    cases = [('mock_INT_norm', 'INT', False), ('mock_INT_ign', 'INT', True), ('mock_TERM_norm', 'TERM', False)]
+    results = []
+    for name, sig, ign in cases:
+        if only and name not in only:
+            continue
+        res = dict(case=name, target='mock_robot', signal=sig, sigint_ignored=ign)
+        shm0 = shm_names()
+        log = E.out / f'{name}.log'
+        cmd = [sys.executable, '-c', 'from limo_robot_agent.mock_robot_node import main; main()']
+        pre = (lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)) if ign else None
+        proc = subprocess.Popen(cmd, env=env, stdout=open(log, 'w'), stderr=subprocess.STDOUT, start_new_session=True, preexec_fn=pre)
+        ok_start = wait_for(log, 'mock robot up', 15)
+        res['reached_state'] = ok_start
+        if not ok_start:
+            proc.kill(); proc.wait()
+            res['result'] = 'SETUP_FAIL'
+        else:
+            s = signal.SIGINT if sig == 'INT' else signal.SIGTERM
+            t0 = time.time()
+            os.kill(proc.pid, s)
+            try:
+                rc = proc.wait(TIMEOUT_S)
+                res.update(exited=True, rc=rc, exit_s=round(time.time() - t0, 3))
+            except subprocess.TimeoutExpired:
+                res.update(exited=False, rc=None, exit_s=None)
+                proc.kill(); proc.wait()
+            text = log.read_text(errors='replace')
+            res['traceback'] = 'Traceback' in text
+            res['tail'] = text.strip().splitlines()[-3:]
+        time.sleep(0.6)
+        res['ghost_nodes'] = [n for n in ros_nodes(E.a.domain) if 'mock_robot' in n]
+        res['new_shm'] = sorted(shm_names() - shm0)
+        if res.get('result') != 'SETUP_FAIL':
+            res['result'] = 'PASS' if (res['exited'] and res['rc'] == 0 and not res['traceback'] and not res['ghost_nodes'] and not res['new_shm']) else 'FAIL'
+        print(json.dumps({k: res[k] for k in ('case', 'result', 'rc', 'exit_s', 'traceback', 'ghost_nodes', 'new_shm') if k in res}), flush=True)
+        results.append(res)
+    return results
+
+
+def run_supervisor_cases(E, only):
+    env = _proc_env(E.a)
+    cases = [('sup_INT_norm', 'INT', False), ('sup_INT_ign', 'INT', True), ('sup_TERM_norm', 'TERM', False)]
+    results = []
+    for name, sig, ign in cases:
+        if only and name not in only:
+            continue
+        res = dict(case=name, target='supervisor', signal=sig, sigint_ignored=ign)
+        log = E.out / f'{name}.log'
+        sdir = E.out / f'{name}_logs'
+        sdir.mkdir()
+        cfg_path = E.out / f'{name}_cfg.json'
+        marker = f'sup_dummy_child_{name}_{os.getpid()}'
+        cfg = {
+            'robot_id': 'pcu',
+            'server_url': f'http://127.0.0.1:{E.a.port}',
+            'token_file': str(E.sec / 'agent-pcu.token'),
+            'report_period_s': 0.5,
+            'services': [{
+                'name': 'dummy',
+                'cmd': [sys.executable, '-c', f'import signal, sys, time; signal.signal(signal.SIGTERM, lambda *_: sys.exit(0)); signal.signal(signal.SIGINT, lambda *_: sys.exit(0)); time.sleep(60)  # {marker}'],
+                'ready': {'after_s': 0.2},
+                'restart': {'max': 1, 'window_s': 30, 'backoff_s': 1},
+            }],
+        }
+        cfg_path.write_text(json.dumps(cfg))
+        cmd = [sys.executable, '-m', 'limo_robot_agent.supervisor', '--config', str(cfg_path), '--log-dir', str(sdir)]
+        pre = (lambda: signal.signal(signal.SIGINT, signal.SIG_IGN)) if ign else None
+        proc = subprocess.Popen(cmd, env=env, stdout=open(log, 'w'), stderr=subprocess.STDOUT, start_new_session=True, preexec_fn=pre)
+        time.sleep(1.0)
+        s = signal.SIGINT if sig == 'INT' else signal.SIGTERM
+        t0 = time.time()
+        os.kill(proc.pid, s)
+        try:
+            rc = proc.wait(TIMEOUT_S)
+            res.update(exited=True, rc=rc, exit_s=round(time.time() - t0, 3))
+        except subprocess.TimeoutExpired:
+            res.update(exited=False, rc=None, exit_s=None)
+            proc.kill(); proc.wait()
+        text = log.read_text(errors='replace')
+        res['traceback'] = 'Traceback' in text
+        chk = subprocess.run(['pgrep', '-f', marker], capture_output=True, text=True)
+        res['leftover_children'] = [x for x in chk.stdout.split() if x.strip()]
+        res['tail'] = text.strip().splitlines()[-3:]
+        res['result'] = 'PASS' if (res['exited'] and res['rc'] == 0 and not res['traceback'] and not res['leftover_children']) else 'FAIL'
+        print(json.dumps({k: res[k] for k in ('case', 'result', 'rc', 'exit_s', 'traceback', 'leftover_children') if k in res}), flush=True)
+        results.append(res)
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--agent-src', required=True); ap.add_argument('--out', required=True)
     ap.add_argument('--domain', type=int, default=230); ap.add_argument('--port', type=int, default=18293)
     ap.add_argument('--only', default='')
+    ap.add_argument('--target', choices=('agent', 'motion_watchdog', 'mock_robot', 'supervisor'), default='agent')
     a = ap.parse_args()
     if a.port in (8080, 18190, 18191, 18192, 18290) or a.domain in (0, 77):
         sys.exit('refusing a production-like port or domain')
     E = Env(a)
-    cases = []
-    for sc in ('up', 'down_start', 'server_dies', 'reconnect'):
-        for sig, ign in (('INT', False), ('INT', True), ('TERM', False)):
-            cases.append((sc, sig, ign))
     only = [x for x in a.only.split(',') if x]
-    results = []
-    for i, (sc, sig, ign) in enumerate(cases, 1):
-        name = f'{sc}_{sig}_{"ign" if ign else "norm"}'
-        if only and name not in only:
-            continue
-        results.append(run_case(E, sc, sig, ign, i))
+    if a.target == 'motion_watchdog':
+        results = run_watchdog_cases(E, only)
+    elif a.target == 'mock_robot':
+        results = run_mock_robot_cases(E, only)
+    elif a.target == 'supervisor':
+        results = run_supervisor_cases(E, only)
+    else:
+        cases = []
+        for sc in ('up', 'down_start', 'server_dies', 'reconnect'):
+            for sig, ign in (('INT', False), ('INT', True), ('TERM', False)):
+                cases.append((sc, sig, ign))
+        results = []
+        for i, (sc, sig, ign) in enumerate(cases, 1):
+            name = f'{sc}_{sig}_{"ign" if ign else "norm"}'
+            if only and name not in only:
+                continue
+            results.append(run_case(E, sc, sig, ign, i))
     summ = {k: sum(1 for r in results if r['result'] == k) for k in ('PASS', 'FAIL', 'SETUP_FAIL')}
-    json.dump({'agent_src': a.agent_src, 'results': results, 'summary': summ}, open(E.out / 'result.json', 'w'), indent=1)
+    json.dump({'target': a.target, 'agent_src': a.agent_src, 'results': results, 'summary': summ}, open(E.out / 'result.json', 'w'), indent=1)
     print('SUMMARY', summ)
     return 1 if summ['FAIL'] or summ['SETUP_FAIL'] else 0
 

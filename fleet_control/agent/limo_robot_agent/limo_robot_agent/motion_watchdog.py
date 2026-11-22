@@ -35,6 +35,9 @@ control-loop liveness ('tasks_age_s') and the Agent's own goal UUIDs ('goal_uuid
 """
 import json
 import math
+import signal
+import sys
+import threading
 import time
 import uuid
 
@@ -42,8 +45,10 @@ import rclpy
 from action_msgs.msg import GoalInfo, GoalStatus, GoalStatusArray
 from action_msgs.srv import CancelGoal
 from geometry_msgs.msg import Twist
+from rclpy.executors import ExternalShutdownException, SingleThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+from rclpy.signals import SignalHandlerOptions
 from std_msgs.msg import String
 
 from . import topics
@@ -98,6 +103,11 @@ class MotionWatchdog(Node):
         self.counters_resub = 0
         self.cancel = self.create_client(CancelGoal, '/navigate_to_pose/_action/cancel_goal')
         self.state, self.reason = LOCKED, 'STARTUP'
+        self._publish_lock = threading.Lock()
+        self._stop_requested = False
+        self._stop_reason = None
+        self.shutting_down = False
+        self.shutdown_reason = None
         self.hb_t = self.hb_since = self.hb_boot = None
         self.hb_unhealthy = False
         self.loop_age = None
@@ -118,6 +128,43 @@ class MotionWatchdog(Node):
                              cancel_timeouts=0, dropped_inputs=0, nonfinite_inputs=0, forwarded=0, rearms=0)
         self.create_timer(1.0 / rate, self.tick)
         self.create_timer(0.2, self.publish_status)
+
+    def mark_stop_requested(self, reason='SHUTDOWN'):
+        """Signal-safe (lock-free, no-I/O, no-publish) stop request marker.
+        Immediately blocks any new non-zero publish or re-arm without acquiring _publish_lock;
+        shutdown finalization (shutting_down=True + zero Twist) runs in normal execution context."""
+        self._stop_requested = True
+        if self._stop_reason is None:
+            self._stop_reason = reason
+
+    def _publish_zero(self):
+        with self._publish_lock:
+            self.out.publish(Twist())
+
+    def request_shutdown(self, reason='SHUTDOWN'):
+        """Finalize fail-closed shutdown atomically with respect to velocity publishing under _publish_lock
+        and emit zero Twist. Must be called from a normal execution context (never from a Python signal handler)."""
+        self.mark_stop_requested(reason)
+        with self._publish_lock:
+            self.shutting_down = True
+            if self.shutdown_reason is None:
+                self.shutdown_reason = reason
+            self.state, self.reason = LOCKED, reason
+            try:
+                self.out.publish(Twist())
+            except Exception:
+                pass
+
+    def _publish_authorized(self, msg):
+        """Linearization point for non-zero velocity emission serialized with request_shutdown() via _publish_lock.
+        Because Python signal handlers only call mark_stop_requested() (lock-free, no publish), neither
+        main-thread nor worker-thread signal delivery can deadlock or emit zero before an in-flight publish."""
+        with self._publish_lock:
+            if self.shutting_down or self._stop_requested or self.state != AUTHORIZED or not self.input_ok:
+                self.counters['dropped_inputs'] += 1
+                return
+            self.out.publish(msg)
+            self.counters['forwarded'] += 1
 
     # ---------------------------------------------------------------- inputs
     def on_hb(self, msg):
@@ -150,21 +197,20 @@ class MotionWatchdog(Node):
         self.nav_status_t = time.monotonic()
 
     def on_cmd(self, msg):
-        if self.state != AUTHORIZED or not self.input_ok:
+        if self.shutting_down or self._stop_requested or self.state != AUTHORIZED or not self.input_ok:
             self.counters['dropped_inputs'] += 1
             return
         # 2026-11-22: after this process was frozen, queued inputs can be dispatched before the tick that detects the stall
         # (WATCHDOG_SELF_STALL); they predate the freeze and are never forwarded. The next tick trips FAILSAFE as before.
         if self.last_tick is not None and time.monotonic() - self.last_tick > self.self_stall:
             self.counters['dropped_inputs'] += 1
-            self.out.publish(Twist())
+            self._publish_zero()
             return
         if not _finite_twist(msg):
             self.counters['nonfinite_inputs'] += 1
-            self.out.publish(Twist())
+            self._publish_zero()
             return
-        self.out.publish(msg)
-        self.counters['forwarded'] += 1
+        self._publish_authorized(msg)
 
     # ---------------------------------------------------------------- state machine
     def supervisor_fault(self, now):
@@ -202,6 +248,8 @@ class MotionWatchdog(Node):
         return 'FOREIGN_NAV_GOAL' if now - self.foreign_since >= self.foreign_grace else None
 
     def to(self, state, reason):
+        if state == AUTHORIZED and (self.shutting_down or self._stop_requested):
+            return
         if state != self.state:
             self.get_logger().warning(f'MOTION_WATCHDOG {self.state} -> {state} ({reason})')
             if state == FAILSAFE:
@@ -212,7 +260,7 @@ class MotionWatchdog(Node):
                 self.counters['rearms'] += 1
         self.state, self.reason = state, reason
         if state != AUTHORIZED:
-            self.out.publish(Twist())
+            self._publish_zero()
 
     def _status_gids(self):
         """One entry per status publisher endpoint (None when its GID is unreadable/empty); None if the query failed."""
@@ -287,6 +335,12 @@ class MotionWatchdog(Node):
         self.status_pubs = n
 
     def tick(self):
+        if self.shutting_down or self._stop_requested:
+            try:
+                self._publish_zero()
+            except Exception:
+                pass
+            return
         now = time.monotonic()
         stalled = self.last_tick is not None and now - self.last_tick > self.self_stall
         self.last_tick = now
@@ -298,7 +352,7 @@ class MotionWatchdog(Node):
                 self.to(FAILSAFE, fault)
                 self.idle_proof_t = None
         if self.state != AUTHORIZED:
-            self.out.publish(Twist())
+            self._publish_zero()
             if self.probe_inflight is not None and now - self.probe_inflight > self.probe_timeout:
                 self.probe_inflight = None              # lost answer (server died mid-call): no proof, try again
                 self.counters['cancel_timeouts'] += 1
@@ -371,7 +425,9 @@ class MotionWatchdog(Node):
         now = time.monotonic()
         self.status_pub.publish(String(data=json.dumps({
             'output_topic': self.out.topic_name, 'output_gid': self.own_output_gid(),
-            'state': self.state, 'reason': self.reason, 'ready_to_submit': self.state == AUTHORIZED,
+            'state': self.state, 'reason': self.reason,
+            'ready_to_submit': self.state == AUTHORIZED and not self.shutting_down and not self._stop_requested,
+            'shutting_down': self.shutting_down,
             'boot_id': self.boot_id,
             'heartbeat_age_s': None if self.hb_t is None else round(now - self.hb_t, 3),
             'gate_status_age_s': None if self.gate_t is None else round(now - self.gate_t, 3),
@@ -386,20 +442,103 @@ class MotionWatchdog(Node):
 
 
 def main(args=None):
-    rclpy.init(args=args)
+    rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
     node = MotionWatchdog()
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
+    executor = SingleThreadedExecutor()
+    executor.add_node(node)
+    stop_state = {'signal': None, 'name': None, 'count': 0}
+    stop_logged = {'first': False, 'dup': False}
+
+    def _on_stop_signal(signum, _frame):
+        # Strictly lock-free, no-publish, no-I/O signal handler: records stop request only.
+        # Actual shutdown finalization (request_shutdown under _publish_lock) and logging execute
+        # in main()'s normal execution context so neither main-thread nor worker-thread signal
+        # delivery can deadlock or emit zero Twist before an in-flight publish finishes.
+        stop_state['count'] += 1
         try:
-            node.out.publish(Twist())
+            name = signal.Signals(signum).name
+        except ValueError:
+            name = str(signum)
+        if stop_state['signal'] is None:
+            stop_state['signal'] = signum
+            stop_state['name'] = name
+        node.mark_stop_requested(f'SIGNAL_{name}')
+
+    def _finalize_signal_stop():
+        if stop_state['signal'] is not None and not stop_logged['first']:
+            sig_num = stop_state['signal']
+            sig_name = stop_state['name'] or str(sig_num)
+            node.request_shutdown(f'SIGNAL_{sig_name}')
+            print(f'motion_watchdog: signal {sig_num} ({sig_name}) received: stopping cleanly', flush=True)
+            stop_logged['first'] = True
+
+    signal.signal(signal.SIGINT, _on_stop_signal)
+    signal.signal(signal.SIGTERM, _on_stop_signal)
+    exit_code = 0
+    unhandled_exc = None
+    try:
+        while stop_state['signal'] is None:
+            if not rclpy.ok():
+                print('motion_watchdog: ABNORMAL_EXTERNAL_SHUTDOWN: ROS context shut down without stop signal', file=sys.stderr, flush=True)
+                exit_code = 1
+                break
+            executor.spin_once(timeout_sec=0.05)
+        _finalize_signal_stop()
+    except KeyboardInterrupt:
+        if stop_state['signal'] is None:
+            stop_state['signal'] = signal.SIGINT
+            stop_state['name'] = 'SIGINT'
+        node.request_shutdown('SIGNAL_SIGINT')
+        print('motion_watchdog: KeyboardInterrupt received: stopping cleanly', flush=True)
+        stop_logged['first'] = True
+    except ExternalShutdownException as exc:
+        if stop_state['signal'] is not None:
+            _finalize_signal_stop()
+            print(f'motion_watchdog: ROS context shut down during signal {stop_state["signal"]} stop', flush=True)
+        else:
+            print(f'motion_watchdog: ABNORMAL_EXTERNAL_SHUTDOWN: {exc}', file=sys.stderr, flush=True)
+            exit_code = 1
+    except Exception as exc:
+        node.request_shutdown('ABNORMAL_EXCEPTION')
+        print(f'motion_watchdog: ABNORMAL_EXCEPTION: {type(exc).__name__}: {exc}', file=sys.stderr, flush=True)
+        unhandled_exc = exc
+        exit_code = 1
+    finally:
+        def _step(what, fn):
+            try:
+                fn()
+            except Exception as exc:
+                print(f'motion_watchdog: shutdown step {what} failed ({type(exc).__name__}: {exc})', file=sys.stderr, flush=True)
+
+        _finalize_signal_stop()
+        if not node.shutting_down:
+            node.request_shutdown('SHUTDOWN_FINALLY')
+        if rclpy.ok():
+            _step('zero_twist_publish', node._publish_zero)
+            _step('final_status_publish', node.publish_status)
+        _step('executor.shutdown', executor.shutdown)
+        _step('node.destroy_node', node.destroy_node)
+        _step('rclpy.try_shutdown', rclpy.try_shutdown)
+        if stop_state['count'] > 1 and not stop_logged['dup']:
+            sig_num = stop_state['signal'] or signal.SIGTERM
+            sig_name = stop_state['name'] or str(sig_num)
+            print(f'motion_watchdog: duplicate signal {sig_num} ({sig_name}) ignored during shutdown (count={stop_state["count"]})', flush=True)
+            stop_logged['dup'] = True
+        if exit_code == 0:
+            print(f'motion_watchdog: stopped cleanly (exit_code=0, signals={stop_state["count"]})', flush=True)
+        else:
+            print(f'motion_watchdog: stopped abnormally (exit_code={exit_code})', file=sys.stderr, flush=True)
+        # Prevent CPython Py_FinalizeEx() -> PyOS_FiniInterrupts() from resetting custom Python handlers to SIG_DFL
+        # during interpreter teardown (PyOS_FiniInterrupts preserves SIG_IGN at the OS level).
+        try:
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            signal.signal(signal.SIGTERM, signal.SIG_IGN)
         except Exception:
             pass
-        node.destroy_node()
-        rclpy.try_shutdown()
+    if unhandled_exc is not None:
+        raise unhandled_exc
+    return exit_code
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

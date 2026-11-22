@@ -92,13 +92,36 @@ class MockRobot(Node):
 
 
 def main(args=None):
-    rclpy.init(args=args); n = MockRobot(); ex = MultiThreadedExecutor(num_threads=4); ex.add_node(n)
-    try: ex.spin()
-    except KeyboardInterrupt: pass
+    import signal, sys
+    from rclpy.executors import ExternalShutdownException
+    from rclpy.signals import SignalHandlerOptions
+    rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
+    n = MockRobot(); ex = MultiThreadedExecutor(num_threads=4); ex.add_node(n)
+    stop_sig = {'sig': None}
+    def _on_sig(signum, _frame):
+        stop_sig['sig'] = signum
+    prev_int = signal.signal(signal.SIGINT, _on_sig)
+    prev_term = signal.signal(signal.SIGTERM, _on_sig)
+    rc = 0
+    try:
+        while stop_sig['sig'] is None and rclpy.ok():
+            ex.spin_once(timeout_sec=0.1)
+    except KeyboardInterrupt:
+        pass
+    except ExternalShutdownException:
+        if stop_sig['sig'] is None:
+            rc = 1
     finally:
         ex.shutdown(); n.destroy_node()
-        if rclpy.ok(): rclpy.shutdown()
+        rclpy.try_shutdown()
+        try:
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        except Exception:
+            pass
+    return rc
 
 
 if __name__ == '__main__':
-    main()
+    import sys
+    sys.exit(main())
