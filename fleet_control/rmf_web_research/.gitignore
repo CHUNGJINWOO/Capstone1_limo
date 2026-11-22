@@ -1,0 +1,4 @@
+screenshots/
+local-only/
+node_modules/
+*.log

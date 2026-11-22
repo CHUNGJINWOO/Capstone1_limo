@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "robot selection links map / Inspector / mission",
+    "all themes / 3 screen sizes / actual status bar 34px",
+    "Overview / Spatial read-only clicks",
+    "shared map selection / preview Goal blocked",
+    "Lease + Drawer review + real API mission create / read / cancel",
+    "Goal click coordinates / zoom / pan / Fit",
+    "Localization unknown hides map pose",
+    "camera collapse / resize",
+    "Fault Offline Reconciliation remain globally visible",
+    "viewer controls blocked / admin recovery preserved"
+  ],
+  "errors": []
+}

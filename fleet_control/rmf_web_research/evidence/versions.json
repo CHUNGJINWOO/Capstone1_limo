@@ -1,0 +1,49 @@
+{
+  "listeners": [
+    {
+      "port": 18313,
+      "pid": 804338
+    },
+    {
+      "port": 18410,
+      "pid": 877340
+    },
+    {
+      "port": 18190,
+      "pid": 7486
+    },
+    {
+      "port": 18210,
+      "pid": 61941
+    },
+    {
+      "port": 18311,
+      "pid": 804339
+    },
+    {
+      "port": 18211,
+      "pid": 61942
+    },
+    {
+      "port": 18310,
+      "pid": 804338
+    },
+    {
+      "port": 18190,
+      "pid": 7486
+    }
+  ],
+  "storybook_resource_snapshot": {
+    "pid": 877340,
+    "rss_mib": 556.34,
+    "cpu_percent_one_core": 0.0,
+    "exe": "node v22.23.5"
+  },
+  "source_commit": "c1b13dc90c0f6983970df87f58004e011a322d2f",
+  "pnpm_lock_sha256": "3a417fcfcf22ccbe47913889dda5b3054df86fc146f6590da8c93256c522a9cc",
+  "storybook_version": "10.5.8",
+  "vite_version": "7.3.6",
+  "humble_branch_commit": "54c9630abdce1eede0d319dc87f3a740ca1faed4",
+  "framework_package_version": "0.3.0",
+  "pnpm_version": "11.25.0"
+}

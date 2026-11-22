@@ -1,0 +1,8 @@
+{
+  "derived_from": "existing video project nodes/sender_node.py",
+  "source_sha256": "4d3d7d3a1820302a334e9ff6361251354fb9c44be8f97697300986d080345c9b",
+  "adapter_sha256": "ba1c90561af890b9ab897f61702f0dcfac62bcddfc7d9677e01b51ee1fd538f0",
+  "ros_publishers": 0,
+  "ros_clients": 0,
+  "ros_services": 0
+}

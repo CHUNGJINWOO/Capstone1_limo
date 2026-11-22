@@ -1,0 +1,1 @@
+{"bridge_processes": {"44229": {"sample_s": 15.04, "cpu_percent_one_core": 0.0, "max_rss_mib_sampled": 1.88}, "44264": {"sample_s": 15.04, "cpu_percent_one_core": 21.01, "max_rss_mib_sampled": 78.17}}, "nic_aggregate_including_other_traffic_kB_s": {"lo": {"rx": 503.32, "tx": 503.32}, "wlo1": {"rx": 2.79, "tx": 39.2}, "tailscale0": {"rx": 0.76, "tx": 35.24}}}

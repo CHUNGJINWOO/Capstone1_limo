@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%23213e60%27/%3E%3Cpath d=%27M9 7v18h15v-5H14V7%27 fill=%27white%27/%3E%3C/svg%3E" rel="icon"/>
+<title>Capstone1 LIMO — Open-RMF Fleet Control</title>
+<link href="style.css" rel="stylesheet"/>
+<link href="manual_control_panel.css" rel="stylesheet"/>
+</head>
+<body>
+<header class="topbar">
+<div class="brand">
+<h1>LIMO Fleet Control</h1>
+<span class="sub">Capstone1 / OPERATIONS CONSOLE</span>
+</div>
+<span class="muted small" id="srv">연결 대기</span>
+<span class="badge off hidden" id="alertSummary"></span>
+<span class="spacer"></span>
+<label class="theme-top"><span>테마</span><select aria-label="화면 테마" id="themeSelect"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label><span class="muted small" id="who"></span>
+<button class="small hidden" id="logout" type="button">토큰 지움</button>
+</header>
+<div class="card login-card hidden" id="login">
+<h2>API 토큰 입력</h2>
+<p class="muted">관제 서버 토큰(<code>viewer</code>, <code>operator</code>, <code>admin</code> 중 하나)을 입력하세요. 토큰은 이 브라우저 탭의 <code>sessionStorage</code>에만 저장됩니다.</p>
+<div class="row-gap">
+<input autocomplete="off" id="tok" placeholder="Bearer token" type="password"/>
+<button id="go" type="button">접속</button>
+</div>
+<div class="bad small" id="loginerr"></div>
+</div>
+<main class="hidden" id="main">
+<nav aria-label="관제 화면 영역" class="tabbar" id="navTabs"><div class="nav-brand"><span class="nav-mark">◈</span><span class="nav-text"><strong>FLEET CONTROL</strong><small>운영 콘솔</small></span><button aria-expanded="true" aria-label="내비게이션 접기" id="navCollapse" type="button">☰</button></div><div class="nav-section-label">MONITOR</div><button class="tab" data-tab="overview" title="Overview" type="button"><span class="nav-icon">◫</span><span class="nav-text">Overview</span></button><button class="tab" data-tab="spatial" title="Spatial Monitor" type="button"><span class="nav-icon">⌖</span><span class="nav-text">Spatial Monitor</span></button><button class="tab" data-tab="control" title="Operation" type="button"><span class="nav-icon">▷</span><span class="nav-text">Operation</span></button><button class="tab" data-tab="maps" title="Maps &amp; Mapping" type="button"><span class="nav-icon">▧</span><span class="nav-text">Maps &amp; Mapping</span></button><button class="tab" data-tab="rmf" title="Fleet / RMF" type="button"><span class="nav-icon">▦</span><span class="nav-text">Fleet / RMF</span></button><button class="tab" data-tab="safety" title="Safety" type="button"><span class="nav-icon">◇</span><span class="nav-text">Safety</span></button><div class="nav-section-label">DATA &amp; HISTORY</div><button class="tab nav-sub" data-tab="media" title="Sensors &amp; AI" type="button"><span class="nav-icon">◉</span><span class="nav-text">Sensors &amp; AI</span></button><button class="tab nav-sub" data-tab="history" title="History &amp; Diagnostics" type="button"><span class="nav-icon">≡</span><span class="nav-text">History &amp; Diagnostics</span></button><div class="nav-bottom"><button class="tab" data-tab="settings" title="Settings" type="button"><span class="nav-icon">⚙</span><span class="nav-text">Settings</span></button><button class="tab" data-tab="docs" title="Documentation" type="button"><span class="nav-icon">?</span><span class="nav-text">Documentation</span></button><button class="small all-view" id="toggleAllView" type="button">전체 상세 펼치기</button></div></nav><section aria-label="선택 로봇 운영 상태" class="status-strip workspace-status"><label class="robot-select">ROBOT <select aria-label="지도 대상 로봇" id="mapRobot"></select><span class="muted" id="globalRobotState">UNKNOWN</span></label><div><small>Safety Gate</small><strong id="statusGate">UNKNOWN</strong></div><div><small>이동 상태</small><strong id="statusMovement">미확인</strong></div><div><small>재조정</small><strong id="statusReconcile">UNKNOWN</strong></div><button class="danger" disabled="" title="독립 정지 API 미구현. 물리 E-Stop이 아닙니다." type="button">정지 요청 · 미지원</button><details class="global-status-details" id="globalStatusDetails"><summary>상태 상세</summary><div class="global-status-popover"><div><small>운영 모드</small><strong id="statusMode">UNKNOWN</strong></div><div><small>현재 임무</small><strong id="statusMission">미수신</strong></div></div></details><button class="small" data-open="safety" type="button">안전 증거 ›</button></section>
+<!-- 다중 로봇 Fleet 요약 스트립 (모든 탭 상단 공통 또는 종합/RMF에서 표시) -->
+<!-- TAB 1: 종합 관제 · 안전 · 지도 -->
+<div class="tab-panel" data-panel="overview"><div class="workspace-heading"><div><h2>Fleet overview</h2><p>로봇 · 지도 · 현재 활동</p></div><div id="overviewStatsSlot"><section aria-label="Fleet 상황 요약" class="fleet-overview"><div><small>FLEET / 연결 로봇</small><strong id="overviewFleetOnline">UNKNOWN</strong></div><div><small>진행 중 임무</small><strong id="overviewFleetMissions">UNKNOWN</strong></div><div><small>Gate Fault 보고</small><strong id="overviewFleetFaults">UNKNOWN</strong></div><div><small>재조정 필요</small><strong id="overviewFleetReconcile">UNKNOWN</strong></div><button class="small" data-open="rmf" type="button">Fleet 상세 ↗</button></section></div></div><div class="workspace-layout"><aside class="workspace-list card"><div class="sec-head"><h2>로봇</h2><span class="badge neutral" id="workspaceRobotCount">UNKNOWN</span></div><div id="workspaceRobots"></div><p class="muted small">로봇 선택 시 지도·Inspector·활동이 함께 변경됩니다.</p></aside><section class="workspace-center"><div id="overviewMapHome"><div id="overviewMapSlot"><div class="card map-card">
+<div class="sec-head">
+<h2>공간 관제 / 2D</h2>
+<span class="muted small" id="mapinfo">지도 없음</span>
+<button class="small" disabled="" title="3D 지도 API 미구현" type="button">3D · 준비 중</button></div><div class="map-compact"><div class="map-compact-summary"><strong>MAP</strong><span id="mapSelectionSummary">건물 / 층 / 지도 미선택</span><span id="mapReadOnlyLabel">조회 전용</span></div><div class="map-compact-actions"><button aria-controls="mapSettingsPanel" aria-expanded="false" class="small" id="mapSettingsToggle" type="button">⚙ 설정</button><span id="mapFitSlot"><button class="small" id="mapFit" type="button">맞춤</button></span><details id="mapQuickLayers"><summary>레이어</summary><label><input checked="" id="quickLayerMap" type="checkbox"/> 지도</label><label><input checked="" id="quickLayerGoals" type="checkbox"/> 목표</label><label><input checked="" id="quickLayerTrail" type="checkbox"/> 궤적</label></details><button class="small" id="mapFullscreen" type="button">전체화면</button></div></div><div class="map-settings hidden" id="mapSettingsPanel"><div class="toolbar-row">
+<label>건물
+            <select id="mapBuilding" title="등록된 건물 선택">
+<option value="">불러오는 중...</option>
+</select>
+</label>
+<label>층
+            <select id="mapLevel" title="선택된 건물의 층 선택">
+<option value="">층 없음</option>
+</select>
+</label>
+<label>영역
+            <select id="mapArea" title="선택된 층의 영역(운영자 지정) 선택">
+<option value="">전체 (영역 미지정 포함)</option>
+</select>
+</label>
+<label>지도 버전
+            <select id="mapVersionSelect" title="라이브 로봇 지도 또는 저장된 Map Registry 미리보기 선택">
+<option value="__live__">라이브 지도 (로봇 탑재 Agent)</option>
+</select>
+</label>
+<button class="small" id="mapRegistryRefresh" title="Map Registry 목록 새로고침" type="button">새로고침</button>
+<span class="badge on" id="mapSourceBadge" title="현재 지도 캔버스 표시 모드">라이브 지도</span>
+</div><div class="toolbar-row map-options-row">
+<div class="btn-group">
+<button class="small" id="mapZoomIn" type="button">+</button>
+<button class="small" id="mapZoomOut" type="button">−</button>
+</div>
+<label class="inline-label">회전 <input id="mapRot" max="180" min="-180" type="range" value="0"/> <span id="mapRotVal">0°</span></label>
+<button class="small" id="mapRotReset" type="button">0°</button>
+<span class="spacer"></span>
+<label class="inline-label"><input checked="" id="layerMap" type="checkbox"/> 지도</label>
+<label class="inline-label"><input checked="" id="layerGoals" type="checkbox"/> 목표</label>
+<label class="inline-label"><input checked="" id="layerTrail" type="checkbox"/> 궤적</label>
+<label class="inline-label"><input checked="" id="layerCostmap" type="checkbox"/> Costmap</label>
+<label class="inline-label"><input checked="" id="layerPlan" type="checkbox"/> 경로·LiDAR</label>
+</div><div class="toolbar-row mode-bar map-mode-row">
+<span class="muted small">지도 클릭 모드:</span>
+<label class="inline-label"><input checked="" name="mapMode" type="radio" value="goal"/> 목표 위치 지정 (NavigateToPose)</label>
+<label class="inline-label muted"><input name="mapMode" type="radio" value="initialpose"/> 초기 위치 지정 미리보기 (전송 API 미구현)</label>
+</div></div>
+<!-- 건물·층·지도 버전 선택 UI (Map Registry Phase 2-A 읽기 전용 연동) -->
+<div class="small" id="mapSelSummary" role="status" aria-live="polite"></div><div class="alert-banner warn-banner hidden" id="mapPreviewBanner"></div>
+<!-- 지도 등록(Phase 2-C): 업로드는 UNVERIFIED 등록만 수행하며 로봇 지도 적재·전환과 무관 -->
+<!-- 캔버스 툴바 -->
+<!-- 클릭 모드 선택: 목표 지정 vs 초기 위치 지정(미구현) -->
+<div class="mapwrap">
+<canvas height="480" id="map" width="680"></canvas>
+</div>
+<div class="map-footer small muted">
+<span id="mapCursor">커서: x -, y - m</span>
+<span id="mapScale">축척: -</span>
+<span id="mapLayerNote">Costmap·Nav2 Plan·RMF 경로는 API 미제공(UNAVAILABLE)</span>
+</div>
+<!-- 초기 위치 지정 UI (실제 API 미구현 -> 전송 비활성화) -->
+<div class="subbox hidden" id="initPoseBox">
+<div class="sec-head">
+<strong>초기 위치 지정 (/initialpose · AMCL)</strong>
+<span class="badge off">백엔드 API 미구현 (비활성)</span>
+</div>
+<div class="mform">
+<label>x (m)<input id="initX" readonly="" step="any" type="number" value="0"/></label>
+<label>y (m)<input id="initY" readonly="" step="any" type="number" value="0"/></label>
+<label>yaw (rad)<input id="initYaw" step="any" type="number" value="0"/></label>
+<button disabled="" title="POST /api/v1/robots/{id}/initialpose 및 Agent 지원 필요" type="button">초기 위치 전송 (미구현)</button>
+</div>
+<div class="muted small">실제 Robot Agent 및 Fleet Server에 초기 위치 지정 API가 없어 전송 버튼이 비활성화되어 있습니다.</div>
+</div>
+</div></div></div><div id="overviewEventsHome"><div class="card recent-card"><div class="sec-head"><h2>최근 이벤트</h2><button class="small" data-open="history" type="button">전체 로그 ↗</button></div><div id="recentEvents"></div></div></div></section><aside class="workspace-inspector" id="overviewInspector"><aside class="card telemetry-card"><div class="sec-head"><h2>로봇 상태</h2><span class="badge" id="robotConnection">UNKNOWN</span><span class="badge neutral" id="overviewSource">UNKNOWN</span></div><div aria-label="LIMO 로봇 개념도, 실시간 영상 아님" class="robot-model"><svg aria-label="이동 로봇 개념도" role="img" viewbox="0 0 220 110"><g fill="#101a29" stroke="#61758d" stroke-width="2"><rect height="31" rx="8" width="30" x="40" y="64"></rect><rect height="31" rx="8" width="30" x="150" y="64"></rect><path d="M48 67 L65 34 H151 L174 67 V83 H48Z" fill="#c6d3e0"></path><path d="M65 34 L79 21 H137 L151 34" fill="#65819b"></path><rect fill="#438bda" height="15" rx="4" width="32" x="94" y="13"></rect><rect fill="#15293c" height="18" rx="5" width="52" x="84" y="51"></rect></g></svg><span>LIMO PRO · 개념도</span></div><div class="workspace-robot-facts" id="workspaceRobotFacts"></div><div class="gate-summary"><h3>◇ Safety Gate</h3><div id="gateSummary"></div></div><button class="small" data-open="safety" type="button">안전 증거 · 시스템 상세 ↗</button></aside><section class="card current-mission"><div class="sec-head"><h2>현재 임무</h2><span class="badge" id="currentMissionState">UNKNOWN</span></div><div id="currentMission"></div><p class="muted small">진행률 · ETA: UNAVAILABLE</p></section><div class="card controls-card"><h2>운영 제어</h2><div class="control-buttons"><button data-open="control" id="newMission" type="button">＋ 새 임무</button><button disabled="" title="독립 정지 API 미구현 · 물리 E-Stop 아님" type="button">정지 요청 · 미지원</button><button disabled="" title="맵핑 제어 API 미구현" type="button">맵핑 시작 · 중단</button><button data-open="maps" type="button">지도 관리</button><button data-open="safety" type="button">복구 · 재조정</button></div><p class="muted small">취소는 현재 Goal에 대한 소프트웨어 요청입니다. 물리 E-Stop은 현장에서 확인하세요.</p><div class="small" id="quickActionStatus" role="status"></div></div></aside></div></div>
+<!-- TAB 2: 로봇 운영 관리 · Pre-flight -->
+<!-- TAB 3: Open-RMF · 임무 이력 -->
+<div class="tab-panel hidden fleet-layout" data-panel="rmf">
+<section class="cols-two">
+<div class="card">
+<div class="sec-head">
+<h2>Open-RMF 관제 연동 현황</h2>
+<span class="badge warn" id="rmfFeedBadge">RMF Core Feed: UNAVAILABLE</span>
+</div>
+<div class="grid compact-grid" id="rmfSummaryGrid"></div>
+<details class="compact-explanation"><summary>연동 설명</summary><p class="muted small top-gap">
+<code>fleet_server</code>는 현재 Open-RMF <code>task_state_update</code> WebSocket이나 Fleet Graph API를 직접 노출하지 않습니다.
+          대신 <code>limo_rmf_adapter</code>가 <code>rmf-adapter</code> 토큰으로 획득한 제어권 Lease와 <code>created_by=rmf-adapter</code> 임무·이력을 실시간으로 구분해 표시합니다.
+        </p></details>
+</div>
+<div class="card">
+<div class="sec-head">
+<h2>Fleet · 로봇별 운용 구분 (다중 로봇 확장 뷰)</h2>
+<span class="badge ok">실시간 (Fleet Server)</span>
+</div>
+<div class="table-wrap">
+<table id="fleetMatrixTable">
+<thead>
+<tr><th>로봇 ID</th><th>유형 / Fleet</th><th>연결</th><th>Safety Gate</th><th>모터 / allow_missions</th><th>Lease</th><th>활성 임무</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+</section>
+<section class="card">
+<div class="sec-head">
+<h2>전체 임무 이력 및 실패 원인</h2>
+<div class="mform">
+<label>로봇
+            <select id="histRobot"><option value="ALL">전체</option></select>
+</label>
+<label>출처
+            <select id="histSource">
+<option value="ALL">전체</option>
+<option value="RMF">Open-RMF (rmf-adapter)</option>
+<option value="FLEET_UI">웹/직접 제어</option>
+</select>
+</label>
+<label>상태
+            <select id="histStatus">
+<option value="ALL">전체</option>
+<option value="ACTIVE">진행/대기 중</option>
+<option value="FAILED_GROUP">실패·거부·만료·복구필요</option>
+<option value="RECONCILIATION_REQUIRED">RECONCILIATION_REQUIRED</option>
+<option value="SUCCEEDED">완료 (SUCCEEDED)</option>
+<option value="CANCELED">취소 (CANCELED)</option>
+</select>
+</label>
+<button class="small" id="histRefresh" type="button">최대 200건 조회</button>
+</div>
+</div>
+<div class="table-wrap">
+<table id="missionHistoryTable">
+<thead>
+<tr><th>mission_id</th><th>시각</th><th>robot</th><th>출처 / 생성자</th><th>목표 (x, y, yaw)</th><th>상태</th><th>실패 원인 · 명령 이력</th><th>동작</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</section>
+<section class="card">
+<div class="sec-head">
+<h2>최근 임무 (요약)</h2>
+<span class="muted small">상세 이력·필터·명령 추적은 [Open-RMF · 임무 이력] 탭에서도 확인할 수 있습니다.</span>
+</div>
+<div class="table-wrap">
+<table id="missions">
+<thead>
+<tr><th>mission</th><th>robot</th><th>출처/생성자</th><th>목표 (map)</th><th>상태</th><th>진행 / 실패 원인</th><th>동작</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</section><section class="card" id="fleetStripCard">
+<div class="sec-head">
+<h2>Fleet 로봇 요약 <span class="badge" id="fleetCount">0 ROBOTS</span></h2>
+<span class="muted small">로봇 카드를 클릭하면 아래 상세·지도·제어 대상이 전환됩니다. 데이터 미수신 시 UNKNOWN 또는 OFFLINE으로 표시됩니다.</span>
+</div>
+<div class="fleet-strip" id="robots"></div>
+</section></div>
+<!-- TAB 4: AI 영상 · 감사 로그 (video_panel.js 기존 ID 완전 보존) -->
+<div class="tab-panel hidden" data-panel="media">
+<section class="card" id="aiPanel">
+<h2>AI 영상 (RGB + YOLO) <span class="badge off" id="aiState">연결 안 됨</span></h2>
+<details class="compact-explanation"><summary>영상 연결 안내</summary><div class="muted small">영상·AI 경로는 임무/안전 명령 통신과 분리된 별도 서버입니다. 별도 토큰(영상 서버 viewer)을 사용하며 관제 토큰을 보내지 않습니다. RGB만 사용한 2D 검출이며 거리(Depth)는 없습니다.</div></details>
+<form class="mform" id="aiForm">
+<label>영상 서버 주소<input id="aiBase" size="26" type="text" value="http://127.0.0.1:18172"/></label>
+<label>영상 서버 토큰<input autocomplete="off" id="aiTok" type="password"/></label>
+<button id="aiGo" type="submit">연결</button>
+<button class="small" id="aiStop" type="button">중지</button>
+</form>
+<div class="bad" id="aiErr"></div>
+<div class="aiwrap">
+<div>
+<div class="grid" id="aiStats"></div>
+<table id="aiDets"><thead><tr><th>클래스</th><th>신뢰도</th><th>bbox (x1,y1,x2,y2)</th></tr></thead><tbody></tbody></table>
+<div class="muted small" id="aiNote"></div>
+</div>
+</div>
+</section>
+<div id="robotTelemetry"></div><section class="card sensor-card"><div class="sec-head"><h2>센서 화면</h2><button class="small" data-open="media" type="button">연결 설정 ↗</button></div><div aria-label="센서 화면" class="sensor-tabs" role="group"><button class="active" data-sensor="rgb" type="button">RGB / AI</button><button data-sensor="lidar" type="button">LiDAR</button><button data-sensor="depth" type="button">Depth</button></div><div id="sensorRgb"><div class="aiimgbox">
+<img alt="AI annotated frame" height="480" id="aiImg" width="640"/>
+<div class="aioverlay" id="aiOverlay">영상 서버 연결 전 — 주소를 입력하고 [연결]을 누르세요.</div>
+</div></div><div class="hidden" id="sensorLidar"><div class="aiimgbox"><img alt="LiDAR scan frame" height="480" id="lidarImg" width="640"/><div class="aioverlay" id="lidarOverlay">LiDAR 스캔 수신 대기 중...</div></div><div class="muted small" id="lidarMeta">LiDAR 미수신</div></div><div class="hidden" id="sensorDepth"><div class="aiimgbox"><img alt="Depth colormap frame" height="400" id="depthImg" width="640"/><div class="aioverlay" id="depthOverlay">Depth 컬러맵 수신 대기 중...</div></div><div class="muted small" id="depthMeta">Depth 미수신</div></div><div class="hidden sensor-empty" id="sensorUnavailable"></div><p class="muted small">RGB는 별도 영상 호스트 · LiDAR/Depth는 Fleet 센서 API 실시간 수신</p></section></div>
+<div class="tab-panel hidden operation-layout" data-panel="control"><div class="operation-page"><div class="workspace-heading"><div><h2>Mission workspace</h2><p>임무 선택 · 실행 위치 · 제어권</p></div><button class="primary" data-goal-drawer="" id="operationNewMission" type="button">＋ 새 목표 준비</button></div><div class="workspace-layout operation-workspace"><aside class="workspace-list card"><div class="sec-head"><h2>임무 목록</h2><span class="badge neutral" id="workspaceTaskCount">0</span></div><div id="workspaceTasks"></div><h3 class="workspace-list-label">제어 대상</h3><div id="operationRobots"></div></aside><section class="workspace-center"><div id="operationMapSlot"></div><div class="card command-composer"><div><h3>새 목표 준비</h3><p class="muted small">위치 확인 → Lease → 목표 검토 → 최종 제출</p></div><button data-goal-drawer="" type="button">명령 Drawer 열기</button></div></section><aside class="workspace-inspector" id="operationInspector"><section class="card"><h2>현재 Goal · 명령 출처</h2><div aria-label="임무 실행 단계" class="mission-stage" id="operationStage"></div><div class="mission-kv" id="operationMission"></div><p class="muted small">재조정 및 Gate 상태는 상단 상태바와 Safety 화면에서 확인합니다.</p></section><div class="card" id="leaseCard">
+<div class="sec-head">
+<h2>제어권 Lease (소유권 잠금)</h2>
+<span class="badge" id="leaseStatusBadge">확인 중</span>
+</div>
+<div class="grid compact-grid" id="leaseInfo"></div>
+<div class="mform top-gap">
+<label>TTL (5~300s)<input id="leaseTtl" max="300" min="5" type="number" value="30"/></label>
+<label>메모<input id="leaseNote" maxlength="200" placeholder="예: web operator control" type="text"/></label>
+<button id="leaseAcquire" type="button">획득</button>
+<button class="small" id="leaseRenew" type="button">갱신</button>
+<button class="small" id="leaseRelease" type="button">해제</button>
+<button class="small danger hidden" id="leaseForceRelease" type="button">강제 해제 (admin)</button>
+</div>
+<div class="bad small" id="leaseErr"></div>
+</div><section class="card" id="operationCancelSlot"><h2>현재 Goal 제어</h2><p id="operationCancelTarget" class="muted small">활성 대상 없음</p><button disabled="" id="quickCancel" type="button">목표 취소</button></section></aside></div></div></div><div class="tab-panel hidden registry-layout" data-panel="maps"><div id="mapsMapSlot"></div><details class="reg-panel" id="regUploadPanel">
+<summary>지도 등록 · 검증 이력 (Map Registry — 로봇에 적재되지 않음)</summary>
+<div class="alert-banner info-banner">지도 선택(미리보기)과 로봇 지도 전환은 다릅니다. 여기서 업로드한 지도는 항상 <b>UNVERIFIED</b>로 저장만 되며, 로봇에 적재·전환되거나 이동에 사용되지 않습니다.</div>
+<div class="warn small" id="regUpRole"></div>
+<div class="reg-grid">
+<fieldset>
+<legend>지도 파일 업로드</legend>
+<div class="toolbar-row">대상 층: <span class="mono" id="regUpFloor">-</span></div>
+<div class="toolbar-row">
+<label>지도 이름 <input autocomplete="off" id="regUpLabel" maxlength="64" placeholder="예: lab_floor1_v1" type="text"/></label>
+<label>출처
+                  <select id="regUpSource">
+<option value="IMPORTED_STATIC">IMPORTED_STATIC</option>
+<option value="SLAM_SAVED_BUNDLE">SLAM_SAVED_BUNDLE</option>
+<option value="SIM_FIXTURE">SIM_FIXTURE</option>
+<option value="SLAM_LIVE_SNAPSHOT">SLAM_LIVE_SNAPSHOT</option>
+</select>
+</label>
+<label>좌표계 frame_id(선택) <input autocomplete="off" id="regUpFrame" maxlength="64" placeholder="map" type="text"/></label>
+</div>
+<div class="toolbar-row">
+<label>영역(선택) <select id="regUpArea"><option value="">영역 없음</option></select></label>
+<label>계보 <select id="regUpMode">
+<option value="IMPORTED">IMPORTED (가져온 지도)</option>
+<option value="NEW_MAP">NEW_MAP (새로 맵핑)</option>
+<option value="CONTINUE_MAP">CONTINUE_MAP (선택한 지도에서 이어 그림)</option>
+</select></label>
+<label>YAML 임계값 <select id="regUpPolicy">
+<option value="reject">안전하지 않으면 거부</option>
+<option value="derive">안전하지 않으면 보정본 등록 (원본 보존)</option>
+</select></label>
+</div>
+<div class="toolbar-row"><label class="grow">메모(선택) <input autocomplete="off" id="regUpNote" maxlength="500" placeholder="예: 한 자리에서 저장한 지도" type="text"/></label></div>
+<div class="toolbar-row">
+<label>map.yaml * <input accept=".yaml,.yml" id="regUpYaml" type="file"/></label>
+<label>PGM * <input accept=".pgm" id="regUpPgm" type="file"/></label>
+</div>
+<div class="toolbar-row">
+<label>posegraph(선택) <input id="regUpPg" type="file"/></label>
+<label>posegraph.data(선택) <input id="regUpPgData" type="file"/></label>
+</div>
+<div class="small muted" id="regUpPreview"></div>
+<div class="toolbar-row">
+<button disabled="" id="regUpBtn" type="button">UNVERIFIED로 등록</button>
+<span class="small muted" id="regUpStatus" role="status"></span>
+</div>
+<div id="regUpResult"></div>
+</fieldset>
+<fieldset>
+<legend>시설 · 건물 · 층 등록(선택)</legend>
+<div class="toolbar-row">
+<input autocomplete="off" id="regFacId" maxlength="64" placeholder="facility_id" type="text"/>
+<input autocomplete="off" id="regFacName" placeholder="시설 이름" type="text"/>
+<button class="small" id="regFacBtn" type="button">시설 등록</button>
+</div>
+<div class="toolbar-row">
+<select aria-label="건물이 속할 시설" id="regBldFac"></select>
+<input autocomplete="off" id="regBldId" maxlength="64" placeholder="building_id" type="text"/>
+<input autocomplete="off" id="regBldName" placeholder="건물 이름" type="text"/>
+<button class="small" id="regBldBtn" type="button">건물 등록</button>
+</div>
+<div class="toolbar-row">
+<span class="muted">대상 건물: <span class="mono" id="regFlrBld">-</span></span>
+<input autocomplete="off" id="regFlrId" maxlength="64" placeholder="floor_id" type="text"/>
+<input autocomplete="off" id="regFlrLevel" maxlength="64" placeholder="층 이름(예: L1)" type="text"/>
+<input id="regFlrElev" step="0.1" title="고도(m)" type="number" value="0"/>
+<button class="small" id="regFlrBtn" type="button">층 등록</button>
+</div>
+<div class="small muted" id="regHierStatus" role="status"></div>
+</fieldset>
+<fieldset>
+<legend>영역 등록 (층 안의 방·구역)</legend>
+<div class="toolbar-row"><span class="muted">대상 층: <span class="mono" id="regAreaFloor">-</span></span></div>
+<div class="toolbar-row">
+<input autocomplete="off" id="regAreaId" maxlength="64" placeholder="area_id (예: h107)" type="text"/>
+<input autocomplete="off" id="regAreaName" placeholder="영역 이름 (예: H107 강의실)" type="text"/>
+<select aria-label="영역 범위" id="regAreaCoverage"><option value="PARTIAL_FLOOR">층 일부</option><option value="FULL_FLOOR">층 전체</option></select>
+<button class="small" id="regAreaBtn" type="button">영역 등록</button>
+</div>
+<div class="small muted" id="regAreaStatus" role="status"></div>
+<div class="small muted">건물·층·영역은 운영자가 선언하는 정보이며 로봇이 자동으로 알아내지 않습니다.</div>
+</fieldset>
+<fieldset>
+<legend>선택한 지도 버전의 검증 상태 · 이력</legend>
+<div class="toolbar-row"><button class="small" id="regHistBtn" type="button">이력 조회</button></div>
+<div class="small" id="regHistBody"></div>
+</fieldset>
+</div>
+</details><section class="card"><h2>SLAM 맵핑 · SIM ONLY</h2><p id="slamStatus" role="status">UNKNOWN</p><p id="slamPath" class="small muted">지도 미저장</p><p id="slamRecording" class="small muted">녹화 상태 미수신</p><button id="slamStart" disabled type="button">SLAM 시작</button> <button id="slamSave" disabled type="button">지도 저장</button> <button id="slamStop" disabled type="button">STOP · 지도 저장 후 종료</button><p id="slamError" class="bad small" role="alert"></p><p class="small muted">격리 시뮬레이션 전용 · 선택한 층에 UNVERIFIED 등록</p></section><section class="card" id="webMapCard"><h2>웹 자동 맵핑 (SLAM + Frontier) · SIM/격리 · 모터 잠금</h2><p id="webMapStatus" role="status">상태 미수신</p><p class="small muted" id="webMapWorker">Worker 상태 미수신</p><p class="small" id="webMapEvidence"></p><p class="small muted" id="webMapSave">SAVE 등록 대상 없음</p><div class="toolbar-row small"><label>모드 <select id="webMapMode"><option value="NEW_MAP">NEW MAP</option><option value="CONTINUE_MAP">CONTINUE MAP (선택한 저장 지도 이어 그리기)</option></select></label><label>최대 목표 <input id="webMapMaxGoals" type="number" min="1" max="200" value="40" class="in-s"/></label><label>최대 시간(s) <input id="webMapMaxDur" type="number" min="30" max="3600" value="900" class="in-m"/></label><label>최저 배터리(V) <input id="webMapMinV" type="number" step="0.1" min="9" max="13" placeholder="미사용" class="in-s"/></label></div><div class="toolbar-row small"><label>허용 영역 Geofence (map 좌표 JSON, 선택) <input id="webMapFence" type="text" placeholder="[[x1,y1],[x2,y2],[x3,y3]]" class="in-fence"/></label></div><button id="webMapSTART" disabled type="button">START</button> <button id="webMapPAUSE" disabled type="button">PAUSE</button> <button id="webMapRESUME" disabled type="button">RESUME</button> <button id="webMapSAVE" disabled type="button">SAVE (PAUSED에서)</button> <button class="danger" id="webMapSTOP" disabled type="button">STOP</button> <button id="webMapRECONCILE" disabled type="button" title="UNKNOWN 세션을 Worker 증거로 STOPPED 처리">상태 조정 (RECONCILE)</button><p class="small" id="webMapError" role="alert"></p><div class="phase" id="webMapPhase" role="status" aria-label="명령 진행 상태"></div><ul class="block-list small" id="webMapBlocks" aria-label="버튼이 비활성인 이유"></ul><p class="small muted">HTTP 접수와 실제 ROS 완료는 다릅니다. UNKNOWN은 자동 해제·자동 재개하지 않습니다. 맵핑 중에는 지도 클릭 이동 임무가 차단됩니다. 실차 Agent에서는 서버가 거부합니다.</p></section><section class="card" id="mapSaveCard"><h2>현재 SLAM 지도 저장 · 등록 (저장 전용 · 이동 없음)</h2><p class="small muted">로봇의 현재 SLAM 지도와 Pose Graph를 저장해 위에서 선택한 건물·층·영역에 <b>UNVERIFIED</b>로 등록합니다. 맵핑을 시작하거나 로봇을 움직이지 않고, 등록된 지도는 로봇에 적용되지 않습니다. 이미지와 Pose Graph는 따로 저장되므로 같은 시점이라고 단정하지 않고 증거를 함께 기록합니다.</p><div class="small" id="mapSaveTarget"></div><div class="toolbar-row small"><label>지도 이름 <input autocomplete="off" id="mapSaveLabel" maxlength="64" placeholder="예: h107_20261120" type="text"/></label><label>YAML 임계값 <select id="mapSavePolicy"><option value="reject">안전하지 않으면 거부</option><option value="derive">안전하지 않으면 보정본 등록 (원본 보존)</option></select></label></div><div class="toolbar-row small"><label class="grow">메모(선택) <input autocomplete="off" id="mapSaveNote" maxlength="500" placeholder="예: 정지 상태에서 저장" type="text"/></label></div><button disabled id="mapSaveBtn" type="button">현재 지도 저장 후 등록</button><div class="phase" id="mapSavePhase" role="status" aria-label="저장 진행 상태"></div><ul class="block-list small" id="mapSaveBlocks" aria-label="저장할 수 없는 이유"></ul><div id="mapSaveResult"></div></section></div><div class="tab-panel hidden safety-layout" data-panel="safety"><section class="card safety-summary"><div><small>SAFETY / CURRENT</small><h2>현재 안전 및 차단 상태</h2><div id="safetyHeadline">UNKNOWN · 로봇 상태 미수신</div></div><button class="small" data-open="history" type="button">원문 진단 ↗</button></section><div class="card" id="selectedRobotCard">
+<div class="sec-head">
+<h2>선택 로봇 상세 상태 <span class="badge" id="selRobotTitle">선택 없음</span></h2>
+<span class="muted small" id="selRobotAge"></span>
+</div>
+<div class="alert-banner bad hidden" id="reconcileBanner"></div>
+<div class="detail-sections" id="robotDetailBody"></div>
+</div><div class="op-group" id="adminRecoverBox">
+<h3>4. RECONCILIATION_REQUIRED 운영자 복구 (실제 API 연동 · admin 전용)</h3>
+<div class="mform">
+<label>검증 메모 (10자 이상)<input id="recoverRobotNote" placeholder="예: Nav2 active_count=0, 실차 정지 현장 확인" type="text"/></label>
+<button id="recoverRobotBtn" type="button">로봇 Reconciliation Block 해제</button>
+</div>
+<div class="bad small" id="recoverRobotErr"></div>
+<div class="muted small">admin 토큰이며 Agent가 최근 2초 이내 <code>nav2_goals.active_count === 0</code>을 보고한 경우에만 서버가 복구를 허용합니다.</div>
+</div></div><div class="tab-panel hidden history-layout" data-panel="history"><section class="card"><h2>rosbag 녹화</h2><label>Session ID (선택)<input id="recordingSessionId" maxlength="80" placeholder="비워두면 자동 생성" autocomplete="off"/></label><p id="recordingStatus" role="status">UNKNOWN · 로봇 상태 미수신</p><p id="recordingPath" class="small muted"></p><button id="recordingStart" type="button" disabled>녹화 시작</button> <button id="recordingStop" type="button" disabled>녹화 중지</button><p id="recordingError" class="bad small" role="alert"></p></section><section class="card">
+<div class="sec-head">
+<h2>명령 감사 · 안전 이벤트 로그</h2>
+<div class="mform">
+<label>로봇
+            <select id="evRobot"><option value="ALL">전체</option></select>
+</label>
+<label>레벨
+            <select id="evLevel">
+<option value="ALL">전체</option>
+<option value="warning">warning / error</option>
+<option value="info">info</option>
+</select>
+</label>
+</div>
+</div>
+<div id="events"></div>
+</section><section class="card"><h2>개발자 진단 · 원문</h2><p class="muted">서버 수신값. 누락된 Attestation·Journal·nonce는 추정하지 않습니다.</p><details><summary>Safety Context / Gate / 실행 · Journal 원문</summary><pre id="diagnosticRaw"></pre></details></section></div><div class="tab-panel hidden" data-panel="settings"><section class="card theme-settings"><div><h2>화면 테마</h2><p class="muted small">브라우저에 저장되며 열려 있는 관제 상태를 유지합니다.</p></div><label>화면 모드<select aria-label="설정 화면 테마" id="themeSettings"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></section><div class="tab-panel hidden" data-panel="operations">
+<section class="cols-two">
+<div class="card">
+<div class="sec-head">
+<h2>로봇 노드 · 센서 Pre-flight 준비 점검</h2>
+<span class="badge ok">실시간 Telemetry 연동 (읽기 전용)</span>
+</div>
+<details class="compact-explanation"><summary>자세한 안내</summary><p class="muted small">선택된 로봇이 현재 서버로 보고한 실제 센서·위치추정·Safety Gate·모터 잠금·계약 v1 준비 상태입니다. 미수신 항목은 UNKNOWN으로 표시합니다.</p></details>
+<div class="checklist" id="preflightChecklist"></div>
+<div class="subbox top-gap">
+<div class="sec-head">
+<strong>전원 및 하드웨어 물리 제어 안내</strong>
+<span class="badge off">미지원 (물리 제어 불가)</span>
+</div>
+<div class="row-gap">
+<button disabled="" title="로봇 전원 ON/OFF API 및 하드웨어 릴레이 없음" type="button">로봇 전원 ON (미지원)</button>
+<button disabled="" title="로봇 전원 OFF API 없음" type="button">로봇 전원 OFF (미지원)</button>
+<button disabled="" title="원격 SSH/셸 실행 금지 정책 및 API 없음" type="button">온보드 노드 원격 재시작 (미지원)</button>
+</div>
+<details class="compact-explanation"><summary>자세한 안내</summary><p class="muted small">안전 제약에 따라 임의 SSH/셸 실행이나 물리 전원 제어는 웹에서 제공하지 않습니다. 실차 전원·E-Stop은 현장 작업자가 직접 확인해야 합니다.</p></details>
+</div>
+</div>
+<div class="card">
+<div class="sec-head">
+<h2>운영 제어 · 지도 관리 · 프로파일 (설계 준비)</h2>
+<span class="badge warn">백엔드 API 미구현 · 비활성</span>
+</div>
+<details class="compact-explanation"><summary>자세한 안내</summary><p class="muted small">향후 Fleet Server Operation Manager 및 Map Registry 연동 시 활성화될 기능입니다. 현재 백엔드 API가 없어 모든 원격 조작 버튼은 비활성화되어 있습니다.</p></details>
+<div class="op-group">
+<h3>1. 자동 맵핑 제어 (SLAM / Explore)</h3>
+<div class="row-gap">
+<button disabled="" title="POST /api/v1/robots/{id}/operations/mapping/start 미구현" type="button">맵핑 시작 (API 미구현)</button>
+<button disabled="" title="POST /api/v1/robots/{id}/operations/mapping/stop 미구현" type="button">맵핑 중지 (API 미구현)</button>
+</div>
+<div class="muted small">필요 API: <code>Operation Manager</code> — 현재 <code>operation_mode</code> 읽기 보고만 존재하며 원격 모드 전환 API는 미구현입니다.</div>
+</div>
+<div class="op-group">
+<h3>2. 지도 저장 및 불러오기 (Map Registry)</h3>
+<div class="mform">
+<label>지도 이름/ID<input disabled="" placeholder="예: building_a_L1_v3" type="text" value=""/></label>
+<button disabled="" title="POST /api/v1/maps/save 미구현" type="button">지도 저장 (API 미구현)</button>
+<button disabled="" title="POST /api/v1/robots/{id}/map/load 미구현" type="button">현재 지도 불러오기 (API 미구현)</button>
+</div>
+<div class="muted small">현재는 Agent가 발행하는 `/map` PNG 스냅샷 조회(<code>GET /api/v1/robots/{id}/map.png</code>)만 지원됩니다.</div>
+</div>
+<div class="op-group">
+<h3>3. 안전한 알고리즘 프로파일 변경</h3>
+<div class="mform">
+<label>주행 프로파일
+              <select disabled="">
+<option>real_lidar_only (0.15 m/s · 미구현)</option>
+<option>real_depth_slow (미구현)</option>
+<option>sim_fixed2_office (미구현)</option>
+</select>
+</label>
+<button disabled="" title="POST /api/v1/robots/{id}/profile 미구현" type="button">프로파일 적용 (API 미구현)</button>
+</div>
+<div class="muted small">주행 중 프로파일 변경 금지: 정지·모터 잠금·관리자 인증·버전 해시 검증 API 구축 후 연동 예정입니다.</div>
+</div>
+</div>
+</section>
+</div><details class="compact-explanation"><summary>자세한 안내</summary><p class="muted">건물·층·버전 선택은 관제 지도 상단에서 변경합니다. 저장 지도는 미리보기 전용입니다.</p></details></div><div class="tab-panel hidden" data-panel="docs"><details><summary>운영 매뉴얼</summary><ol><li>로봇과 연결 상태, Gate 및 지도 검증 상태를 확인합니다.</li><li>임무 · Lease에서 제어권을 획득한 뒤 라이브 지도에서 목표를 선택합니다.</li><li>임무 생성은 서버 검증 후 처리됩니다. 취소 요청은 정지 완료를 의미하지 않습니다.</li><li>복구는 운영 · 복구 화면에서 admin 권한과 현장 증거로 진행합니다.</li><li>물리 E-Stop과 실차 안전 확인은 현장 작업자가 수행합니다.</li></ol></details></div><div class="tab-panel hidden" data-panel="spatial"><div id="spatialWorkspace" style="--camera-share:30%"><nav aria-label="공간 보기 모드" class="spatial-modes"><div><strong>SPATIAL MONITOR</strong><span> / 공간 관제</span></div><div class="mode-switch"><button data-spatial-mode="building" type="button">▤ Building</button><button aria-pressed="true" class="active" data-spatial-mode="floor" type="button">▧ Floor</button><button data-spatial-mode="driving" type="button">◉ Driving</button></div><span class="muted small">조회 전용 · 제어는 Operation</span></nav><section class="building-view hidden" id="buildingView"><aside class="building-list"><div class="building-heading"><span>LOCATIONS</span><h2>건물 탐색</h2><p>Map Registry · 읽기 전용</p></div><div id="buildingList"></div></aside><div class="building-content"><div class="building-title"><div><span>BUILDING OVERVIEW</span><h2 id="buildingTitle">건물을 선택하세요</h2></div><div class="building-evidence"><small>로봇 소속</small><strong>UNKNOWN</strong><small>건물·층 근거 미제공</small></div></div><div class="building-section-title"><h3>층별 지도</h3><span>층을 선택하면 Floor View로 이동</span></div><div class="building-floors" id="buildingFloors"></div><div class="building-footnote">◇ 구역·공간 이름 미제공 <span>·</span> 건물 간 연결 경로 준비 중</div></div></section><div class="spatial-grid"><section class="spatial-map"><div class="spatial-toolbar"><strong>FLOOR MAP</strong><span class="badge neutral">조회 전용</span><button class="focus-control" id="spatialFocus" type="button">영상 확대</button><details class="spatial-more"><summary>보기 도구</summary><div><button disabled="" id="spatialRoute" title="Fleet API에서 계획 경로를 제공하지 않습니다" type="button">Fit to Route · 미제공</button><button id="spatialReset" type="button">Reset View</button><details id="spatialLayers"><summary>레이어</summary><label><input checked="" id="spatialLayerMap" type="checkbox"/> 지도</label><label><input checked="" id="spatialLayerGoals" type="checkbox"/> 목표</label><label><input checked="" id="spatialLayerTrail" type="checkbox"/> 주행 궤적</label><span class="muted">계획 경로 UNAVAILABLE</span><label>회전 <input id="spatialRotation" max="180" min="-180" type="range" value="0"/><span id="spatialRotationLabel">0°</span></label></details><button id="spatialFloor" type="button">Fit to Floor</button><button id="spatialRobot" type="button">Fit to Robot</button><button aria-label="지도 확대" id="spatialZoomIn" type="button">+</button><button aria-label="지도 축소" id="spatialZoomOut" type="button">−</button><button id="spatialFullscreen" type="button">전체화면</button></div></details></div><div id="spatialMapSlot"></div><div class="spatial-summary" id="spatialSummary">위치 · UNKNOWN</div></section><button aria-expanded="true" class="camera-collapse" id="cameraCollapse" type="button">카메라 접기</button><aside class="spatial-video"><label class="camera-sizing">영상 패널 크기 <input aria-label="영상 패널 너비" id="cameraSize" max="45" min="24" type="range" value="30"/></label><section class="spatial-stream"><div class="sec-head"><strong>RGB / AI</strong><button class="small" data-open="media" type="button">연결 설정</button></div><div id="spatialRgb"></div><div class="muted small" id="spatialRgbStatus">연결 전 · 프레임 미수신</div></section><section class="spatial-stream"><div class="sec-head"><strong>Depth</strong><span class="badge neutral" id="spatialDepthBadge">UNAVAILABLE</span></div><div class="aiimgbox hidden" id="spatialDepthBox"><img alt="Spatial Depth colormap" height="400" id="spatialDepthImg" width="640"/></div><div class="spatial-empty" id="spatialDepthEmpty">Depth 스트림 대기 중<br/><small>로봇 센서 연결 시 자동 표시</small></div><div class="muted small" id="spatialDepthMeta">단위 · 범위 · 컬러맵: 대기 중</div></section></aside></div></div></div></main>
+<div class="goal-drawer-backdrop hidden" id="goalDrawerBackdrop"><section aria-labelledby="goalDrawerTitle" aria-modal="true" class="goal-drawer" id="goalDrawer" role="dialog" tabindex="-1"><div class="drawer-heading"><div><small>OPERATION / COMMAND</small><h2 id="goalDrawerTitle">목표 검토 및 제출</h2></div><button aria-label="목표 Drawer 닫기" id="goalDrawerClose" type="button">✕</button></div><div id="goalFormHome"><div class="card" id="missionCreateCard">
+<div class="sec-head">
+<h2>임무 생성 (NavigateToPose)</h2>
+<span class="badge" id="safetyReadyBadge">점검 중</span>
+</div>
+<details class="precheck-details"><summary>안전 조건 상세 보기</summary><div class="precheck-list small" id="safetyPrecheckSummary"></div></details>
+<form class="mform top-gap" id="mform">
+<label>로봇 <select id="mrobot"></select></label>
+<label>x (m)<input id="mx" step="any" type="number" value="0"/></label>
+<label>y (m)<input id="my" step="any" type="number" value="0"/></label>
+<label>yaw (rad)<input id="myaw" step="any" type="number" value="0"/></label>
+<label>메모<input id="mnote" maxlength="200" placeholder="선택 메모" type="text"/></label>
+<div class="goal-review" id="goalReview" role="status">목표를 입력하세요.</div><label class="goal-confirm"><input id="goalConfirmed" type="checkbox"/> 선택 로봇과 목표 좌표를 확인했습니다.</label><button id="mcreate" type="submit">임무 생성 (NavigateToPose)</button>
+</form>
+<div class="bad small" id="merr"></div>
+<div class="muted small">서버는 Safety Context v1(신선한 Gate·NAVIGATION 모드·검증된 지도·확정 위치추정·유휴 Nav2·유효한 Lease)이 충족되지 않으면 409로 거부합니다.</div>
+</div></div></section></div><script src="theme.js"></script><script src="state_helpers.js"></script>
+<script src="map_view.js"></script>
+<script src="registry_upload.js"></script>
+<script src="mapping_panel.js"></script><script src="map_save_panel.js"></script>
+<script src="goal_check.js"></script>
+<script src="manual_control_panel.js"></script>
+<script src="operating_mode_panel.js"></script>
+<script src="navigation_panel.js"></script>
+<script src="gate_reset_panel.js"></script>
+<script src="system_panel.js"></script>
+<script src="qr_encode.js"></script>
+<script src="guide_panel.js"></script>
+<script src="app.js"></script>
+<script src="video_panel.js"></script>
+</body>
+</html>

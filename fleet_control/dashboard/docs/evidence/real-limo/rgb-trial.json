@@ -1,0 +1,1667 @@
+{
+  "remote_exit": 124,
+  "elapsed_s": 16.16,
+  "observations": [
+    {
+      "elapsed_s": 0.003,
+      "fresh": false,
+      "paired": true,
+      "rx_fps": 0.0,
+      "infer_ms_avg": 9.65,
+      "result": {
+        "seq": 2172,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794543042983162316",
+        "age_s": 5068.35,
+        "n": 2,
+        "detections": [
+          {
+            "cls": "person",
+            "cls_id": 0,
+            "conf": 0.63,
+            "x1": 138.3,
+            "y1": 87.9,
+            "x2": 211.6,
+            "y2": 219.2
+          },
+          {
+            "cls": "chair",
+            "cls_id": 56,
+            "conf": 0.36,
+            "x1": 143.4,
+            "y1": 139.7,
+            "x2": 212.1,
+            "y2": 224.2
+          }
+        ],
+        "w": 640,
+        "h": 400
+      },
+      "robot_telemetry": {
+        "age_s": 5069.3,
+        "system": {
+          "cpu_pct_total": 13.3,
+          "mem_used_mb": 2567,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 155.5,
+          "load1": 2.2
+        },
+        "clock": {
+          "offset_ms_est": 2.4,
+          "uncertainty_ms": 10.7,
+          "samples": 20
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 2163,
+          "src_overwritten": 4337,
+          "dropped_before_total": 0,
+          "stamp_match": 2162,
+          "results_ok": 2162,
+          "last_n": 2
+        },
+        "src_fps": 30.0,
+        "sent_fps": 10.0,
+        "result_fps": 10.0,
+        "rtt_ms_avg": 39.2,
+        "e2e_ms_avg": 55.5,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 0.509,
+      "fresh": false,
+      "paired": true,
+      "rx_fps": 0.0,
+      "infer_ms_avg": 9.65,
+      "result": {
+        "seq": 2172,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794543042983162316",
+        "age_s": 5068.96,
+        "n": 2,
+        "detections": [
+          {
+            "cls": "person",
+            "cls_id": 0,
+            "conf": 0.63,
+            "x1": 138.3,
+            "y1": 87.9,
+            "x2": 211.6,
+            "y2": 219.2
+          },
+          {
+            "cls": "chair",
+            "cls_id": 56,
+            "conf": 0.36,
+            "x1": 143.4,
+            "y1": 139.7,
+            "x2": 212.1,
+            "y2": 224.2
+          }
+        ],
+        "w": 640,
+        "h": 400
+      },
+      "robot_telemetry": {
+        "age_s": 5069.9,
+        "system": {
+          "cpu_pct_total": 13.3,
+          "mem_used_mb": 2567,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 155.5,
+          "load1": 2.2
+        },
+        "clock": {
+          "offset_ms_est": 2.4,
+          "uncertainty_ms": 10.7,
+          "samples": 20
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 2163,
+          "src_overwritten": 4337,
+          "dropped_before_total": 0,
+          "stamp_match": 2162,
+          "results_ok": 2162,
+          "last_n": 2
+        },
+        "src_fps": 30.0,
+        "sent_fps": 10.0,
+        "result_fps": 10.0,
+        "rtt_ms_avg": 39.2,
+        "e2e_ms_avg": 55.5,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 1.015,
+      "fresh": false,
+      "paired": true,
+      "rx_fps": 0.0,
+      "infer_ms_avg": 9.65,
+      "result": {
+        "seq": 2172,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794543042983162316",
+        "age_s": 5069.37,
+        "n": 2,
+        "detections": [
+          {
+            "cls": "person",
+            "cls_id": 0,
+            "conf": 0.63,
+            "x1": 138.3,
+            "y1": 87.9,
+            "x2": 211.6,
+            "y2": 219.2
+          },
+          {
+            "cls": "chair",
+            "cls_id": 56,
+            "conf": 0.36,
+            "x1": 143.4,
+            "y1": 139.7,
+            "x2": 212.1,
+            "y2": 224.2
+          }
+        ],
+        "w": 640,
+        "h": 400
+      },
+      "robot_telemetry": {
+        "age_s": 5070.3,
+        "system": {
+          "cpu_pct_total": 13.3,
+          "mem_used_mb": 2567,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 155.5,
+          "load1": 2.2
+        },
+        "clock": {
+          "offset_ms_est": 2.4,
+          "uncertainty_ms": 10.7,
+          "samples": 20
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 2163,
+          "src_overwritten": 4337,
+          "dropped_before_total": 0,
+          "stamp_match": 2162,
+          "results_ok": 2162,
+          "last_n": 2
+        },
+        "src_fps": 30.0,
+        "sent_fps": 10.0,
+        "result_fps": 10.0,
+        "rtt_ms_avg": 39.2,
+        "e2e_ms_avg": 55.5,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 1.52,
+      "fresh": false,
+      "paired": true,
+      "rx_fps": 0.0,
+      "infer_ms_avg": 9.65,
+      "result": {
+        "seq": 2172,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794543042983162316",
+        "age_s": 5069.97,
+        "n": 2,
+        "detections": [
+          {
+            "cls": "person",
+            "cls_id": 0,
+            "conf": 0.63,
+            "x1": 138.3,
+            "y1": 87.9,
+            "x2": 211.6,
+            "y2": 219.2
+          },
+          {
+            "cls": "chair",
+            "cls_id": 56,
+            "conf": 0.36,
+            "x1": 143.4,
+            "y1": 139.7,
+            "x2": 212.1,
+            "y2": 224.2
+          }
+        ],
+        "w": 640,
+        "h": 400
+      },
+      "robot_telemetry": {
+        "age_s": 5070.9,
+        "system": {
+          "cpu_pct_total": 13.3,
+          "mem_used_mb": 2567,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 155.5,
+          "load1": 2.2
+        },
+        "clock": {
+          "offset_ms_est": 2.4,
+          "uncertainty_ms": 10.7,
+          "samples": 20
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 2163,
+          "src_overwritten": 4337,
+          "dropped_before_total": 0,
+          "stamp_match": 2162,
+          "results_ok": 2162,
+          "last_n": 2
+        },
+        "src_fps": 30.0,
+        "sent_fps": 10.0,
+        "result_fps": 10.0,
+        "rtt_ms_avg": 39.2,
+        "e2e_ms_avg": 55.5,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 2.024,
+      "fresh": false,
+      "paired": true,
+      "rx_fps": 0.0,
+      "infer_ms_avg": 9.65,
+      "result": {
+        "seq": 2172,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794543042983162316",
+        "age_s": 5070.38,
+        "n": 2,
+        "detections": [
+          {
+            "cls": "person",
+            "cls_id": 0,
+            "conf": 0.63,
+            "x1": 138.3,
+            "y1": 87.9,
+            "x2": 211.6,
+            "y2": 219.2
+          },
+          {
+            "cls": "chair",
+            "cls_id": 56,
+            "conf": 0.36,
+            "x1": 143.4,
+            "y1": 139.7,
+            "x2": 212.1,
+            "y2": 224.2
+          }
+        ],
+        "w": 640,
+        "h": 400
+      },
+      "robot_telemetry": {
+        "age_s": 5071.3,
+        "system": {
+          "cpu_pct_total": 13.3,
+          "mem_used_mb": 2567,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 155.5,
+          "load1": 2.2
+        },
+        "clock": {
+          "offset_ms_est": 2.4,
+          "uncertainty_ms": 10.7,
+          "samples": 20
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 2163,
+          "src_overwritten": 4337,
+          "dropped_before_total": 0,
+          "stamp_match": 2162,
+          "results_ok": 2162,
+          "last_n": 2
+        },
+        "src_fps": 30.0,
+        "sent_fps": 10.0,
+        "result_fps": 10.0,
+        "rtt_ms_avg": 39.2,
+        "e2e_ms_avg": 55.5,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 2.53,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 0.6,
+      "infer_ms_avg": 9.64,
+      "result": {
+        "seq": 3,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548113913309004",
+        "age_s": 0.08,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.5,
+        "system": {
+          "mem_used_mb": 2627,
+          "mem_total_mb": 7514,
+          "proc_rss_mb": 92.7,
+          "load1": 3.35
+        },
+        "clock": null,
+        "counters": {
+          "connects": 1
+        },
+        "src_fps": 0.0,
+        "sent_fps": 0.0,
+        "result_fps": 0.0,
+        "rtt_ms_avg": null,
+        "e2e_ms_avg": null,
+        "robot_ai_link": "NO_RESULT"
+      }
+    },
+    {
+      "elapsed_s": 3.034,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 1.0,
+      "infer_ms_avg": 9.65,
+      "result": {
+        "seq": 5,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548114213799909",
+        "age_s": 0.01,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.9,
+        "system": {
+          "mem_used_mb": 2627,
+          "mem_total_mb": 7514,
+          "proc_rss_mb": 92.7,
+          "load1": 3.35
+        },
+        "clock": null,
+        "counters": {
+          "connects": 1
+        },
+        "src_fps": 0.0,
+        "sent_fps": 0.0,
+        "result_fps": 0.0,
+        "rtt_ms_avg": null,
+        "e2e_ms_avg": null,
+        "robot_ai_link": "NO_RESULT"
+      }
+    },
+    {
+      "elapsed_s": 3.541,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 1.4,
+      "infer_ms_avg": 9.67,
+      "result": {
+        "seq": 7,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548114937620662",
+        "age_s": 0.12,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.6,
+        "system": {
+          "cpu_pct_total": 12.8,
+          "mem_used_mb": 2650,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 2.0,
+          "proc_rss_mb": 99.8,
+          "load1": 3.35
+        },
+        "clock": null,
+        "counters": {
+          "connects": 1,
+          "sent": 5,
+          "dropped_before_total": 0,
+          "stamp_match": 5,
+          "results_ok": 5,
+          "last_n": 0,
+          "src_overwritten": 3
+        },
+        "src_fps": 1.8,
+        "sent_fps": 1.0,
+        "result_fps": 1.0,
+        "rtt_ms_avg": 38.3,
+        "e2e_ms_avg": 94.7,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 4.047,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 1.8,
+      "infer_ms_avg": 9.65,
+      "result": {
+        "seq": 9,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548115297348169",
+        "age_s": 0.11,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 1.0,
+        "system": {
+          "cpu_pct_total": 12.8,
+          "mem_used_mb": 2650,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 2.0,
+          "proc_rss_mb": 99.8,
+          "load1": 3.35
+        },
+        "clock": null,
+        "counters": {
+          "connects": 1,
+          "sent": 5,
+          "dropped_before_total": 0,
+          "stamp_match": 5,
+          "results_ok": 5,
+          "last_n": 0,
+          "src_overwritten": 3
+        },
+        "src_fps": 1.8,
+        "sent_fps": 1.0,
+        "result_fps": 1.0,
+        "rtt_ms_avg": 38.3,
+        "e2e_ms_avg": 94.7,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 4.553,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 2.2,
+      "infer_ms_avg": 9.63,
+      "result": {
+        "seq": 11,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548115717313553",
+        "age_s": 0.12,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.3,
+        "system": {
+          "cpu_pct_total": 12.7,
+          "mem_used_mb": 2643,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 100.5,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 1
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 9,
+          "dropped_before_total": 0,
+          "stamp_match": 9,
+          "results_ok": 9,
+          "last_n": 0,
+          "src_overwritten": 5
+        },
+        "src_fps": 3.0,
+        "sent_fps": 1.8,
+        "result_fps": 1.8,
+        "rtt_ms_avg": 38.2,
+        "e2e_ms_avg": 83.7,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 5.06,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 2.8,
+      "infer_ms_avg": 9.61,
+      "result": {
+        "seq": 14,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548116377472693",
+        "age_s": 0.04,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.0,
+        "system": {
+          "cpu_pct_total": 11.6,
+          "mem_used_mb": 2624,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 2.0,
+          "proc_rss_mb": 100.5,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 1
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 14,
+          "dropped_before_total": 0,
+          "stamp_match": 13,
+          "results_ok": 13,
+          "last_n": 0,
+          "src_overwritten": 8
+        },
+        "src_fps": 4.4,
+        "sent_fps": 2.8,
+        "result_fps": 2.6,
+        "rtt_ms_avg": 31.0,
+        "e2e_ms_avg": 84.9,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 5.564,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 3.2,
+      "infer_ms_avg": 9.6,
+      "result": {
+        "seq": 16,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548116741347094",
+        "age_s": 0.14,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.5,
+        "system": {
+          "cpu_pct_total": 11.6,
+          "mem_used_mb": 2624,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 2.0,
+          "proc_rss_mb": 100.5,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 1
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 14,
+          "dropped_before_total": 0,
+          "stamp_match": 13,
+          "results_ok": 13,
+          "last_n": 0,
+          "src_overwritten": 8
+        },
+        "src_fps": 4.4,
+        "sent_fps": 2.8,
+        "result_fps": 2.6,
+        "rtt_ms_avg": 31.0,
+        "e2e_ms_avg": 84.9,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 6.069,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 3.6,
+      "infer_ms_avg": 9.59,
+      "result": {
+        "seq": 18,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548117341660287",
+        "age_s": 0.19,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.1,
+        "system": {
+          "cpu_pct_total": 12.9,
+          "mem_used_mb": 2628,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 101.3,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 2
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 18,
+          "dropped_before_total": 0,
+          "stamp_match": 18,
+          "results_ok": 18,
+          "last_n": 0,
+          "src_overwritten": 12
+        },
+        "src_fps": 6.2,
+        "sent_fps": 3.6,
+        "result_fps": 3.6,
+        "rtt_ms_avg": 33.7,
+        "e2e_ms_avg": 77.6,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 6.574,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.2,
+      "infer_ms_avg": 9.61,
+      "result": {
+        "seq": 21,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548117941673624",
+        "age_s": 0.0,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.5,
+        "system": {
+          "cpu_pct_total": 12.9,
+          "mem_used_mb": 2628,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 101.3,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 2
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 18,
+          "dropped_before_total": 0,
+          "stamp_match": 18,
+          "results_ok": 18,
+          "last_n": 0,
+          "src_overwritten": 12
+        },
+        "src_fps": 6.2,
+        "sent_fps": 3.6,
+        "result_fps": 3.6,
+        "rtt_ms_avg": 33.7,
+        "e2e_ms_avg": 77.6,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 7.079,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.6,
+      "infer_ms_avg": 9.66,
+      "result": {
+        "seq": 24,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548118541602243",
+        "age_s": 0.01,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.1,
+        "system": {
+          "cpu_pct_total": 12.4,
+          "mem_used_mb": 2686,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 2.0,
+          "proc_rss_mb": 100.6,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 2
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 23,
+          "dropped_before_total": 0,
+          "stamp_match": 23,
+          "results_ok": 23,
+          "last_n": 0,
+          "src_overwritten": 18
+        },
+        "src_fps": 8.4,
+        "sent_fps": 4.6,
+        "result_fps": 4.6,
+        "rtt_ms_avg": 35.6,
+        "e2e_ms_avg": 85.5,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 7.584,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.6,
+      "infer_ms_avg": 9.67,
+      "result": {
+        "seq": 26,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548118842671662",
+        "age_s": 0.02,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.5,
+        "system": {
+          "cpu_pct_total": 12.4,
+          "mem_used_mb": 2686,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 2.0,
+          "proc_rss_mb": 100.6,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 2
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 23,
+          "dropped_before_total": 0,
+          "stamp_match": 23,
+          "results_ok": 23,
+          "last_n": 0,
+          "src_overwritten": 18
+        },
+        "src_fps": 8.4,
+        "sent_fps": 4.6,
+        "result_fps": 4.6,
+        "rtt_ms_avg": 35.6,
+        "e2e_ms_avg": 85.5,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 8.089,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.6,
+      "infer_ms_avg": 9.7,
+      "result": {
+        "seq": 29,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548119565341683",
+        "age_s": 0.04,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.1,
+        "system": {
+          "cpu_pct_total": 11.8,
+          "mem_used_mb": 2649,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 4.0,
+          "proc_rss_mb": 99.2,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 3
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 28,
+          "dropped_before_total": 0,
+          "stamp_match": 28,
+          "results_ok": 28,
+          "last_n": 0,
+          "src_overwritten": 25
+        },
+        "src_fps": 8.8,
+        "sent_fps": 4.6,
+        "result_fps": 4.6,
+        "rtt_ms_avg": 36.0,
+        "e2e_ms_avg": 90.4,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 8.593,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.8,
+      "infer_ms_avg": 9.67,
+      "result": {
+        "seq": 31,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548119925333909",
+        "age_s": 0.03,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.5,
+        "system": {
+          "cpu_pct_total": 11.8,
+          "mem_used_mb": 2649,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 4.0,
+          "proc_rss_mb": 99.2,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 3
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 28,
+          "dropped_before_total": 0,
+          "stamp_match": 28,
+          "results_ok": 28,
+          "last_n": 0,
+          "src_overwritten": 25
+        },
+        "src_fps": 8.8,
+        "sent_fps": 4.6,
+        "result_fps": 4.6,
+        "rtt_ms_avg": 36.0,
+        "e2e_ms_avg": 90.4,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 9.098,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.8,
+      "infer_ms_avg": 9.66,
+      "result": {
+        "seq": 33,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548120286100024",
+        "age_s": 0.07,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 1.0,
+        "system": {
+          "cpu_pct_total": 11.8,
+          "mem_used_mb": 2649,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 4.0,
+          "proc_rss_mb": 99.2,
+          "load1": 3.4
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 3
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 28,
+          "dropped_before_total": 0,
+          "stamp_match": 28,
+          "results_ok": 28,
+          "last_n": 0,
+          "src_overwritten": 25
+        },
+        "src_fps": 8.8,
+        "sent_fps": 4.6,
+        "result_fps": 4.6,
+        "rtt_ms_avg": 36.0,
+        "e2e_ms_avg": 90.4,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 9.604,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.8,
+      "infer_ms_avg": 9.63,
+      "result": {
+        "seq": 36,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548120945721477",
+        "age_s": 0.07,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.6,
+        "system": {
+          "cpu_pct_total": 12.8,
+          "mem_used_mb": 2633,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 101.3,
+          "load1": 3.45
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 3
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 33,
+          "dropped_before_total": 0,
+          "stamp_match": 33,
+          "results_ok": 33,
+          "last_n": 0,
+          "src_overwritten": 32
+        },
+        "src_fps": 10.2,
+        "sent_fps": 4.8,
+        "result_fps": 4.8,
+        "rtt_ms_avg": 34.1,
+        "e2e_ms_avg": 88.4,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 10.109,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.8,
+      "infer_ms_avg": 9.61,
+      "result": {
+        "seq": 38,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548121309263339",
+        "age_s": 0.11,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 1.0,
+        "system": {
+          "cpu_pct_total": 12.8,
+          "mem_used_mb": 2633,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 101.3,
+          "load1": 3.45
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 3
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 33,
+          "dropped_before_total": 0,
+          "stamp_match": 33,
+          "results_ok": 33,
+          "last_n": 0,
+          "src_overwritten": 32
+        },
+        "src_fps": 10.2,
+        "sent_fps": 4.8,
+        "result_fps": 4.8,
+        "rtt_ms_avg": 34.1,
+        "e2e_ms_avg": 88.4,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 10.615,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 5.0,
+      "infer_ms_avg": 9.59,
+      "result": {
+        "seq": 41,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548121789348019",
+        "age_s": 0.13,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.6,
+        "system": {
+          "cpu_pct_total": 12.2,
+          "mem_used_mb": 2639,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 2.0,
+          "proc_rss_mb": 101.3,
+          "load1": 3.45
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 4
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 38,
+          "dropped_before_total": 0,
+          "stamp_match": 38,
+          "results_ok": 38,
+          "last_n": 0,
+          "src_overwritten": 40
+        },
+        "src_fps": 11.4,
+        "sent_fps": 4.8,
+        "result_fps": 5.0,
+        "rtt_ms_avg": 33.7,
+        "e2e_ms_avg": 87.1,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 11.121,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 5.0,
+      "infer_ms_avg": 9.58,
+      "result": {
+        "seq": 43,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548122329616728",
+        "age_s": 0.15,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.0,
+        "system": {
+          "cpu_pct_total": 12.6,
+          "mem_used_mb": 2670,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 99.9,
+          "load1": 3.45
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 4
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 43,
+          "dropped_before_total": 0,
+          "stamp_match": 43,
+          "results_ok": 43,
+          "last_n": 0,
+          "src_overwritten": 45
+        },
+        "src_fps": 11.6,
+        "sent_fps": 5.0,
+        "result_fps": 5.0,
+        "rtt_ms_avg": 32.8,
+        "e2e_ms_avg": 88.3,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 11.625,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 5.0,
+      "infer_ms_avg": 9.61,
+      "result": {
+        "seq": 46,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548122929420963",
+        "age_s": 0.16,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.7,
+        "system": {
+          "cpu_pct_total": 12.6,
+          "mem_used_mb": 2670,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 99.9,
+          "load1": 3.45
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 4
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 43,
+          "dropped_before_total": 0,
+          "stamp_match": 43,
+          "results_ok": 43,
+          "last_n": 0,
+          "src_overwritten": 45
+        },
+        "src_fps": 11.6,
+        "sent_fps": 5.0,
+        "result_fps": 5.0,
+        "rtt_ms_avg": 32.8,
+        "e2e_ms_avg": 88.3,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 12.131,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.8,
+      "infer_ms_avg": 9.63,
+      "result": {
+        "seq": 48,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548123349839147",
+        "age_s": 0.1,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.1,
+        "system": {
+          "cpu_pct_total": 12.0,
+          "mem_used_mb": 2649,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 99.9,
+          "load1": 3.45
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 5
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 48,
+          "dropped_before_total": 0,
+          "stamp_match": 48,
+          "results_ok": 48,
+          "last_n": 0,
+          "src_overwritten": 49
+        },
+        "src_fps": 11.0,
+        "sent_fps": 5.0,
+        "result_fps": 5.0,
+        "rtt_ms_avg": 31.9,
+        "e2e_ms_avg": 86.0,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 12.634,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.4,
+      "infer_ms_avg": 9.63,
+      "result": {
+        "seq": 48,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548123349839147",
+        "age_s": 0.72,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.7,
+        "system": {
+          "cpu_pct_total": 12.0,
+          "mem_used_mb": 2649,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 3.0,
+          "proc_rss_mb": 99.9,
+          "load1": 3.45
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 5
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 48,
+          "dropped_before_total": 0,
+          "stamp_match": 48,
+          "results_ok": 48,
+          "last_n": 0,
+          "src_overwritten": 49
+        },
+        "src_fps": 11.0,
+        "sent_fps": 5.0,
+        "result_fps": 5.0,
+        "rtt_ms_avg": 31.9,
+        "e2e_ms_avg": 86.0,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 13.139,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 4.0,
+      "infer_ms_avg": 9.63,
+      "result": {
+        "seq": 49,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548124193674878",
+        "age_s": 0.39,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.1,
+        "system": {
+          "cpu_pct_total": 11.3,
+          "mem_used_mb": 2640,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 0.0,
+          "proc_rss_mb": 99.9,
+          "load1": 3.45
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 5
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 49,
+          "dropped_before_total": 0,
+          "stamp_match": 49,
+          "results_ok": 49,
+          "last_n": 0,
+          "src_overwritten": 49
+        },
+        "src_fps": 9.0,
+        "sent_fps": 4.2,
+        "result_fps": 4.2,
+        "rtt_ms_avg": 31.8,
+        "e2e_ms_avg": 84.8,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 13.644,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 3.4,
+      "infer_ms_avg": 9.63,
+      "result": {
+        "seq": 49,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548124193674878",
+        "age_s": 1.0,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.7,
+        "system": {
+          "cpu_pct_total": 11.3,
+          "mem_used_mb": 2640,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 0.0,
+          "proc_rss_mb": 99.9,
+          "load1": 3.45
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 5
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 49,
+          "dropped_before_total": 0,
+          "stamp_match": 49,
+          "results_ok": 49,
+          "last_n": 0,
+          "src_overwritten": 49
+        },
+        "src_fps": 9.0,
+        "sent_fps": 4.2,
+        "result_fps": 4.2,
+        "rtt_ms_avg": 31.8,
+        "e2e_ms_avg": 84.8,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 14.148,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 3.4,
+      "infer_ms_avg": 9.63,
+      "result": {
+        "seq": 51,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548125273883633",
+        "age_s": 0.19,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.1,
+        "system": {
+          "cpu_pct_total": 12.4,
+          "mem_used_mb": 2644,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 1.0,
+          "proc_rss_mb": 99.9,
+          "load1": 3.73
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 6
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 51,
+          "dropped_before_total": 0,
+          "stamp_match": 51,
+          "results_ok": 51,
+          "last_n": 0,
+          "src_overwritten": 49
+        },
+        "src_fps": 6.8,
+        "sent_fps": 3.6,
+        "result_fps": 3.6,
+        "rtt_ms_avg": 31.3,
+        "e2e_ms_avg": 85.0,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 14.652,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 3.4,
+      "infer_ms_avg": 9.61,
+      "result": {
+        "seq": 53,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548125818530078",
+        "age_s": 0.18,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.5,
+        "system": {
+          "cpu_pct_total": 12.4,
+          "mem_used_mb": 2644,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 1.0,
+          "proc_rss_mb": 99.9,
+          "load1": 3.73
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 6
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 51,
+          "dropped_before_total": 0,
+          "stamp_match": 51,
+          "results_ok": 51,
+          "last_n": 0,
+          "src_overwritten": 49
+        },
+        "src_fps": 6.8,
+        "sent_fps": 3.6,
+        "result_fps": 3.6,
+        "rtt_ms_avg": 31.3,
+        "e2e_ms_avg": 85.0,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 15.157,
+      "fresh": false,
+      "paired": false,
+      "rx_fps": 3.6,
+      "infer_ms_avg": 9.63,
+      "result": null,
+      "robot_telemetry": {
+        "age_s": 0.2,
+        "system": {
+          "cpu_pct_total": 11.7,
+          "mem_used_mb": 2633,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 4.0,
+          "proc_rss_mb": 100.6,
+          "load1": 3.73
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 6
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 56,
+          "dropped_before_total": 0,
+          "stamp_match": 56,
+          "results_ok": 56,
+          "last_n": 0,
+          "src_overwritten": 52
+        },
+        "src_fps": 6.0,
+        "sent_fps": 3.6,
+        "result_fps": 3.6,
+        "rtt_ms_avg": 30.2,
+        "e2e_ms_avg": 85.8,
+        "robot_ai_link": "OK"
+      }
+    },
+    {
+      "elapsed_s": 15.661,
+      "fresh": true,
+      "paired": true,
+      "rx_fps": 3.4,
+      "infer_ms_avg": 9.65,
+      "result": {
+        "seq": 58,
+        "frame_id": "camera_color_optical_frame",
+        "stamp_ns": "1794548126717848124",
+        "age_s": 0.21,
+        "n": 0,
+        "detections": [],
+        "w": 320,
+        "h": 200
+      },
+      "robot_telemetry": {
+        "age_s": 0.6,
+        "system": {
+          "cpu_pct_total": 11.7,
+          "mem_used_mb": 2633,
+          "mem_total_mb": 7514,
+          "proc_cpu_pct_of_1core": 4.0,
+          "proc_rss_mb": 100.6,
+          "load1": 3.73
+        },
+        "clock": {
+          "offset_ms_est": -9.6,
+          "uncertainty_ms": 2.7,
+          "samples": 6
+        },
+        "counters": {
+          "connects": 1,
+          "sent": 56,
+          "dropped_before_total": 0,
+          "stamp_match": 56,
+          "results_ok": 56,
+          "last_n": 0,
+          "src_overwritten": 52
+        },
+        "src_fps": 6.0,
+        "sent_fps": 3.6,
+        "result_fps": 3.6,
+        "rtt_ms_avg": 30.2,
+        "e2e_ms_avg": 85.8,
+        "robot_ai_link": "OK"
+      }
+    }
+  ],
+  "last_video": {
+    "ai_state": "SENDER_DISCONNECTED",
+    "robot_id": "pcu",
+    "server_boot": "7efb2655",
+    "model": "YOLO11n (COCO, GPU)",
+    "device": "cuda:0",
+    "last_frame_wall": 1794548126.8334548,
+    "last_frame_age_s": 0.84,
+    "rx_fps": 2.8,
+    "rx_kbps": 159.6,
+    "frames_total": 2230,
+    "results_ok": 2230,
+    "dropped_stale": 0,
+    "dropped_overwritten": 0,
+    "errors": 0,
+    "reconnects": 1,
+    "transport_ms_avg": 12.17,
+    "decode_ms_avg": 2.22,
+    "infer_ms_avg": 9.65,
+    "infer_ms_p95": 13.71,
+    "server_total_ms_avg": 14.16,
+    "server_total_ms_p95": 19.45,
+    "queue_ms_avg": 0.17,
+    "robot_telemetry": {
+      "age_s": 1.2,
+      "system": {
+        "cpu_pct_total": 11.7,
+        "mem_used_mb": 2633,
+        "mem_total_mb": 7514,
+        "proc_cpu_pct_of_1core": 4.0,
+        "proc_rss_mb": 100.6,
+        "load1": 3.73
+      },
+      "clock": {
+        "offset_ms_est": -9.6,
+        "uncertainty_ms": 2.7,
+        "samples": 6
+      },
+      "counters": {
+        "connects": 1,
+        "sent": 56,
+        "dropped_before_total": 0,
+        "stamp_match": 56,
+        "results_ok": 56,
+        "last_n": 0,
+        "src_overwritten": 52
+      },
+      "src_fps": 6.0,
+      "sent_fps": 3.6,
+      "result_fps": 3.6,
+      "rtt_ms_avg": 30.2,
+      "e2e_ms_avg": 85.8,
+      "robot_ai_link": "OK"
+    },
+    "max_age_s": 1.0,
+    "note": "RGB-only 2D detections; no depth/distance. n=0 with a fresh age means \"looked, nothing found\"; a growing age or non-RECEIVING state means no data.",
+    "connected": true,
+    "paired": true,
+    "fresh": false,
+    "result": {
+      "seq": 58,
+      "frame_id": "camera_color_optical_frame",
+      "stamp_ns": "1794548126717848124",
+      "age_s": 0.82,
+      "n": 0,
+      "detections": [],
+      "w": 320,
+      "h": 200
+    },
+    "frame_id": "633df16308a57ac0"
+  }
+}

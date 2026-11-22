@@ -1,0 +1,19 @@
+{
+  "scope": "Static synthetic contract examples only; not runtime tests",
+  "checks": {
+    "explicit_synthetic_example": true,
+    "duplicate_robot_names_distinct_fleet_keys": true,
+    "exact_ns_and_uint64_strings": true,
+    "selected_robot_reference_exists": true,
+    "explicit_mission_binding": true,
+    "camera_owners_not_interchangeable": true,
+    "building_and_slam_distinct": true,
+    "path_meanings_distinct": true,
+    "missing_estimate_not_fabricated": true,
+    "inbox_read_not_resolution": true,
+    "history_incompleteness_visible": true,
+    "no_path_claim_in_contract_example": true
+  },
+  "passed": 12,
+  "total": 12
+}

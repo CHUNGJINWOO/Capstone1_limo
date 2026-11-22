@@ -1,0 +1,11 @@
+--- a/capstone_ws/src/limo_depth_obstacles/limo_depth_obstacles/depth_obstacle_filter_node.py	2026-11-20 00:13:55.567120885 +0900
++++ b/capstone_ws/src/limo_depth_obstacles/limo_depth_obstacles/depth_obstacle_filter_node.py	2026-11-20 00:14:17.871253205 +0900
+@@ -148,7 +148,7 @@
+                 self.set_error('DEPTH_NO_VALID_POINTS', 'No finite in-range camera observations')
+                 return
+ 
+-            marked_count = counts.get('marked_points', 0)
++            marked_count = counts.get('obstacle_points', 0)   # filter_points() reports 'obstacle_points'
+             if marked_count > 10:
+                 now_t = time.monotonic()
+                 if not hasattr(self, '_last_warn_t') or (now_t - self._last_warn_t > 1.5):

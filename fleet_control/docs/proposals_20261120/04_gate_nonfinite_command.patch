@@ -1,0 +1,12 @@
+--- a/capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py
++++ b/capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py
+@@ -270,6 +270,9 @@
+         t_now = self.get_clock().now().nanoseconds * 1e-9
+         cmd_vx = self.latest_cmd.linear.x
+         cmd_wz = self.latest_cmd.angular.z
++        if not (math.isfinite(cmd_vx) and math.isfinite(cmd_wz)):
++            cmd_vx = 0.0     # NaN/inf would pass every threshold comparison below and reach the motor topic
++            cmd_wz = 0.0
+ 
+         # 0. Watchdog on /cmd_vel_raw:
+         # If upstream Nav2 stops publishing for > 0.25s, clamp to 0.0 m/s

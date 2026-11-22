@@ -1,0 +1,50 @@
+--- a/capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py	2026-11-20 00:13:55.584120986 +0900
++++ b/capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py	2026-11-20 00:14:17.871253205 +0900
+@@ -87,6 +87,9 @@
+         # wheel /odom feeds stall detection for every estimator; estimator_odom_topic
+         # (e.g. /odom_nav2 from odom_tf_relay_node) is the active estimator's output.
+         self.declare_parameter('require_wheel_odom', True)
++        # Optional: require a fresh, OK status from the Agent-independent motion watchdog (default off).
++        self.declare_parameter('require_motion_watchdog', False)
++        self.declare_parameter('motion_watchdog_timeout_sec', 0.5)
+         self.declare_parameter('estimator_odom_topic', '')
+         # Runtime freshness limit for /odom and estimator_odom_topic once armed
+         # (<= 0 -> use sensor_timeout_sec).
+@@ -160,6 +163,10 @@
+ 
+         # Subscriptions
+         self.sub_cmd_raw = self.create_subscription(Twist, '/cmd_vel_raw', self.cb_cmd_raw, 10)
++        self.require_motion_watchdog = bool(self.get_parameter('require_motion_watchdog').value)
++        self.motion_watchdog_timeout = float(self.get_parameter('motion_watchdog_timeout_sec').value)
++        self.last_watchdog_ok_t = None
++        self.sub_watchdog = self.create_subscription(String, '/fleet/motion_watchdog/status', self.cb_watchdog, 10)
+         self.sub_odom = self.create_subscription(Odometry, '/odom', self.cb_odom, 20)
+         self.sub_lidar_odom = self.create_subscription(Odometry, '/odometry/lidar_odom', self.cb_lidar_odom, 20)
+         self.sub_scan = self.create_subscription(LaserScan, '/scan', self.cb_scan, qos_profile_sensor_data)
+@@ -194,6 +201,14 @@
+         if self.startup_sim_t is None:
+             self.startup_sim_t = t_sec
+ 
++    def cb_watchdog(self, msg: String):
++        try:
++            ok = json.loads(msg.data).get('state') == 'OK'
++        except ValueError:
++            ok = False
++        if ok:
++            self.last_watchdog_ok_t = self.get_clock().now().nanoseconds * 1e-9
++
+     def cb_odom(self, msg: Odometry):
+         self.wheel_vx = float(msg.twist.twist.linear.x)
+         self.wheel_wz = float(msg.twist.twist.angular.z)
+@@ -276,6 +291,11 @@
+         if self.last_cmd_sim_t is None or (t_now - self.last_cmd_sim_t) > 0.25:
+             cmd_vx = 0.0
+             cmd_wz = 0.0
++        # 0b. Optional: no fresh OK status from the motion watchdog -> hold zero (Agent liveness unproven).
++        if self.require_motion_watchdog and (self.last_watchdog_ok_t is None
++                                             or (t_now - self.last_watchdog_ok_t) > self.motion_watchdog_timeout):
++            cmd_vx = 0.0
++            cmd_wz = 0.0
+ 
+         # Safety Gate: Inhibit reverse if enable_auto_reverse is False (LIMO Pro lack of rear sensors)
+         if not self.enable_auto_reverse and cmd_vx < 0.0:

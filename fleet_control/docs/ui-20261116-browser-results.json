@@ -1,0 +1,34 @@
+{
+  "checks": [
+    "authenticated assets and console",
+    "overflow 1920x1080",
+    "overflow 1600x900",
+    "overflow 1366x768",
+    "overflow 390x844",
+    "effective viewport / zoom equivalent 1536x864",
+    "effective viewport / zoom equivalent 1280x720",
+    "effective viewport / zoom equivalent 1024x768",
+    "zoom and fit",
+    "robot selection",
+    "sensor tabs expose unavailable honestly",
+    "Map Registry preview blocks goals",
+    "Lease expiry is visible",
+    "Lease, create and cancel through real API",
+    "fault fail closed display",
+    "gate-stale fail closed display",
+    "no-attestation fail closed display",
+    "unverified fail closed display",
+    "offline fail closed display",
+    "reconciliation fail closed display",
+    "all detail tabs retained",
+    "viewer cannot operate",
+    "dashboard network failure becomes unknown"
+  ],
+  "errors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED"
+  ],
+  "expectedNetworkFailure": true
+}

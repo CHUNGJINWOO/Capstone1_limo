@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#1f3a5f"/>
+<title>로봇 길안내</title>
+<link href="visitor.css" rel="stylesheet"/>
+</head>
+<body>
+<header class="v-head"><h1>로봇 길안내</h1><p id="vService" class="v-service" role="status" aria-live="polite">확인 중…</p></header>
+<main id="vMain">
+  <section id="vLink" class="v-card hidden" aria-labelledby="vLinkTitle">
+    <h2 id="vLinkTitle">안내 링크가 필요합니다</h2>
+    <p>안내 데스크의 QR 코드를 다시 스캔해 주세요.</p><p id="vLinkWhy" class="v-muted"></p>
+  </section>
+  <section id="vPick" class="v-card hidden" aria-labelledby="vPickTitle">
+    <h2 id="vPickTitle">어디로 안내할까요?</h2>
+    <label class="v-field">건물 · 층<select id="vFloor"></select></label>
+    <div id="vAreas" class="v-chips" role="group" aria-label="구역"></div>
+    <label class="v-field">목적지 검색<input id="vSearch" type="search" inputmode="search" autocomplete="off" placeholder="예: 안내데스크, 회의실"/></label>
+    <ul id="vList" class="v-list" aria-live="polite"></ul>
+  </section>
+  <section id="vReq" class="v-card hidden" aria-labelledby="vReqTitle">
+    <h2 id="vReqTitle">안내 요청</h2>
+    <p class="v-dest" id="vReqDest"></p>
+    <ol class="v-steps" id="vSteps">
+      <li data-step="RECEIVED">접수</li><li data-step="ACCEPTED">로봇 배정</li><li data-step="IN_PROGRESS">안내 중</li><li data-step="COMPLETED">도착</li>
+    </ol>
+    <p id="vReqStatus" class="v-status" role="status" aria-live="assertive"></p>
+    <p id="vReqReason" class="v-muted"></p>
+    <div class="v-actions"><button id="vCancel" type="button" class="v-secondary">요청 취소</button><button id="vAgain" type="button" class="hidden">다른 목적지 선택</button></div>
+  </section>
+  <p id="vError" class="v-error" role="alert"></p>
+</main>
+<footer class="v-foot">로봇은 직원이 관리합니다. 로봇 근처에서는 천천히 이동해 주세요.</footer>
+<script src="visitor.js"></script>
+</body>
+</html>

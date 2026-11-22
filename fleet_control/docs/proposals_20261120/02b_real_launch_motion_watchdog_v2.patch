@@ -1,0 +1,90 @@
+--- a/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_real.launch.py
++++ b/capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_real.launch.py
+@@ -61,12 +61,26 @@
+     allow_motor_drive = LaunchConfiguration('allow_motor_drive', default='false')
+     drive_mode = LaunchConfiguration('drive_mode', default='diff')
+     manual_probe = LaunchConfiguration('manual_mapping_probe')
++    use_motion_watchdog = LaunchConfiguration('use_motion_watchdog')
+     manual_input = LaunchConfiguration('manual_mapping_input')
+     joy_device = LaunchConfiguration('manual_joy_device')
+     joy_linear_axis = LaunchConfiguration('manual_joy_linear_axis')
+     joy_turn_axis = LaunchConfiguration('manual_joy_turn_axis')
+     joy_deadman = LaunchConfiguration('manual_joy_deadman')
+ 
++    def validate_motion_watchdog(context):
++        # The watchdog cancels every NavigateToPose goal the Agent does not declare, so direct goal sources
++        # (explore_lite) and the onboard joystick probe (/cmd_vel_raw) are only valid without it, i.e. locked.
++        wd = use_motion_watchdog.perform(context)
++        if wd not in ('true', 'false'):
++            raise RuntimeError('use_motion_watchdog must be true or false')
++        if allow_motor_drive.perform(context) == 'true' and wd != 'true':
++            raise RuntimeError('allow_motor_drive:=true requires use_motion_watchdog:=true')
++        if wd == 'true' and start_explore.perform(context) != 'false':
++            raise RuntimeError('start_explore submits Nav2 goals directly; use web mapping, or use_motion_watchdog:=false (locked only)')
++        if wd == 'true' and manual_probe.perform(context) == 'true':
++            raise RuntimeError('manual_mapping_probe publishes /cmd_vel_raw directly; use use_motion_watchdog:=false (locked only)')
++
+     def validate_manual_probe(context):
+         if manual_probe.perform(context) == 'false':
+             return
+@@ -413,8 +427,11 @@
+         convert_types=True,
+     )
+ 
++    # With the motion watchdog (default) Nav2 velocity passes it before the Gate:
++    #   Nav2 -> /fleet/nav_cmd_vel -> motion_watchdog -> /cmd_vel_raw -> stall_detector_node -> /cmd_vel | /cmd_vel_locked
+     nav2_output = PythonExpression([
+-        "'/nav2_cmd_vel_quarantined' if '", manual_probe, "' == 'true' else '/cmd_vel_raw'"
++        "'/nav2_cmd_vel_quarantined' if '", manual_probe, "' == 'true' else ('/fleet/nav_cmd_vel' if '",
++        use_motion_watchdog, "' == 'true' else '/cmd_vel_raw')"
+     ])
+     nav2_launch = GroupAction(
+         actions=[
+@@ -474,6 +491,15 @@
+     gate_out_topic = PythonExpression([
+         "'/cmd_vel' if '", allow_motor_drive, "' == 'true' else '/cmd_vel_locked'"
+     ])
++    # Independent motion watchdog (package limo_robot_agent from fleet_control/agent must be in the overlay;
++    # launch fails if it is missing). Zero + cancel-all when the Agent heartbeat, its control loop, the Gate
++    # status or Nav2 goal ownership is lost; re-arms only after a new idle proof.
++    motion_watchdog = Node(
++        package='limo_robot_agent', executable='motion_watchdog', name='fleet_motion_watchdog', output='screen',
++        condition=IfCondition(use_motion_watchdog),
++        parameters=[{'input_topic': '/fleet/nav_cmd_vel', 'output_topic': '/cmd_vel_raw',
++                     'use_sim_time': use_sim_time}])
++
+     stall_gate = Node(
+         package='limo_capstone',
+         executable='stall_detector_node',
+@@ -493,6 +519,7 @@
+             'sensor_timeout_sec': sensor_timeout_sec,
+             'require_lidar_odom': effective_require_lidar,
+             'estimator_odom_topic': '/odom_nav2',
++            'require_motion_watchdog': ParameterValue(use_motion_watchdog, value_type=bool),
+             'use_sim_time': use_sim_time
+         }],
+         remappings=[('/cmd_vel', gate_out_topic)]
+@@ -518,6 +545,8 @@
+         declare_sensor_timeout,
+         declare_allow_motor,
+         DeclareLaunchArgument('manual_mapping_probe', default_value='false', choices=['true', 'false']),
++        DeclareLaunchArgument('use_motion_watchdog', default_value='true', choices=['true', 'false'],
++                              description='Independent motion watchdog in the Nav2 velocity path (required for allow_motor_drive:=true)'),
+         DeclareLaunchArgument('manual_mapping_input', default_value='onboard', choices=['onboard', 'web']),
+         DeclareLaunchArgument('manual_joy_device', default_value=''),
+         DeclareLaunchArgument('manual_joy_linear_axis', default_value='-1'),
+@@ -538,6 +567,7 @@
+         declare_camera_pitch,
+         declare_camera_yaw,
+         log_lock_notice,
++        OpaqueFunction(function=validate_motion_watchdog),
+         OpaqueFunction(function=validate_manual_probe),
+         OpaqueFunction(function=validate_speed_profile),
+         log_deprecated_stall_arg,
+@@ -561,5 +591,6 @@
+         nav2_launch,
+         manual_joy,
+         explore_node,
++        motion_watchdog,
+         stall_gate
+     ])

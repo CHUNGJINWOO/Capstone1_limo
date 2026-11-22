@@ -1,0 +1,17 @@
+{
+  "checks": [
+    {
+      "directory": "dashboard_lab",
+      "checked_files": 36,
+      "changed_files": []
+    },
+    {
+      "directory": "rmf_web_research",
+      "checked_files": 15,
+      "changed_files": []
+    }
+  ],
+  "protected_runtime_actions": "NONE",
+  "real_robot_actions": "NONE",
+  "scope": "Documentation and static contract examples only"
+}

@@ -1,0 +1,83 @@
+--- a/fleet_control/server/fleet_server/service.py
++++ b/fleet_control/server/fleet_server/service.py
+@@ -72,15 +72,26 @@
+                 or agent.get('simulated') is not False or agent.get('missions_enabled') is not False
+                 or not robot.get('online') or not robot.get('reconciled')
+                 or robot.get('reconciliation_required') or not 0 <= age <= 2):
++            self.manual_benches.pop(robot_id, None)
+             raise ApiError(409, 'manual_bench_unavailable', 'fresh reconciled real bench Agent required')
+         if any(r['status'] not in MISSION_TERMINAL for r in self.db.q(
+                 'SELECT status FROM missions WHERE robot_id=?', (robot_id,))):
++            self.manual_benches.pop(robot_id, None)
+             raise ApiError(409, 'robot_busy', 'finish existing missions before the bench test')
+-        return agent
++        if self.mapping_blocks_motion(robot_id):
++            self.manual_benches.pop(robot_id, None)
++            raise ApiError(409, 'mapping_active_or_unknown', 'mapping must be confirmed stopped')
++        # There is no trusted, atomic proof covering all external Nav2 actions.
++        # Deny all manual admission until such a producer is implemented.
++        self.manual_benches.pop(robot_id, None)
++        raise ApiError(409, 'manual_terminal_proof_unavailable', 'external goal terminal proof unavailable')
+ 
+     def manual_bench(self, robot_id, actor, body):
+         with self.lock:
+             lease = self.lease_view(robot_id)
++            existing = self.manual_benches.get(robot_id)
++            if not lease or (existing and existing['epoch'] != lease['epoch']):
++                self.manual_benches.pop(robot_id, None)
+             if (not lease or lease['owner'] != actor or type(body.get('epoch')) is not int
+                     or lease['epoch'] != body['epoch']):
+                 raise ApiError(409, 'lease_required', 'current owner and epoch required')
+@@ -121,9 +132,13 @@
+             current = self.manual_benches.get(robot_id)
+             lease = self.lease_view(robot_id)
+             if not lease or not current or current['epoch'] != lease['epoch'] or current['boot'] != boot_id:
++                self.manual_benches.pop(robot_id, None)
+                 return {'sample': None}
+             remaining = min(current['until'] - time.monotonic(), lease['expires_at'] - time.time())
+-            if remaining <= 0 or current['sample'] is None:
++            if remaining <= 0:
++                self.manual_benches.pop(robot_id, None)
++                return {'sample': None}
++            if current['sample'] is None:
+                 return {'sample': None}
+             return {'sample': dict(current['sample'], session_id=current['id'], seq=current['seq'],
+                                    ttl_s=remaining)}
+@@ -135,6 +150,8 @@
+             if boot and self.db.one('SELECT 1 FROM meta WHERE k=?', (f'retired:{robot_id}:{boot}',)):
+                 raise ApiError(409, 'agent_session_retired', 'a newer agent session superseded this boot')
+             old_boot = (r or {}).get('agent', {}).get('boot_id')
++            # Every accepted hello retires the previous manual session.
++            self.manual_benches.pop(robot_id, None)
+             if old_boot:
+                 self.invalidate_movement(robot_id, 'agent reconnected; prior movement authorization invalid')
+             if old_boot and boot != old_boot:
+@@ -506,6 +523,7 @@
+             now = time.time()
+             for r in self.robots.values():
+                 if r['online'] and now - (r['last_seen'] or 0) > self.cfg.offline_after_s:
++                    self.manual_benches.pop(r['robot_id'], None)
+                     self._set_online(r, False, f'no report for {self.cfg.offline_after_s:.0f} s')
+                     r['reconciled'] = False
+                     self.invalidate_movement(r['robot_id'], 'communication lost; prior movement authorization invalid')
+--- a/fleet_control/agent/limo_robot_agent/limo_robot_agent/motion_watchdog.py
++++ b/fleet_control/agent/limo_robot_agent/limo_robot_agent/motion_watchdog.py
+@@ -16,8 +16,7 @@
+   * exactly one publisher on the NavigateToPose status topic (one action server; a duplicate could hide goals),
+     seen for at least status_settle_s (so its transient-local status had time to arrive),
+   * the cancel-all answer has return_code ERROR_NONE and an empty goals_canceling list, at most idle_proof_max_age_s old,
+-  * no received status message shows a non-terminal goal. (The status topic is transient-local: a server that ever
+-    accepted a goal has a retained array; "never received" with a settled publisher means no goal was ever accepted.)
++  * a status array has been received and shows no non-terminal goal; missing is not idle proof.
+ 
+ Goal ownership while authorized: every non-terminal goal in the status array must be one the Agent declares in its
+ heartbeat ('goal_uuids'); an undeclared goal persisting for foreign_goal_grace_s trips FAILSAFE (explore_lite, RViz,
+@@ -224,7 +223,7 @@
+         return (self.idle_proof_t is not None and now - self.idle_proof_t <= self.proof_max_age
+                 and self.status_pubs == 1 and self.status_pub_since is not None
+                 and self.idle_proof_t - self.status_pub_since >= self.status_settle
+-                and self.nav_active in (None, 0))
++                and self.nav_active == 0)
+ 
+     def probe_cancel_all(self):
+         """Cancel every NavigateToPose goal. The answer is one input of the idle proof (see module docstring)."""

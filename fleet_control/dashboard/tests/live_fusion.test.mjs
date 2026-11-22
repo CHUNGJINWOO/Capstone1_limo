@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {liveRobots} from '../web/geometry.mjs';
+const robot=()=>({robot_id:'pcu',online:false,state:{pose:{x:99}}});
+const sample=()=>({profile:'live',mission:{robots:[robot()]},visualization:{kind:'ROS_LIVE',connected:true,robot_id:'pcu',receive_age_s:.2,robot_pose:{x:1,y:2,yaw_rad:.3},layers:{map:{status:'OK'}}}});
+test('fresh TF replaces only position while Agent stays OFFLINE',()=>{const d=sample(),r=liveRobots(d)[0];assert.equal(r.state.pose.x,1);assert.equal(r.online,false);assert.equal(d.mission.robots[0].state.pose.x,99);});
+test('ended bridge retains stale ROS pose instead of mixing a prior SLAM session Agent pose',()=>{const d=sample();d.visualization.connected=false;const r=liveRobots(d)[0];assert.equal(r.state.pose.x,1);assert.equal(r.state.pose.status,'STALE');});
+test('synthetic telemetry cannot replace a live robot pose',()=>{const d=sample();d.visualization.kind='SYNTHETIC_ROS_TEST';assert.equal(liveRobots(d)[0].state.pose.x,99);});
+test('a different robot cannot replace this robot pose',()=>{const d=sample();d.visualization.robot_id='other';assert.equal(liveRobots(d)[0].state.pose.x,99);});
+test('map with no matching TF hides old Agent pose rather than mixing coordinate sessions',()=>{const d=sample();d.visualization.robot_pose=null;assert.equal(liveRobots(d)[0].state.pose,null);});
+test('nonfinite TF is not drawn as a fresh pose',()=>{const d=sample();d.visualization.robot_pose.x=NaN;assert.equal(liveRobots(d)[0].state.pose,null);});

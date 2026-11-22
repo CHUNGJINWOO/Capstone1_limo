@@ -1,0 +1,8 @@
+# local-only runtime state and credentials (never commit)
+secrets/
+data/
+__pycache__/
+*.pyc
+
+# kept on disk, never tracked: real camera frame with a detected person label (privacy review 2026-11-22)
+dashboard/docs/screenshots/live-api.jpg

@@ -1,0 +1,25 @@
+# Phase 4 TEMPLATE (2026-11-21) - NOT installed anywhere by this repository. Real-robot install needs the owner's approval.
+# systemd starts ONLY the supervisor; the supervisor starts the ROS stack, Motion Watchdog and Robot Agent in order from its
+# LOCAL config (supervisor.json). Auto-start never grants motion: the motor lock, operating modes, the Arbiter, the Motion
+# Watchdog and the Safety Gate decide; mapping / navigation still need an operator through the web.
+#
+# Install (user unit, after review):  cp limo-supervisor.service ~/.config/systemd/user/ && systemctl --user daemon-reload
+#                                     systemctl --user enable --now limo-supervisor ; loginctl enable-linger $USER   (start at boot)
+[Unit]
+Description=LIMO fleet supervisor (ROS stack + Motion Watchdog + Robot Agent, web-managed)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# ROS environment is sourced by a wrapper so the unit carries no workspace path assumptions beyond the config location.
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && source "${TEAM_WS:-$HOME/capstone_ws}/install/setup.bash" && source "${OVERLAY_WS:-$HOME/capstone_experiment_ws}/install/setup.bash" && exec python3 -m limo_robot_agent.supervisor --config "$HOME/.config/limo_fleet/supervisor.json"'
+Restart=on-failure
+RestartSec=5
+# SIGINT first: the supervisor stops its services in reverse start order (grace per service), then exits.
+KillSignal=SIGINT
+TimeoutStopSec=60
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

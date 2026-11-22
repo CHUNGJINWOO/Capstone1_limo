@@ -1,0 +1,280 @@
+{
+  "schema_version": "dashboard-view/0.1-design",
+  "implementation_status": "CONTRACT_EXAMPLE_ONLY",
+  "source_kind": "SYNTHETIC_FIXTURE",
+  "snapshot_id": "example-snapshot-1",
+  "scope": {
+    "environment_id": "office-fixture",
+    "run_id": "design-run-a",
+    "source_mode": "SIMULATION",
+    "clock_domain": "ROS_SIM",
+    "clock_epoch": 1
+  },
+  "producer": {
+    "producer_id": "example-normalizer",
+    "boot_id": "example-boot-a",
+    "sequence": "9007199254740993"
+  },
+  "received_at_unix_ms": 1794572400000,
+  "robots": [
+    {
+      "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+      "fleet_name": "fleet-a",
+      "robot_name": "robot-1",
+      "level_name": "L1",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "battery": {
+        "value": 0.72,
+        "unit": "fraction",
+        "source": "SYNTHETIC_FIXTURE"
+      }
+    },
+    {
+      "robot_key": "[\"office-fixture\",\"fleet-b\",\"robot-1\"]",
+      "fleet_name": "fleet-b",
+      "robot_name": "robot-1",
+      "level_name": "L2",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "battery": {
+        "value": null,
+        "unit": "fraction",
+        "source": "UNAVAILABLE"
+      }
+    }
+  ],
+  "map_contexts": [
+    {
+      "map_context_key": "building-L1",
+      "map_kind": "BUILDING_LEVEL",
+      "building_id": "building-a",
+      "level_name": "L1",
+      "revision": "floorplan-example",
+      "map_session": "building-static-a",
+      "source_frame_id": null,
+      "render_frame": "building-a/L1"
+    },
+    {
+      "map_context_key": "slam-session-a",
+      "map_kind": "SLAM_GRID",
+      "building_id": null,
+      "level_name": null,
+      "revision": "slam-example",
+      "map_session": "slam-a",
+      "source_frame_id": "map",
+      "render_frame": "slam-a/map"
+    }
+  ],
+  "registrations": [
+    {
+      "from": "slam-session-a",
+      "to": "building-L1",
+      "status": "UNAVAILABLE",
+      "transform": null,
+      "evidence": null
+    }
+  ],
+  "resources": [
+    {
+      "resource_id": "camera-a",
+      "kind": "RGB",
+      "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+      "map_context_key": null,
+      "stream_id": "rgb-a",
+      "producer_id": "example-camera-a",
+      "boot_id": "camera-boot-a",
+      "source_frame_id": "camera_color_optical_frame",
+      "registration_verified": false
+    },
+    {
+      "resource_id": "camera-b",
+      "kind": "RGB",
+      "robot_key": "[\"office-fixture\",\"fleet-b\",\"robot-1\"]",
+      "map_context_key": null,
+      "stream_id": "rgb-b",
+      "producer_id": "example-camera-b",
+      "boot_id": "camera-boot-b",
+      "source_frame_id": "camera_color_optical_frame",
+      "registration_verified": false
+    },
+    {
+      "resource_id": "costmap-a",
+      "kind": "LOCAL_COSTMAP",
+      "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+      "map_context_key": "slam-session-a",
+      "source_frame_id": "odom",
+      "transform_status": "UNAVAILABLE"
+    }
+  ],
+  "selection": {
+    "selection_revision": 17,
+    "scope_ref": "design-run-a/epoch-1",
+    "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+    "map_context_key": "slam-session-a",
+    "mission_key": "rmf-run-a/task-1",
+    "origin": "ROBOT_CARD",
+    "focus_requested": true
+  },
+  "missions": [
+    {
+      "mission_key": "rmf-run-a/task-1",
+      "origin": "RMF",
+      "source_instance": "example-rmf",
+      "original_task_id": "task-1",
+      "scope": {
+        "environment_id": "office-fixture",
+        "run_id": "design-run-a",
+        "source_mode": "SIMULATION",
+        "clock_domain": "ROS_SIM",
+        "clock_epoch": 1
+      },
+      "raw_status": "underway",
+      "assignee": {
+        "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+        "evidence": "EXPLICIT_SYNTHETIC_FIXTURE"
+      },
+      "history_complete": false,
+      "truncated_reason": "EXAMPLE_IS_NOT_FULL_HISTORY",
+      "revision": "2",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "progress": {
+        "value": null,
+        "kind": "UNAVAILABLE",
+        "method": null,
+        "source_ref": null,
+        "status": "UNAVAILABLE"
+      },
+      "eta": {
+        "remaining_ms": null,
+        "finish_stamp_ns": null,
+        "clock_domain": "ROS_SIM",
+        "clock_epoch": 1,
+        "kind": "UNAVAILABLE",
+        "status": "UNAVAILABLE"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "entry_key": "example-rmf/task-1/phase-1/event-1/log-1",
+      "mission_key": "rmf-run-a/task-1",
+      "phase_id": "1",
+      "event_id": "1",
+      "kind": "LOG",
+      "raw_status": "underway",
+      "message": "합성 계약 예시 — 실제 실행 기록 아님",
+      "source": "SYNTHETIC_FIXTURE",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "revision": "1"
+    }
+  ],
+  "inbox": [
+    {
+      "alert_key": "example-alert-a",
+      "source_instance": "example-rmf",
+      "scope": {
+        "environment_id": "office-fixture",
+        "run_id": "design-run-a",
+        "source_mode": "SIMULATION",
+        "clock_domain": "ROS_SIM",
+        "clock_epoch": 1
+      },
+      "severity": "WARNING",
+      "category": "DATA_UNAVAILABLE",
+      "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+      "mission_key": "rmf-run-a/task-1",
+      "message": "합성 경고: 좌표 등록 없음",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "raw_status": "active",
+      "revision": "1",
+      "lifecycle": "ACTIVE",
+      "local_read": false
+    }
+  ],
+  "paths": [
+    {
+      "layer_kind": "RMF_SCHEDULE_TRAJECTORY",
+      "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+      "frame_context": "slam-session-a",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "source_ref": "SYNTHETIC_CONTRACT_EXAMPLE",
+      "renderable": false,
+      "unavailable_reason": "NO_PATH_PAYLOAD_IN_DESIGN_EXAMPLE"
+    },
+    {
+      "layer_kind": "RMF_REPORTED_ROUTE",
+      "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+      "frame_context": "slam-session-a",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "source_ref": "SYNTHETIC_CONTRACT_EXAMPLE",
+      "renderable": false,
+      "unavailable_reason": "NO_PATH_PAYLOAD_IN_DESIGN_EXAMPLE"
+    },
+    {
+      "layer_kind": "NAV2_GLOBAL_PLAN",
+      "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+      "frame_context": "slam-session-a",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "source_ref": "SYNTHETIC_CONTRACT_EXAMPLE",
+      "renderable": false,
+      "unavailable_reason": "NO_PATH_PAYLOAD_IN_DESIGN_EXAMPLE"
+    },
+    {
+      "layer_kind": "NAV2_LOCAL_PLAN",
+      "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+      "frame_context": "slam-session-a",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "source_ref": "SYNTHETIC_CONTRACT_EXAMPLE",
+      "renderable": false,
+      "unavailable_reason": "NO_PATH_PAYLOAD_IN_DESIGN_EXAMPLE"
+    },
+    {
+      "layer_kind": "OBSERVED_TRAIL",
+      "robot_key": "[\"office-fixture\",\"fleet-a\",\"robot-1\"]",
+      "frame_context": "slam-session-a",
+      "time": {
+        "source_stamp_ns": "1234567890123456789",
+        "clock_status": "VERIFIED_SIM_CLOCK",
+        "receive_age_ms": 25
+      },
+      "source_ref": "SYNTHETIC_CONTRACT_EXAMPLE",
+      "renderable": false,
+      "unavailable_reason": "NO_PATH_PAYLOAD_IN_DESIGN_EXAMPLE"
+    }
+  ]
+}

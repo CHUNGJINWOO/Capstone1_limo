@@ -1,0 +1,21 @@
+{
+  "_comment": "EXAMPLE ONLY (2026-11-21), NOT VERIFIED ON THE LIMO. Commands copied from fleet_control/scripts/limo_run.sh (motor lock = launch default, allow_motor_drive stays false). Copy to ~/.config/limo_fleet/supervisor.json on the robot after owner review; replace <SERVER> with the central Fleet Server URL. The web can only start/stop/restart/retry these named services; it can never change a command.",
+  "robot_id": "pcu",
+  "server_url": "http://<SERVER>:8080",
+  "token_file": "~/.config/limo_fleet/agent-pcu.token",
+  "report_period_s": 1.0,
+  "services": [
+    {"name": "stack", "cmd": "export ROS_DOMAIN_ID=77 ROS_LOCALHOST_ONLY=1; exec ros2 launch limo_capstone limo_integrated_auto_mapping_real.launch.py scan_normalizer:=true",
+     "ready": {"after_s": 20, "topics": ["/scan", "/stall_detector/status_json"]}, "restart": {"max": 2, "window_s": 300, "backoff_s": 10},
+     "actions": ["start", "stop", "restart", "retry"]},
+    {"name": "watchdog", "after": ["stack"], "restart_with": ["stack"], "cmd": "export ROS_DOMAIN_ID=77 ROS_LOCALHOST_ONLY=1; exec python3 -m limo_robot_agent.motion_watchdog",
+     "ready": {"after_s": 2, "topics": ["/fleet/motion_watchdog/status"]}, "actions": ["start", "stop", "restart", "retry"]},
+    {"name": "agent", "after": ["watchdog"], "restart_with": ["stack"], "cmd": "export ROS_DOMAIN_ID=77 ROS_LOCALHOST_ONLY=1; exec ros2 run limo_robot_agent robot_agent --ros-args -p server_url:=http://<SERVER>:8080 -p token_file:=$HOME/.config/limo_fleet/agent-pcu.token -p robot_id:=pcu -p mode:=real -p simulated:=false -p allow_missions:=false",
+     "ready": {"after_s": 5}, "actions": ["start", "stop", "restart", "retry"]}
+  ],
+  "ros_probe": {"domain_id": 77, "localhost_only": true, "topics": {
+    "/scan": {"type": "sensor_msgs/msg/LaserScan", "max_age_s": 1.0},
+    "/odom": {"type": "nav_msgs/msg/Odometry", "max_age_s": 1.0},
+    "/stall_detector/status_json": {"type": "std_msgs/msg/String", "max_age_s": 1.0, "json_keys": ["state"], "sensor_qos": false},
+    "/fleet/motion_watchdog/status": {"type": "std_msgs/msg/String", "max_age_s": 1.5, "json_keys": ["state"], "sensor_qos": false}}}
+}

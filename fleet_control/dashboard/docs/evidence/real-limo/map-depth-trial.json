@@ -1,0 +1,197 @@
+{
+  "duration_s": 16.2,
+  "remote_exit": 124,
+  "packets": 15,
+  "payload_kB_s": 38.34,
+  "failures": [],
+  "observations": [
+    {
+      "elapsed_s": 1.455,
+      "bytes": 750,
+      "local_sink_ack_ms": 3.378,
+      "sequence": 1
+    },
+    {
+      "elapsed_s": 2.391,
+      "bytes": 35519,
+      "local_sink_ack_ms": 7.122,
+      "sequence": 2
+    },
+    {
+      "elapsed_s": 3.414,
+      "bytes": 36626,
+      "local_sink_ack_ms": 6.716,
+      "sequence": 3
+    },
+    {
+      "elapsed_s": 4.439,
+      "bytes": 44990,
+      "local_sink_ack_ms": 5.76,
+      "sequence": 4
+    },
+    {
+      "elapsed_s": 5.405,
+      "bytes": 45300,
+      "local_sink_ack_ms": 7.159,
+      "sequence": 5
+    },
+    {
+      "elapsed_s": 6.406,
+      "bytes": 45615,
+      "local_sink_ack_ms": 4.023,
+      "sequence": 6
+    },
+    {
+      "elapsed_s": 7.516,
+      "bytes": 46368,
+      "local_sink_ack_ms": 5.166,
+      "sequence": 7
+    },
+    {
+      "elapsed_s": 8.436,
+      "bytes": 45473,
+      "local_sink_ack_ms": 5.435,
+      "sequence": 8
+    },
+    {
+      "elapsed_s": 9.468,
+      "bytes": 45098,
+      "local_sink_ack_ms": 5.265,
+      "sequence": 9
+    },
+    {
+      "elapsed_s": 10.429,
+      "bytes": 45698,
+      "local_sink_ack_ms": 4.616,
+      "sequence": 10
+    },
+    {
+      "elapsed_s": 11.466,
+      "bytes": 45535,
+      "local_sink_ack_ms": 5.727,
+      "sequence": 11
+    },
+    {
+      "elapsed_s": 12.423,
+      "bytes": 47094,
+      "local_sink_ack_ms": 2.917,
+      "sequence": 12
+    },
+    {
+      "elapsed_s": 13.447,
+      "bytes": 46090,
+      "local_sink_ack_ms": 2.796,
+      "sequence": 13
+    },
+    {
+      "elapsed_s": 14.477,
+      "bytes": 45547,
+      "local_sink_ack_ms": 5.932,
+      "sequence": 14
+    },
+    {
+      "elapsed_s": 15.512,
+      "bytes": 45385,
+      "local_sink_ack_ms": 5.554,
+      "sequence": 15
+    }
+  ],
+  "last_source": "ROS_LIVE",
+  "last_metrics": {
+    "uploaded": 14,
+    "upload_errors": 0,
+    "bytes": 575703,
+    "conversions": 15,
+    "last_conversion_ms": 3.43,
+    "old_depth_dropped": 0,
+    "depth_overwritten": 394,
+    "callbacks": {
+      "depth": 408,
+      "camera_info": 408,
+      "local_costmap": 21,
+      "global_costmap": 11,
+      "map": 13
+    },
+    "errors": {}
+  },
+  "unavailable": {
+    "selected_frontier": "No actual selected-goal topic configured",
+    "local_plan": "no active publisher",
+    "frontiers": "no active publisher",
+    "explore": "no active publisher"
+  },
+  "grid_shapes": {
+    "local_costmap": {
+      "width": 80,
+      "height": 80,
+      "resolution": 0.05000000074505806,
+      "origin": {
+        "x": -2.350000000372529,
+        "y": -1.850000000372529,
+        "yaw": 0.0
+      },
+      "frame_id": "odom",
+      "map_from_frame": {
+        "x": 0.34083845197664897,
+        "y": 0.08093844157911473,
+        "yaw": 0.0,
+        "tf_stamp_ns": 1794547796443051544
+      },
+      "stamp_ns": 1794547796443051544
+    },
+    "global_costmap": {
+      "width": 197,
+      "height": 233,
+      "resolution": 0.05000000074505806,
+      "origin": {
+        "x": -1.1755462545881925,
+        "y": -1.858328643183043,
+        "yaw": 0.0
+      },
+      "frame_id": "map",
+      "map_from_frame": {
+        "x": 0.0,
+        "y": 0.0,
+        "yaw": 0.0
+      },
+      "stamp_ns": 1794547796160675302
+    },
+    "map": {
+      "width": 197,
+      "height": 233,
+      "resolution": 0.05000000074505806,
+      "origin": {
+        "x": -1.1755462545881925,
+        "y": -1.858328643183043,
+        "yaw": 0.0
+      },
+      "frame_id": "map",
+      "map_from_frame": {
+        "x": 0.0,
+        "y": 0.0,
+        "yaw": 0.0
+      },
+      "stamp_ns": 1794547796165136000
+    }
+  },
+  "depth": {
+    "width": 320,
+    "height": 200,
+    "source_width": 640,
+    "source_height": 400,
+    "sample_stride": 2,
+    "encoding": "16UC1",
+    "scale_m": 0.001,
+    "unit": "m",
+    "invalid": "NaN/zero/nonfinite",
+    "valid_min_m": 0.4300000071525574,
+    "valid_max_m": 4.223999977111816,
+    "valid_fraction": 0.362921875,
+    "rgb_registered": false,
+    "frame_id": "camera_color_optical_frame",
+    "stamp_ns": 1794547796507892174,
+    "source_age_s": 0.019170823,
+    "topic": "/camera/depth/image_raw",
+    "scale_source": "configured ROS depth convention; device calibration unverified"
+  }
+}

@@ -1,0 +1,369 @@
+{
+  "results": [
+    [
+      "transform round trip (RMF->Nav2->RMF) < 1e-9 m",
+      true
+    ],
+    [
+      "transform is not the identity (a real frame offset is exercised)",
+      true
+    ],
+    [
+      "every RMF waypoint maps to a FREE cell of the Nav2 map",
+      true
+    ],
+    [
+      "every lane is a straight line with >=0.2 m clearance from occupied/unknown cells of the Nav2 map",
+      true
+    ],
+    [
+      "Mission Manager (isolated Gazebo test port) up",
+      true
+    ],
+    [
+      "RMF traffic schedule and task dispatcher nodes are running",
+      true
+    ],
+    [
+      "simulated robot pcu online at the Mission Manager",
+      true
+    ],
+    [
+      "saved-map AMCL only, no SLAM or autonomous explore",
+      true
+    ],
+    [
+      "only the existing Safety Gate publishes final velocity",
+      true
+    ],
+    [
+      "agent labels the motor path SIM_GATED",
+      true
+    ],
+    [
+      "REST mission drives real Gazebo Nav2 to SUCCEEDED",
+      true
+    ],
+    [
+      "native Gazebo GT confirms REST displacement >0.4m",
+      true
+    ],
+    [
+      "REST cancel test has an executing Nav2 goal",
+      true
+    ],
+    [
+      "REST cancel confirms terminal CANCELED",
+      true
+    ],
+    [
+      "fleet limo_fleet / robot pcu registered in RMF and reporting",
+      true
+    ],
+    [
+      "RMF position equals a synchronized transformed Nav2 pose (<0.1 m; wait for first real report)",
+      true
+    ],
+    [
+      "robot id is pcu and the map name is the RMF level",
+      true
+    ],
+    [
+      "RMF accepted a patrol task to wp_b",
+      true
+    ],
+    [
+      "RMF bidding finished: task assigned to fleet limo_fleet / robot pcu",
+      true
+    ],
+    [
+      "RMF task reports status completed (RMF task_state_update)",
+      true
+    ],
+    [
+      "robot physically at wp_b in the Nav2 map frame",
+      true
+    ],
+    [
+      "RMF task caused native Gazebo GT displacement >0.5m",
+      true
+    ],
+    [
+      "missions were created through the Mission Manager by the RMF principal",
+      true
+    ],
+    [
+      "idempotency keys are unique (no duplicate goals)",
+      true
+    ],
+    [
+      "never more than one non-terminal mission at a time",
+      true
+    ],
+    [
+      "a long leg towards wp_e is executing (>1.2 m to go) before the cancel",
+      true
+    ],
+    [
+      "RMF accepted the cancel request",
+      true
+    ],
+    [
+      "that Mission Manager mission ended CANCELED (confirmed by the robot side)",
+      true
+    ],
+    [
+      "cancel went through a cancel_mission command that the robot side completed",
+      true
+    ],
+    [
+      "no later RMF mission was submitted before the cancel was confirmed",
+      true
+    ],
+    [
+      "the canceled goal (wp_e) was not re-sent after the cancel",
+      true
+    ],
+    [
+      "robot is stationary once RMF has no further path (and did not reach wp_e)",
+      true
+    ],
+    [
+      "RMF task status is canceled (RMF task_state_update)",
+      true
+    ],
+    [
+      "adapter holds the control lease of pcu",
+      true
+    ],
+    [
+      "web mission while RMF holds the lease: HTTP 409 ownership_conflict (not queued)",
+      true
+    ],
+    [
+      "the rejected request created no mission",
+      true
+    ],
+    [
+      "web mission while an RMF mission is EXECUTING: HTTP 409 (never queued behind it)",
+      true
+    ],
+    [
+      "admin force-release lets the web operator take control",
+      true
+    ],
+    [
+      "web mission executed",
+      true
+    ],
+    [
+      "no RMF mission started while the web mission was active (missions never overlapped)",
+      true
+    ],
+    [
+      "RMF task offered during the web mission was explicitly REFUSED (FAILED_TO_ASSIGN)",
+      true
+    ],
+    [
+      "no mission to the refused task target and no submission before web completion (old positioning paths remain distinguishable)",
+      true
+    ],
+    [
+      "adapter re-acquires the lease after the web mission ended",
+      true
+    ],
+    [
+      "then a new RMF task is accepted and completes",
+      true
+    ],
+    [
+      "adapter reports the robot OFFLINE to RMF when the Mission Manager is unreachable",
+      true
+    ],
+    [
+      "adapter created no new mission while disconnected (no guessing)",
+      true
+    ],
+    [
+      "adapter noticed the reconnect and cleared the offline status",
+      true
+    ],
+    [
+      "RMF task completed after reconnect (state re-synchronized)",
+      true
+    ],
+    [
+      "robot is at wp_e",
+      true
+    ],
+    [
+      "no duplicated goal: every idempotency key exists exactly once",
+      true
+    ],
+    [
+      "after the outage still never >1 non-terminal mission",
+      true
+    ],
+    [
+      "orphan mission of the dead adapter is canceled/terminal before anything new",
+      true
+    ],
+    [
+      "adapter re-registers the robot in RMF",
+      true
+    ],
+    [
+      "Mission Manager marks the unverifiable mission RECONCILIATION_REQUIRED (no resend)",
+      true
+    ],
+    [
+      "no new RMF mission is created while reconciliation is required",
+      true
+    ],
+    [
+      "RMF task was not reported completed",
+      true
+    ],
+    [
+      "there is a RECONCILIATION_REQUIRED mission to recover",
+      true
+    ],
+    [
+      "operator role cannot recover (403)",
+      true
+    ],
+    [
+      "while the Gazebo Nav2 still has the (orphaned) goal active, recovery is REFUSED (409 goal_still_active) and no new mission is allowed",
+      true
+    ],
+    [
+      "no new RMF mission meanwhile",
+      true
+    ],
+    [
+      "the orphaned Gazebo goal ends by itself (nobody canceled or completed it on its behalf)",
+      true
+    ],
+    [
+      "admin recovery accepted once Nav2 reports no active goal",
+      true
+    ],
+    [
+      "recovered mission is FAILED / RECOVERED_UNVERIFIED_OUTCOME (not SUCCEEDED, not CANCELED)",
+      true
+    ],
+    [
+      "after the recovery a new RMF task is accepted, moves the robot and RMF reports completed",
+      true
+    ],
+    [
+      "Gazebo Nav2 goal count == acknowledged navigate commands",
+      true
+    ],
+    [
+      "no command was acknowledged twice (command ids unique)",
+      true
+    ],
+    [
+      "all native goal UUIDs have an Agent accepted-goal audit",
+      true
+    ],
+    [
+      "no two goals reached Nav2 within 0.3 s with the same target (no double send)",
+      true
+    ],
+    [
+      "no test process is left after cleanup",
+      true
+    ]
+  ],
+  "required": {
+    "1": true,
+    "2": true,
+    "3": true,
+    "4": true,
+    "5": true,
+    "6": true,
+    "7": true,
+    "8": true,
+    "9": true,
+    "10": true,
+    "11": true,
+    "12": true,
+    "13": true,
+    "14": true,
+    "15": true
+  },
+  "sections_s": {
+    "0. static checks of the RMF map <-> Nav2 map connection": 0.057,
+    "1. RMF alone, then the isolated Mission Manager + simulated robot + adapter": 69.102,
+    "2. RMF task -> Mission Manager mission -> Gazebo Nav2": 30.746,
+    "3. cancel from RMF": 17.454,
+    "4. ownership: server-side control lease (RMF holds it) vs web UI": 48.902,
+    "5. fault injection: Mission Manager (server) outage during an RMF task": 36.229,
+    "6. adapter restart in the middle of a mission": 21.068,
+    "7. agent restart in the middle of a mission -> RECONCILIATION_REQUIRED": 24.33,
+    "7b. operator recovery of RECONCILIATION_REQUIRED (evidence-gated)": 95.523,
+    "7c. goal accounting: every goal the Gazebo Nav2 received corresponds to exactly one acknowledged Mission Manager command": 2.013,
+    "15. cleanup": 4.138
+  },
+  "gazebo_gt_start": [
+    4.400000000265978,
+    -2.999999999945286,
+    1.570796326795
+  ],
+  "gazebo_gt_end": [
+    4.296967170608011,
+    -3.0482929451359424,
+    0.3289444219734074
+  ],
+  "date": "2026-11-12",
+  "scope": "Gazebo Fortress only; compact saved-map AMCL graph; no physical robot",
+  "passed": 69,
+  "total": 69,
+  "duration_s": 349.562,
+  "native_nav2_goals": 26,
+  "acknowledged_navigate_commands": 26,
+  "supplemental_rest_status": {
+    "robot_http": 200,
+    "online": true,
+    "pose": {
+      "status": "OK",
+      "frame_id": "map",
+      "x": -2.5580118983897333,
+      "y": -4.7234494195485235,
+      "yaw_rad": 2.3878863026750192,
+      "source": "tf map->base_footprint",
+      "age_s": 0.01
+    },
+    "nav2": "READY",
+    "map_json_http": 200,
+    "map_png_http": 200,
+    "map_png_bytes": 923,
+    "png_signature": true,
+    "map_meta": {
+      "version": 1,
+      "meta": {
+        "version": 1,
+        "width": 179,
+        "height": 238,
+        "resolution": 0.05000000074505806,
+        "origin_x": -3.86,
+        "origin_y": -7.06,
+        "origin_yaw": 0.0,
+        "frame_id": "map",
+        "cell_encoding": "png: free=255 occupied=0 unknown=128, row0=top(+y)",
+        "known_cells": 42602,
+        "free_cells": 40900,
+        "occupied_cells": 1702,
+        "unknown_cells": 0
+      }
+    }
+  },
+  "input_sha256": {
+    "fleet_control/maps/limo_sim_map.yaml": "c0a42d2e7fcf56747f678c3ca553541ce29afba68e6f991605eccd3368daa852",
+    "fleet_control/maps/limo_sim_map.pgm": "f84228c34adc280d46db93e2ef3da3768fb96ae29d9ab8fe06fb2999014eec68",
+    "fleet_control/rmf_adapter/config/fleet_gazebo.json": "7a22a1e2b2f90c6b4edf5030fb5abb135b228db07ab4850d942bbbe59943432a",
+    "fleet_control/rmf_adapter/config/fleet.json": "e6e7d3f4efbd5c7a8f37b49b87b33a3e5889492c6ab5fa7ac79ac43fe2219735"
+  }
+}
