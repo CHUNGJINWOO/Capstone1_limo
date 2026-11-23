@@ -5,6 +5,6 @@ setup(
     data_files=[('share/ament_index/resource_index/packages', ['resource/' + package_name]),
                 ('share/' + package_name, ['package.xml'])],
     install_requires=['setuptools'], zip_safe=True, maintainer='capstone', maintainer_email='noreply@example.com',
-    description='Fixed-beam-count LaserScan republisher for SLAM input', license='Apache-2.0',
+    description='Fixed-beam-count LaserScan republisher for SLAM input', license='TODO: License declaration',
     entry_points={'console_scripts': ['scan_normalizer_node = limo_scan_normalizer.scan_normalizer_node:main']},
 )

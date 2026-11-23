@@ -25,6 +25,7 @@ Key Pre-Deployment Safety Rules:
 """
 import json
 import math
+import time
 import struct
 from collections import deque
 import numpy as np
@@ -64,6 +65,14 @@ class StallDetectorNode(Node):
         self.declare_parameter('enable_auto_reverse', False)  # AUDIT RULE: False by default!
         self.declare_parameter('enable_auto_rotate_recovery', False)  # AUDIT RULE: False by default!
         self.declare_parameter('require_operator_unlatch', False)
+        # /cmd_vel_raw input-source validation (candidate r11 + r13 writer cross-check; empty list = off = unchanged behaviour)
+        self.declare_parameter('input_exclusive_publishers', [''])     # node names allowed to publish /cmd_vel_raw, e.g. ['fleet_motion_watchdog']
+        self.declare_parameter('input_settle_sec', 0.5)
+        self.declare_parameter('input_writer_status_topic', '')         # e.g. /fleet/motion_watchdog/status: JSON boot_id + output_gid of the writer itself
+        self.declare_parameter('input_max_abs_linear_x', 0.0)           # 0 = no bound
+        self.declare_parameter('input_max_abs_angular_z', 0.0)
+        self.declare_parameter('input_invalid_hold_sec', 0.5)
+        self.declare_parameter('exclusive_cmd_vel_topic', '')           # e.g. '/cmd_vel' (robot) or '/cmd_vel_locked' (isolated): any other publisher there is a fault
         self.declare_parameter('cmd_vel_threshold', 0.075)
         self.declare_parameter('wheel_vel_threshold', 0.060)
         self.declare_parameter('lidar_vel_stall_threshold', 0.025)
@@ -121,6 +130,31 @@ class StallDetectorNode(Node):
         self.stall_direction = 1.0  # +1 forward stall, -1 reverse stall
 
         self.latest_cmd = Twist()
+        self.in_allowed = [x.strip() for x in self.get_parameter('input_exclusive_publishers').value if x and x.strip()]
+        self.in_settle = float(self.get_parameter('input_settle_sec').value)
+        self.in_max_vx = float(self.get_parameter('input_max_abs_linear_x').value); self.in_max_wz = float(self.get_parameter('input_max_abs_angular_z').value)
+        self.in_hold = float(self.get_parameter('input_invalid_hold_sec').value)
+        for k, v in (('input_settle_sec', self.in_settle), ('input_max_abs_linear_x', self.in_max_vx), ('input_max_abs_angular_z', self.in_max_wz), ('input_invalid_hold_sec', self.in_hold)):
+            if not math.isfinite(v) or v < 0: raise ValueError(f'{k} must be finite and >= 0')
+        self.in_bound = None; self.in_cand = None; self.in_sticky = None; self.in_ok_since = None; self.in_reason = 'NO_PUBLISHER'
+        self.in_invalid_t = None; self.in_invalid_why = None; self.in_n = dict(accepted=0, dropped_graph=0, dropped_settle=0, invalid=0, binds=0)
+        self.in_pubs = []; self.in_last_drop = None; self.in_drop_motion_t = None
+        # Driver-side exclusivity (detection only): the driver subscribes to every writer of the output topic, so zero output of this Gate
+        # cannot cancel a foreign writer's commands. The Gate can only report it (status + fault) so that the Agent / Watchdog / Arbiter
+        # withdraw motion; the physical guarantee needs the motor power path (see docs/FIELD_READINESS).
+        self.excl_topic = str(self.get_parameter('exclusive_cmd_vel_topic').value).strip(); self.excl_faults = []
+        # Writer identity cross-check (r13): Humble rclpy has no per-message sender GID, so a node name and a publisher count are
+        # only graph facts that a second process can imitate (a node may use any name, and a dead writer's endpoint lingers ~20 s).
+        # With input_writer_status_topic the Gate binds ONLY the GID the writer itself reports (output_gid) and treats a changed
+        # boot_id or reported GID as a new writer (sticky, operator reset). It is still unauthenticated (see input_status).
+        self.wr_topic = str(self.get_parameter('input_writer_status_topic').value).strip()
+        self.wr = None; self.in_bound_boot = None
+        if self.wr_topic and self.in_allowed:
+            def _wr(m):
+                try: d = json.loads(m.data)
+                except ValueError: return
+                if isinstance(d, dict): self.wr = (d.get('boot_id'), d.get('output_gid'), time.monotonic())
+            self.create_subscription(String, self.wr_topic, _wr, 10)
         self.last_cmd_sim_t = None
         self.wheel_vx = 0.0
         self.wheel_wz = 0.0
@@ -176,6 +210,10 @@ class StallDetectorNode(Node):
 
         # 50 Hz Control & Evaluation Loop
         self.timer = self.create_timer(0.02, self.control_loop)
+        if self.in_allowed:
+            self.create_timer(0.1, self.input_graph)
+        if self.excl_topic:
+            self.create_timer(0.2, self.excl_poll)
 
         self.get_logger().info(
             f"StallDetectorNode initialized: enabled={self.enabled}, "
@@ -183,7 +221,116 @@ class StallDetectorNode(Node):
             f"require_operator_unlatch={self.require_operator_unlatch}"
         )
 
+    # ---------------- r11 input-source validation
+    def input_graph(self):
+        """Evaluate the /cmd_vel_raw publisher set now. Returns True when a received message may be used."""
+        now = time.monotonic()
+        try:
+            pubs = self.get_publishers_info_by_topic('/cmd_vel_raw')
+            ids = []
+            for x in pubs:
+                try: g = bytes(x.endpoint_gid).hex()
+                except Exception: g = None
+                ids.append((g if g and any(bytes.fromhex(g)) else None, x.node_name, x.node_namespace))
+        except Exception as exc:
+            ids, why = None, f'LOOKUP_ERROR:{type(exc).__name__}'
+        self.in_pubs = [] if ids is None else [f'{ns.rstrip("/")}/{n}:{(g or "?")[:12]}' for g, n, ns in ids]
+        allowed = lambda n, ns: n in self.in_allowed or f'{ns.rstrip("/")}/{n}' in self.in_allowed
+        UNRES = ('', '_NODE_NAME_UNKNOWN_')
+        sticky = None
+        if ids is None: pass
+        elif any(g is None for g, _, _ in ids): why = 'GID_UNKNOWN'
+        elif len(ids) > 1: why = sticky = 'NOT_EXCLUSIVE'
+        elif not ids: why = 'PUBLISHER_LOST' if self.in_bound else 'NO_PUBLISHER'
+        else:
+            g, n, ns = ids[0]
+            if self.in_bound is not None and g != self.in_bound: why = sticky = 'PUBLISHER_CHANGED'
+            elif self.in_bound is not None: why = None                                 # the bound writer itself (name resolution not needed)
+            elif n in UNRES: why = 'NODE_UNRESOLVED'
+            elif not allowed(n, ns): why = sticky = 'UNEXPECTED_PUBLISHER'
+            else:
+                if self.in_cand is None or self.in_cand[0] != g: self.in_cand = (g, now)
+                wr_ok = not self.wr_topic or (self.wr is not None and self.wr[1] == g and now - self.wr[2] < 1.0)
+                if not wr_ok: why = 'SETTLING'                                          # the writer has not confirmed this GID yet
+                elif now - self.in_cand[1] >= self.in_settle:
+                    self.in_bound_boot = self.wr[0] if self.wr_topic else None
+                    self.in_bound = g; self.in_n['binds'] += 1; self.in_ok_since = self.in_cand[1]; why = None
+                    self.get_logger().info(f'[INPUT] /cmd_vel_raw bound to {ns.rstrip("/")}/{n} gid {g[:12]}..')
+                else: why = 'SETTLING'
+        if self.wr_topic and self.in_bound is not None and self.wr is not None and not sticky:
+            if self.wr[0] != self.in_bound_boot: why = sticky = 'WRITER_RESTARTED'
+            elif self.wr[1] is not None and self.wr[1] != self.in_bound: why = sticky = 'PUBLISHER_CHANGED'
+        if sticky and self.in_sticky is None:
+            self.in_sticky = sticky; self.get_logger().error(f'[INPUT] /cmd_vel_raw {sticky}: {self.in_pubs} -> zero output until operator reset')
+        if why is not None or self.in_sticky:
+            self.in_ok_since = None
+        elif self.in_ok_since is None:
+            self.in_ok_since = now                      # graph OK again after a gap: wait input_settle_sec before using messages
+        self.in_reason = self.in_sticky or why
+        return self.in_reason is None and now - self.in_ok_since >= self.in_settle
+
+    def excl_poll(self):
+        """Foreign writer on the Gate's output topic, a second endpoint under the Gate's own name (impostor or a killed Gate's lingering
+        endpoint), or an unreadable graph => fault (fail closed)."""
+        f = []
+        try:
+            own = lambda x: x.node_name == self.get_name() and x.node_namespace == self.get_namespace()
+            pubs = self.get_publishers_info_by_topic(self.excl_topic)
+            foreign = sorted({f'{x.node_namespace.rstrip("/")}/{x.node_name}' for x in pubs if not own(x)})
+            if foreign: f.append('cmd_vel:FOREIGN_PUBLISHER:' + ','.join(foreign)[:120])
+            if sum(1 for x in pubs if own(x)) > 1: f.append('cmd_vel:DUPLICATE_GATE_ENDPOINT')
+        except Exception as exc:
+            f.append(f'cmd_vel:LOOKUP_ERROR:{type(exc).__name__}')
+        if f and f != self.excl_faults:
+            self.get_logger().error(f'[OUTPUT] {self.excl_topic}: {f} -> Gate fault, zero output')
+        self.excl_faults = f
+
+    def input_faults(self, t_now):
+        if not self.in_allowed: return list(self.excl_faults)
+        f = list(self.excl_faults)
+        r = self.in_sticky or self.in_reason
+        if r not in (None, 'NO_PUBLISHER', 'SETTLING', 'NODE_UNRESOLVED'): f.append(f'cmd_input:{r}')
+        if self.in_invalid_t is not None and time.monotonic() - self.in_invalid_t < self.in_hold: f.append(f'cmd_input:INVALID_TWIST:{self.in_invalid_why}')
+        return f
+
+    def input_on_reset(self):
+        if self.in_sticky or self.in_bound:
+            self.get_logger().info(f'[INPUT] operator reset: binding {(self.in_bound or "-")[:12]} / {self.in_sticky} cleared, re-bind after {self.in_settle}s')
+        self.in_bound = None; self.in_cand = None; self.in_sticky = None; self.in_ok_since = None; self.in_bound_boot = None
+
+    def input_valid(self, m):
+        vals = (m.linear.x, m.linear.y, m.linear.z, m.angular.x, m.angular.y, m.angular.z)
+        if not all(isinstance(v, float) and math.isfinite(v) for v in vals): return 'NOT_FINITE'
+        if self.in_max_vx > 0 and abs(m.linear.x) > self.in_max_vx: return 'LINEAR_X_RANGE'
+        if self.in_max_wz > 0 and abs(m.angular.z) > self.in_max_wz: return 'ANGULAR_Z_RANGE'
+        return None
+
+    def input_status(self):
+        if not self.in_allowed: return {'validation': 'DISABLED', 'output_topic_faults': list(self.excl_faults)}
+        return {'validation': 'GRAPH_ONLY_UNAUTHENTICATED', 'allowed': self.in_allowed, 'state': self.in_sticky or self.in_reason or 'BOUND',
+                'bound_gid': (self.in_bound or '')[:24] or None, 'output_topic_faults': list(self.excl_faults), 'writer_status_topic': self.wr_topic or None, 'writer_confirms_gid': bool(self.wr and self.in_bound and self.wr[1] == self.in_bound), 'sticky': self.in_sticky, 'publishers': self.in_pubs[:4], 'counts': dict(self.in_n),
+                'last_drop': self.in_last_drop, 'rejected_motion_age_s': None if self.in_drop_motion_t is None else round(time.monotonic() - self.in_drop_motion_t, 2), 'limits': {'linear_x': self.in_max_vx, 'angular_z': self.in_max_wz}}
+
     def cb_cmd_raw(self, msg: Twist):
+        if self.in_allowed:
+            vals = (msg.linear.x, msg.linear.y, msg.linear.z, msg.angular.x, msg.angular.y, msg.angular.z)
+            if not all(math.isfinite(v) for v in vals) or abs(msg.linear.x) > 0.02 or abs(msg.angular.z) > 0.05:
+                motion = True               # same want_motion thresholds as the control loop
+            else: motion = False
+            ok = self.input_graph()
+            if not ok or self.input_valid(msg):
+                # a rejected message that carries motion still means "motion is being commanded": arming / auto-clear must not
+                # happen on the strength of the zero that replaces it (r10 arms only with no motion commanded)
+                if motion: self.in_drop_motion_t = time.monotonic()
+            if not ok:
+                self.in_n['dropped_settle' if self.in_reason is None else 'dropped_graph'] += 1
+                self.in_last_drop = self.in_reason or 'SETTLING'
+                self.latest_cmd = Twist(); return          # never refreshes the 0.25 s input watchdog
+            bad = self.input_valid(msg)
+            if bad:
+                self.in_n['invalid'] += 1; self.in_invalid_t = time.monotonic(); self.in_invalid_why = bad; self.in_last_drop = 'INVALID_TWIST:' + bad
+                self.latest_cmd = Twist(); return
+            self.in_n['accepted'] += 1
         self.latest_cmd = msg
         t_sec = self.get_clock().now().nanoseconds * 1e-9
         self.last_cmd_sim_t = t_sec
@@ -257,6 +404,7 @@ class StallDetectorNode(Node):
         self.latched_sim_t = None
         self.zero_cmd_start_sim_t = None
         self.operator_unlatch_count += 1
+        self.input_on_reset()
         resp.success = True
         resp.message = f"Latch cleared by operator ({prev_state_name} -> INITIALIZING; re-arms when sensors are healthy)."
         self.get_logger().info(f"[OPERATOR RESET] {resp.message}")
@@ -348,6 +496,10 @@ class StallDetectorNode(Node):
             'wheel_odom': (not self.require_wheel_odom) or fresh(self.last_odom_sim_t),
             'estimator_odom': (not self.estimator_odom_topic) or fresh(self.last_est_odom_sim_t),
         }
+        input_faults = self.input_faults(t_now)
+        if self.in_allowed or self.excl_topic:
+            checks['cmd_input'] = not input_faults
+            checks['cmd_input_no_rejected_motion'] = self.in_drop_motion_t is None or time.monotonic() - self.in_drop_motion_t > 0.5
 
         if self.state == STATE_INITIALIZING:
             # Arm only once, when all required inputs exist, are fresh and healthy,
@@ -373,14 +525,14 @@ class StallDetectorNode(Node):
                     f"not_ready={[k for k, ok in checks.items() if not ok]}, "
                     f"depth_code={self.depth_code}, want_motion={want_motion}. Blocking all motion."
                 )
-        elif scan_stale or lidar_stale or depth_fault or odom_fault:
+        elif scan_stale or lidar_stale or depth_fault or odom_fault or input_faults:
             if self.state != STATE_FAILSAFE_SENSOR_TIMEOUT:
                 self.state = STATE_FAILSAFE_SENSOR_TIMEOUT
                 self.failsafe_event_count += 1
                 self.get_logger().error(
                     f"[FAIL-SAFE SENSOR TIMEOUT] scan_stale={scan_stale}, lidar_stale={lidar_stale}, "
                     f"wheel_odom_stale={wheel_odom_stale}, est_odom_stale={est_odom_stale}, "
-                    f"depth_fault={depth_fault} (depth_mode={self.depth_mode}, code={self.depth_code})! Blocking all motion."
+                    f"depth_fault={depth_fault} (depth_mode={self.depth_mode}, code={self.depth_code}), input={input_faults}! Blocking all motion."
                 )
         elif icp_degraded:
             if want_motion and self.state not in (STATE_FAILSAFE_ICP_DEGRADED, STATE_STALL_LATCHED):
@@ -499,6 +651,8 @@ class StallDetectorNode(Node):
             out.angular.z = float(cmd_wz)
             self.cmd_blocked = False
 
+        if not all(math.isfinite(v) for v in (out.linear.x, out.linear.y, out.linear.z, out.angular.x, out.angular.y, out.angular.z)):
+            out = Twist(); self.cmd_blocked = True        # never publish a non-finite command
         self.pub_cmd_vel.publish(out)
 
         # 4. Publish Virtual Bumper Cloud when Stalled
@@ -537,6 +691,8 @@ class StallDetectorNode(Node):
                 'failsafe_events': self.failsafe_event_count,
                 'icp_degraded_events': self.icp_degraded_event_count,
                 'operator_unlatch_count': self.operator_unlatch_count,
+                'cmd_input': self.input_status(),
+                'fault_reasons': input_faults[:4],
             }
             msg_str = String()
             msg_str.data = json.dumps(diag_obj)

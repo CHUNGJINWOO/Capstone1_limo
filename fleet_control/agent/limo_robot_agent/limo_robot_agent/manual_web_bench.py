@@ -1,5 +1,4 @@
 """Observe real web Joy input under motor lock. This adapter can only publish zero."""
-import math
 import threading
 import time
 
@@ -7,6 +6,7 @@ from geometry_msgs.msg import Twist
 
 from . import topics
 from .joystick_filter import JoystickConfig, joystick_command
+from .safety_protocol import lease_wellformed, server_contract_valid
 
 
 class ManualWebBench:
@@ -23,33 +23,63 @@ class ManualWebBench:
         self.lock = threading.Lock()
         self.stop = threading.Event()
         self.sample = None
+        self.last_session = None
+        self.session_authority = None
+        self.last_sequence = -1
         self.publisher = None
         self.state = {'status': 'WAITING', 'motor_output': False}
         self.timer = robot.create_timer(.05, self.tick)
         self.thread = threading.Thread(target=self.poll, daemon=True)
         self.thread.start()
 
+    def authority(self):
+        session = self.agent.session_snapshot()
+        lease = session.get('lease')
+        generation = session.get('contract_generation')
+        boot = session.get('server_boot_id')
+        if (not self.agent.is_execution_allowed() or session.get('connected') is not True
+                or session.get('reconciliation_required') is not False
+                or not server_contract_valid(session) or not lease_wellformed(lease)
+                or lease['expires_at'] <= time.time() or type(generation) is not int
+                or not isinstance(boot, str) or not boot):
+            return None
+        return boot, self.agent.boot_id, generation, lease['owner'], lease['epoch']
+
+    def accept_sample(self, sample, authority, started):
+        """A Bench session can only be consumed under the authority that first observed it."""
+        if authority is None or authority != self.authority() or not isinstance(sample, dict):
+            return None
+        sid, seq, ttl = (sample.get(k) for k in ('session_id', 'seq', 'ttl_s'))
+        if (not isinstance(sid, str) or not sid or type(seq) is not int or seq < 0
+                or type(ttl) not in (float, int) or not 0 < ttl <= .25
+                or type(sample.get('deadman')) is not bool
+                or any(type(sample.get(k)) not in (int, float) or not -1 <= sample[k] <= 1
+                       for k in ('linear', 'turn'))):
+            return None
+        if sid == self.last_session:
+            if authority != self.session_authority or seq < self.last_sequence:
+                return None
+        else:
+            self.last_session, self.session_authority = sid, authority
+        self.last_sequence = seq
+        return dict(sample, authority=authority, expires=started + ttl)
+
     def poll(self):
         while not self.stop.is_set():
             started = time.monotonic()
             sample = None
             try:
-                if self.agent.is_execution_allowed():
+                authority = self.authority()
+                if authority is not None:
                     response = self.agent.http.post('/agent/manual-bench', {
                         'robot_id': self.agent.robot_id, 'agent_boot_id': self.agent.boot_id,
                     }, timeout=.18)
-                    sample = response.get('sample')
-                    if isinstance(sample, dict):
-                        ttl = sample.get('ttl_s')
-                        if type(ttl) not in (float, int) or not math.isfinite(ttl) or not 0 < ttl <= .25:
-                            sample = None
-                        else:
-                            sample = dict(sample, expires=started + ttl)
+                    sample = self.accept_sample(response.get('sample'), authority, started)
             except Exception:
                 # HttpError and malformed data both mean there is no current authorization.
                 pass
             with self.lock:
-                self.sample = sample if isinstance(sample, dict) else None
+                self.sample = sample
             self.stop.wait(max(0., started + .05 - time.monotonic()))
 
     def _graph_blocker(self):
@@ -75,9 +105,11 @@ class ManualWebBench:
             sample = self.sample
         robot = self.robot
         now = time.monotonic()
+        authority = self.authority()
+        fresh = (sample is not None and now < sample['expires'] and authority is not None
+                 and sample.get('authority') == authority)
         if getattr(self, 'isolated_arbiter', False):
             # No raw publisher: the separate selector publishes through the Watchdog.
-            fresh = sample is not None and now < sample['expires'] and self.agent.is_execution_allowed()
             axes = [sample.get('turn'), sample.get('linear')] if fresh else []
             buttons = [0] * 4 + [int(sample.get('deadman') is True)] if fresh else []
             v, w, reason = joystick_command(self.config, axes, buttons, received_at=now, now=now, manual_enabled=fresh)
@@ -86,7 +118,8 @@ class ManualWebBench:
                               'requested_turn': w, 'deadman': fresh and sample.get('deadman') is True,
                               'session_id': sample.get('session_id') if fresh else None,
                               'sample_seq': sample.get('seq') if fresh else None,
-                              'expires': sample.get('expires') if fresh else None}
+                              'expires': sample.get('expires') if fresh else None,
+                              'authority': authority if fresh else None}
             return
         graph_blocker = self._graph_blocker()
         with robot.lock:
@@ -96,7 +129,6 @@ class ManualWebBench:
                        and gate.get('cmd_blocked') is False and robot.active is None
                        and odom_age is not None and 0 <= odom_age < .38
                        and gate_age is not None and 0 <= gate_age < .30)
-        fresh = sample is not None and now < sample['expires'] and self.agent.is_execution_allowed()
         axes = [sample.get('turn'), sample.get('linear')] if fresh else []
         buttons = [0] * 4 + [int(sample.get('deadman') is True)] if fresh else []
         linear, turn, reason = joystick_command(self.config, axes, buttons, received_at=now,
@@ -123,7 +155,11 @@ class ManualWebBench:
 
     def snapshot(self):
         with self.lock:
-            return dict(self.state)
+            state = dict(self.state)
+        if state.get('deadman') is True and state.get('authority') != self.authority():
+            state.update(deadman=False, requested_linear=0., requested_turn=0., expires=None)
+        state.pop('authority', None)
+        return state
 
     def close(self):
         self.stop.set()

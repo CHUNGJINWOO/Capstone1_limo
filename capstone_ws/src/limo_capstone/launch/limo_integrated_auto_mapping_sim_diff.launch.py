@@ -18,6 +18,10 @@ Fully self-contained in capstone_ws:
 11. Optional Telemetry Video Recorder (integrated_recorder_node)
 """
 import os
+# STATUS: simulation-only study variant (differential-drive model). Study-only settings below: depth filter
+# processing_hz 20 / min_height -0.02 and the RewrittenYaml depth min_obstacle_height -0.03 compensate for the sim
+# model's base_footprint hovering 0.044 m above the floor. They do not apply to the real robot and the baseline
+# sim launch does not use them. Not verified on the physical LIMO.
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable, IncludeLaunchDescription, GroupAction

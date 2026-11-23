@@ -117,3 +117,26 @@
 ## 2026-11-20 공개 기준선과 후속 작업 감사
 
 감사 시 연결된 Git 작업트리는 staging 한 개(`c804241a`)였고, 조회한 공개 main은 `ea2d9632`였다. 양쪽 고유 커밋 수는 staging 3개, 공개 main 33개다. 로컬 `fleet_control/`은 staging에 미추적이고 공개 main에는 별도 추적 버전이 있다. 실차 Launch·Gate·Depth·Frontier의 기존 변경은 담당자 검토 대상으로 보존한다.
+
+## G2 병합 (2026-11-23): origin/main `ea2d9632` 판의 이 문서에만 있던 줄
+> 통합 브랜치(v5b) 판을 기준으로 두고, origin/main 판에만 있던 줄을 원래 순서대로 아래에 보존한다. 날짜가 이른 기록(11-14~11-18)이며 위 본문의 최신 상태와 다르면 위 본문이 우선한다. 원문: `git show ea2d9632:WORKTREES.md`.
+
+| **메인 (보존 1)** | `<WORKSPACE_PARENT>/Capstone1_limo` | `staging/fleet-control-on-progress-c804241` | `c804241` | 공통 / Claude Code: 메인 저장소, `capstone_ws`, **통합 `fleet_control/`(단일 기준)**, `experiments/*20261113*`, `local_data/` | `M AGENTS.md`, `M README.md`, 다수 미추적(`fleet_control/`, `experiments/*`, `notebook/`, 공통 문서 8종) | **보존 필수 (절대 이동·초기화 금지)** |
+| **유실 1 (해제 완료)** | *(워크트리 해제 완료)* | `integrate/privacy-preserved-main` | `b1d14de` | 과거 임시 워크트리 정리 완료 | Clean | **해제 완료** |
+- `main` / `origin/main` (`a8132c7`): PR #1~#4, PR #8(공통 문서), **PR #9(`b350efa`, `fleet_control/` 173개)**, **PR #10(`a8132c7`, `run_recorder.py` 경로 개선)**이 병합된 정식 공개 기준선.
+- `feat/fleet-control-pr-b` (`e0bc7be`): PR #9 병합 브랜치 (`fleet_control/` 173개 + 증거 해시 안내 보완).
+- `feat/run-recorder-pr-c` (`f63688e`): PR #10 병합 브랜치 (`run_recorder.py` 신규 clone 출력 경로 보완).
+- `feat/fleet-control-unified` (`ed53d81`): `51175ef` + `419e798` 기반 로컬 통합 보존본(비런타임 파일 총 203개 = PR #9 공개 173개 + 제외된 비필수 로그·스크린샷 30개; 외부 실험 스크립트 3개는 PR-D 보류).
+## 2026-11-18 4차 선택 통합
+- 공개 `main` 기준은 `1ca1393d229a1a3e1727079d61f8a1210a9520ac`이다. 기존 통합 복사본 `/tmp/capstone-public-integration-20261118`의 `integration/selected-20261118`에서 Goal, 영상, 모의 Mapping·Bag·Gamepad, 공통 문서 후보 27개를 확인했다. 이 항목은 별도 작업트리 기록이다.
+- 원본 브랜치 `staging/fleet-control-on-progress-c804241`의 소스와 실험 데이터는 원래 위치에 보존한다. 기존 실차 자동 맵핑 번들도 그 위치를 유지한다.
+- 로컬 보존본은 원본 작업트리의 `local_data/raw_results/capstone18_git4.2VR6Cu/`다. `BASE_COMMIT`, `base-files.tar.gz`, `changes.patch`, 묶음별 패치, `files.tsv`, `SHA256SUMS`가 있다. 임시 통합 복사본이 사라지면 기준 커밋과 복구 패치를 사용한다.
+- 제6 문서는 영상 그룹의 `fleet_control/dashboard/README.md`다. 공통 문서 그룹 5개에 대한 추적은 감사 목록을 따른다. 모의 Mapping·Bag 결과는 실제 ROS 실행 및 실차 검증과 구분한다.
+최종 재검증 기록과 이 문서를 포함한 복구본은 `local_data/raw_results/capstone18_git4_execution.0R5xNb/`에 보관한다.
+### 전체 기능 구현 우선 개발
+기존 `/tmp/capstone-public-integration-20261118`의 `integration/selected-20261118`에서 작업했다. 시작 시 GitHub main과 통합 HEAD는 `f1a87cb44916db4769cef575e6de9a19a1e555a8`였다. 작업 중 별도 Gazebo·LiDAR 증거 커밋으로 로컬 HEAD가 `8b03e0f`까지 전진했다. 종료 점검에서 GitHub main과 로컬 HEAD가 `8b03e0f`로 일치했다. 변경 경로가 겹치지 않아 두 커밋을 그대로 보존했다. 이번 검증의 HTTP 28943–28947 및 로컬 DDS 도메인 193, 195–202은 임시 사용했다. 다음 실행은 새로운 디렉터리와 비어 있는 포트·도메인을 지정한다.
+
+## 2026-11-23 G2 통합 워크트리 (Claude, 사용자 승인)
+| 경로 | 브랜치 | 출발 | 담당 | 상태 |
+|---|---|---|---|---|
+| `<WORKSPACE_PARENT>/Capstone1_limo_g2_20261123` | `integration/fleet-g2-main-v5b-20261123` | `40b666ec` (v5b 통합) | Claude Code | `origin/main` 병합 진행 중(no-commit), 충돌 해결 완료, 미커밋 |

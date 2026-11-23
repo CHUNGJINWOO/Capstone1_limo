@@ -47,7 +47,7 @@
 ## 3. 평가 체계 및 데이터 출처 엄정 구분
 
 ### 3.1 단일 authoritative 평가 라이브러리(`evaluation_lib.py`)
-실행 러너와 단위 시험이 서로 다른 복사본 함수를 사용하던 구조를 전면 폐지하고, [`output/simulation/evaluation_lib.py`](../output/simulation/evaluation_lib.py) 단일 모듈로 통합했습니다.
+실행 러너와 단위 시험이 서로 다른 복사본 함수를 사용하던 구조를 전면 폐지하고, `output/simulation/evaluation_lib.py` (저장소에 포함되지 않은 경로: `../output/simulation/evaluation_lib.py`) 단일 모듈로 통합했습니다.
 - SAT 2D 다각형 연속 최소 간격 계산
 - 4단계 Phase 구간 분리 (`INITIALIZING`, `NAVIGATING`, `POST_RESULT`, `POST_CANCEL`)
 - 관측 누락($\Delta t > 0.3\,\text{s}$) 및 재점유 발생 시 연속 정지·유지 시간 즉시 초기화
@@ -251,7 +251,7 @@
 단순 사각 방을 넘어 교차로, 순환 루프, 막다른 길(Dead-end pocket), 통과 폭이 서로 다른 복수의 동서 통로, 광장, 고정 기둥이 포함된 **`16.0m × 12.0m` 복잡 실내 환경**을 설계하고, 사용자의 데스크톱 화면(`DISPLAY=:0`)에 Gazebo GUI(상단 고정 직교 시점)와 RViz2(2D TopDownOrtho 시점 + 실시간 S/G 마커, 파란 점선 최초 경로, 주황색 현재 경로, 초록색 실제 궤적, 빨간색/마젠타 미등록·이동 장애물 마커)를 동시에 띄워 전 단계를 실시간으로 실행·검증했습니다.
 
 - **생성 스크립트 및 환경 설정 경로**:
-  - 환경 생성기: [`output/simulation/complex_indoor_env/generate_complex_env.py`](../output/simulation/complex_indoor_env/generate_complex_env.py)
+  - 환경 생성기: `output/simulation/complex_indoor_env/generate_complex_env.py` (저장소에 포함되지 않은 경로: `../output/simulation/complex_indoor_env/generate_complex_env.py`)
   - 사전 정적 지도: `complex_indoor_map.pgm` (`output/simulation/complex_indoor_env/complex_indoor_map.pgm`, 로컬 보관) (`320 × 240` 픽셀, 해상도 `0.05 m/pixel`, 원점 `[-8.0, -6.0, 0.0]`), `complex_indoor_map.yaml` (`output/simulation/complex_indoor_env/complex_indoor_map.yaml`, 로컬 보관)
   - 공간 매니페스트 및 정합 검증: `complex_indoor_manifest.json` (`output/simulation/complex_indoor_env/complex_indoor_manifest.json`, 로컬 보관)
     - **사전 지도 격자와 Gazebo SDF 정적 벽체/고정 장애물 간 최대 정렬 오차**: **`0.000000 m`** (`alignment_verified: true`)
@@ -274,7 +274,7 @@ Stage A 및 Stage B 초기 실행 과정에서 발견된 문제와 원인 규명
 
 1. **Stage A 초기 시험 보존본 (`stage_A_stage_A_baseline_20261024_202211`)**:
    - **현상**: 로봇이 목적지 G `(+5.80, +1.40)` 인근인 `(5.643, 1.163)`(GT 거리 오차 `0.284 m`, 무충돌 최소 간격 `0.2737 m`)까지 정상 도달했으나, Ackermann 조향 특성상 목표점 위에서 제자리 회전으로 `yaw_goal_tolerance: 0.35 rad`를 맞추지 못해 미세 전후진을 반복하다 95초 타임아웃(`TIMEOUT_CANCELLED`) 발생.
-   - **조치**: [`nav2_complex_indoor_ackermann_params.yaml`](../output/simulation/complex_indoor_env/nav2_complex_indoor_ackermann_params.yaml)의 `yaw_goal_tolerance`를 `3.1416 rad`로 조정(위치 허용오차 `xy_goal_tolerance: 0.20 m` 유지)하여 목적지 위치 도달 시 불필요한 제자리 방향 정렬 루프를 방지함.
+   - **조치**: `nav2_complex_indoor_ackermann_params.yaml` (저장소에 포함되지 않은 경로: `../output/simulation/complex_indoor_env/nav2_complex_indoor_ackermann_params.yaml`)의 `yaw_goal_tolerance`를 `3.1416 rad`로 조정(위치 허용오차 `xy_goal_tolerance: 0.20 m` 유지)하여 목적지 위치 도달 시 불필요한 제자리 방향 정렬 루프를 방지함.
 2. **Stage B 초기 시험 보존본 (`stage_B_stage_B_multi_unmapped_20261024_203657` 및 `204013`)**:
    - **현상 (`203657`)**: 사전 지도에 없는 대형 차단 장애물(`unmapped_obs_1`, `unmapped_obs_2`)이 라이다 시야의 상당 부분을 가리자, `do_beamskip: false` 및 `laser_likelihood_max_dist: 2.0` 설정의 AMCL 파티클 필터가 미등록 장애물 반사파를 인근 정적 벽체에 강제 매칭하여 **추정 위치가 약 1.4m 점프**하고, 그 결과 Global Costmap 상의 열린 통로에 유령 장애물(Ghost barrier)이 기록되어 `STATUS_ABORTED` 발생.
    - **현상 (`204013`)**: `alpha1..5: 0.002`로 과도하게 축소하고 `unmapped_obs_2`가 중앙 복도 안쪽(`x = -1.65`)에 위치하여, 로봇이 서측 간선도로에서 북상할 때 남측 벽면(`w_c1`) 모서리에 가려 복도 차단을 미리 보지 못하고 좁은 복도 입구 안으로 진입한 뒤 갇힘.

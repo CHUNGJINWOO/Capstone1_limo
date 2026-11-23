@@ -363,7 +363,7 @@ def e10_no_auto_resume_and_new_admission():
     def drive():
         while on[0]:
             seq[0] += 1
-            try: ADMIN.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'epoch': EPOCH[0], 'session_id': sess, 'seq': seq[0], 'linear': 1., 'turn': .2, 'deadman': True})
+            try: ADMIN.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'input_format': 'normalized_axes_v1', 'epoch': EPOCH[0], 'session_id': sess, 'seq': seq[0], 'linear': 1., 'turn': .2, 'deadman': True})
             except Exception: pass
             time.sleep(.08)
     th = threading.Thread(target=drive, daemon=True); th.start(); time.sleep(1.2)
@@ -374,7 +374,7 @@ def e10_no_auto_resume_and_new_admission():
     blocked_manual = gview()['server_blockers']
     wait_gate_ready(40); t0 = time.monotonic(); post_reset(note='e10 after manual'); res = wait_result()
     wait_until(lambda: gate().get('state') == 'NORMAL', 20); time.sleep(2)
-    old = expect_http(lambda: ADMIN.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'epoch': EPOCH[0], 'session_id': sess, 'seq': seq[0] + 1,
+    old = expect_http(lambda: ADMIN.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'input_format': 'normalized_axes_v1', 'epoch': EPOCH[0], 'session_id': sess, 'seq': seq[0] + 1,
                                                                          'linear': 1., 'turn': 0., 'deadman': True}), 409)
     still = not nz_since(t0); m_after = mode().get('mode')
     mission = expect_http(lambda: ADMIN.post('/missions', {'robot_id': RID, 'type': 'navigate_to_pose', 'goal': {'frame_id': 'map', 'x': 1, 'y': 0},
@@ -382,7 +382,7 @@ def e10_no_auto_resume_and_new_admission():
     switch('MANUAL'); s2 = ADMIN.post(f'/robots/{RID}/manual-bench', {'action': 'start', 'epoch': EPOCH[0]})['session_id']
     t1 = time.monotonic()
     for i in range(1, 16):
-        try: ADMIN.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'epoch': EPOCH[0], 'session_id': s2, 'seq': i, 'linear': 1., 'turn': 0., 'deadman': True})
+        try: ADMIN.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'input_format': 'normalized_axes_v1', 'epoch': EPOCH[0], 'session_id': s2, 'seq': i, 'linear': 1., 'turn': 0., 'deadman': True})
         except Exception: pass
         time.sleep(.08)
     moved_new = bool(nz_since(t1))

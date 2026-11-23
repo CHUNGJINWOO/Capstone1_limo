@@ -131,3 +131,11 @@ fixed2 Gate 코드에서 fault_epoch는 프로세스 시작 시 0으로 초기�
 - 상태 응답의 `lease` 키는 필수입니다(서버는 매번 Lease view 또는 null을 보냄). Agent는 매 응답에서 다시 읽으며, 누락·null·구조 오류(owner 빈 문자열, epoch가 int가 아님, 만료 시각 오류)·만료된 Lease는 모두 "Lease 없음"으로 처리해 실행 권한을 철회합니다(세대 증가). 이전 응답의 Lease를 재사용하지 않습니다.
 - Lease 소유자·epoch가 바뀌면 유효→유효 전이라도 세대가 증가하며, 명령의 safety context에 적힌 Lease가 현재 응답의 Lease와 다르면 수신 시점에 거부합니다.
 - 운동 승인 필수 필드: hello `server_boot_id`·`protocol_version`(정수 2), 상태 응답 `server_boot_id`(일치)·`safety_contract_version`(정수 1)·`reconciliation_required`(정확한 false)·`lease`(유효), 그리고 연결 상태. `protocol_version`은 상태 응답에서 선택이며 철회만 가능합니다.
+
+### G2 Frontier goal의 R1 권한 (2026-11-23)
+Mapping 소유 NavigateToPose goal(Frontier)도 Fleet goal과 같은 세션 권한이 있어야 제출되고 유지됩니다: 정확한 `reconciliation_required: false`, `protocol_version` 2와 `safety_contract_version` 1, `connected`, 구조가 올바르고 만료되지 않은 Lease, 큐 투입 시점의 `contract_generation`(`safety_protocol.frontier_authority_fault`). 제출은 Stage 1과 `_submission_fence()` 안의 Stage 3에서 검사하고, 활성 Frontier goal은 같은 조건이 깨지면 취소 요청됩니다(취소 의무는 세대를 따름). Cancel/STOP은 권한 없이도 처리됩니다.
+
+### G2 UNKNOWN Mapping 세션과 Nav2 서버 유일성 (2026-11-23)
+- UNKNOWN·RECONCILING Mapping 세션은 Frontier goal을 **소유하지 않습니다**(운동 승인 근거 아님, `owns_mapping_goal`). 식별 증거는 `tracked_mapping_goal`로 보존합니다. 그런 세션의 활성 goal이 보이면 서버는 경고 이벤트와 식별 증거만 남깁니다(로봇 전체 `reconciliation_required`는 걸지 않음: 운영자가 Lease를 잡고 RECONCILE해야 하기 때문). 새 운동은 UNKNOWN 세션이 막고, Agent는 권한을 철회하며 그 goal을 취소합니다.
+- UNKNOWN이 된 명령에 늦게 온 Worker result는 409이고 아무것도 덮어쓰지 않습니다(진단 이벤트 `mapping_late_result`). 이미 확정된 결과의 재전송은 멱등입니다.
+- Fleet goal은 navigate_to_pose 상태 publisher가 정확히 1개일 때만 제출됩니다(`NAV_GOAL_OWNERSHIP_UNAVAILABLE`). Frontier goal도 같은 조건을 이미 요구합니다.

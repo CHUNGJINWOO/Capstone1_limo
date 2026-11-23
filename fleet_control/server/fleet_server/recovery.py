@@ -62,7 +62,9 @@ class RecoveryMixin:
                 else:
                     self.require_reconciliation(c, 'delivery/result/goal-handle ownership uncertain; no automatic goal replay')
                 reports.append({'command_id': c['command_id'], 'status': self.db.one('SELECT status FROM commands WHERE command_id=?', (c['command_id'],))['status']})
-            if active and not self.owns_mapping_goal(robot_id, boot_id, active):
+            if active and not self.owns_mapping_goal(robot_id, boot_id, active) and self._untrusted_mapping_goal(robot_id, boot_id, active):
+                pass                       # G2: tracked goal of an UNKNOWN/RECONCILING Mapping session (blocked, evidence kept)
+            elif active and not self.owns_mapping_goal(robot_id, boot_id, active):
                 owned = self.db.one('SELECT * FROM commands WHERE command_id=? AND robot_id=? AND mission_id=?',
                                     (active.get('command_id'), robot_id, active.get('mission_id')))
                 if not owned or owned['owner_boot_id'] != boot_id or owned['status'] in CMD_TERMINAL:
@@ -76,6 +78,24 @@ class RecoveryMixin:
             self._persist(r, force=True)
             return {'ok': True, 'server_boot_id': self.boot_id, 'commands': reports,
                     'reconciliation_required': r['reconciliation_required'] or any(c['status'] == 'RECONCILIATION_REQUIRED' for c in reports)}
+
+    def _untrusted_mapping_goal(self, robot_id, boot, active):
+        """G2: an active Frontier goal of an UNKNOWN/RECONCILING Mapping session is NOT owned (never an authorization) but it is
+        KNOWN: it is tracked with its identity (session, boot, epoch, reserved command id, goal UUID) so the cancel and the terminal
+        evidence can be matched. It is not an unowned-goal fault: the session is UNKNOWN, which already blocks every new motion
+        (mapping_blocks_motion, START and reserve_goal refused, Fleet navigation waits), the Agent withdraws its own authority and
+        cancels the goal (Mapping Worker lose_session / R1 Frontier duty), and the operator takes the Lease and runs RECONCILE.
+        Setting the robot-wide reconciliation_required here would forbid taking the Lease (the E2E f03 deadlock), so it is not set.
+        Returns True if the goal was recognised (one diagnostic event per goal)."""
+        tracked = self.tracked_mapping_goal(robot_id, boot, active)
+        if not tracked:
+            return False
+        key = f"mapping_goal_untrusted:{robot_id}:{tracked['command_id']}"
+        if self.db.one('SELECT 1 AS x FROM meta WHERE k=?', (key,)) is None:
+            self.db.x('INSERT OR REPLACE INTO meta(k,v) VALUES(?,?)', (key, json.dumps(tracked)))
+            self.db.event('mapping_goal_untrusted', 'active Frontier goal of a non-live Mapping session: tracked for cancel and terminal evidence, never authorised',
+                          robot_id, data=tracked, level='warning')
+        return True
 
     def check_execution(self, robot_id, execution):
         active = (execution or {}).get('active') or {}
@@ -104,7 +124,10 @@ class RecoveryMixin:
                         and isinstance(context, dict) and result.get('safety_context') == context):
                     self.ack_command(robot_id, c['command_id'], status,
                                      'durable Nav2 terminal received with agent state', agent_boot_id=boot)
-        if active and not self.owns_mapping_goal(robot_id, self.robots[robot_id]['agent'].get('boot_id'), active):
+        boot_now = self.robots[robot_id]['agent'].get('boot_id')
+        if active and not self.owns_mapping_goal(robot_id, boot_now, active) and self._untrusted_mapping_goal(robot_id, boot_now, active):
+            pass                           # G2: tracked goal of an UNKNOWN/RECONCILING Mapping session (blocked, evidence kept)
+        elif active and not self.owns_mapping_goal(robot_id, boot_now, active):
             owned = self.db.one('SELECT * FROM commands WHERE command_id=? AND robot_id=? AND mission_id=?',
                                 (active.get('command_id'), robot_id, active.get('mission_id')))
             if owned and owned['owner_boot_id'] == self.robots[robot_id]['agent'].get('boot_id'):

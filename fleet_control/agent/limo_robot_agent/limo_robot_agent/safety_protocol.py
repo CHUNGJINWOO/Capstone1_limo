@@ -446,6 +446,10 @@ def verify_navigation_execution(
         return False, 'REJECTED', f"BUSY: mission {active_rec.get('mission_id')} is still active", None
 
     ng = nav2_goals if isinstance(nav2_goals, dict) else {}
+    # G2 2026-11-23 (origin/main rule, test_cancel_results): exactly one NavigateToPose status publisher. Two servers (or none)
+    # make the goal's owner ambiguous; v5b only checked the active count, so a second server with no goal let a goal through.
+    if type(ng.get('publishers')) is not int or ng['publishers'] != 1:
+        return False, 'REJECTED', 'NAV_GOAL_OWNERSHIP_UNAVAILABLE: no unique navigate_to_pose status publisher', None
     if ng.get('active_count') != 0 or bool(ng.get('active_goal_uuids')):
         return False, 'REJECTED', 'NAV2_NOT_IDLE: active Nav2 goal already present', None
 
@@ -480,6 +484,29 @@ def verify_navigation_execution(
         return False, 'REJECTED', 'LEASE_MISMATCH: lease owner or epoch changed', None
 
     return True, 'OK', 'verified', sc
+
+
+def frontier_authority_fault(session_ctx, contract_generation, *, now_wall=None):
+    """G2 (2026-11-23): R1 authority for a mapping-owned (Frontier) NavigateToPose goal, at submission and while it is active.
+
+    A Frontier goal carries no Fleet Safety Context, but it moves the robot, so it needs the same session authority as a Fleet
+    goal: an explicit reconciliation_required False, the exact server contract, a connected session, a well-formed unexpired
+    lease and the contract generation stamped when the request was queued (any withdrawal in between, including a lease
+    change, starts a new generation). Returns a fault reason or None."""
+    ss = session_ctx if isinstance(session_ctx, dict) else {}
+    if ss.get('reconciliation_required') is not False:
+        return 'SERVER_RECONCILIATION_REQUIRED'
+    if not server_contract_valid(ss):
+        return 'SERVER_CONTRACT_INVALID'
+    if ss.get('connected') is not True:
+        return 'SERVER_DISCONNECTED_OR_RESTARTED'
+    lease = ss.get('lease')
+    now_w = time.time() if now_wall is None else float(now_wall)
+    if not lease_wellformed(lease) or float(lease['expires_at']) <= now_w:
+        return 'LEASE_REVOKED_OR_EXPIRED'
+    if type(contract_generation) is not int or ss.get('contract_generation') != contract_generation:
+        return 'SERVER_CONTRACT_INVALID'
+    return None
 
 
 def check_active_goal_safety(

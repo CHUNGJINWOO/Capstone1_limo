@@ -86,7 +86,11 @@ class Tests(unittest.TestCase):
     with agent.lock:agent.last_state_ok_mono=time.monotonic();agent.lease=resp['lease'];agent.server_safety_contract_version=resp['safety_contract_version']
     for c in resp['commands']:agent._on_command(c)
     return resp
-   tick();pub();idle.publish(GoalStatusArray());time.sleep(.1);tick()
+   tick();pub();idle.publish(GoalStatusArray());
+   # G2 2026-11-23 fixture: v5 admits a goal only with ONE navigate_to_pose status publisher (origin/main rule); the synthetic
+   # idle publisher that seeded the status is removed so the action server is the unique one again (assertions unchanged).
+   node.destroy_publisher(idle);wait(lambda:robot.count_publishers('navigate_to_pose/_action/status')==1)
+   time.sleep(.1);tick()
    body={'robot_id':'r','lease_epoch':lease['epoch'],'goal':{'frame_id':'map','x':1,'y':2}}
    mid=request('/missions',body)['mission_id'];cmd=tick()['commands'][0]
    wait(lambda:agent.seen.get(cmd['command_id'],{}).get('status')=='RECONCILIATION_REQUIRED')

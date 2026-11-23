@@ -86,6 +86,13 @@ Explore::Explore()
       rclcpp_action::create_client<nav2_msgs::action::NavigateToPose>(
           this, ACTION_NAME);
 
+  goal_status_sub_ = create_subscription<action_msgs::msg::GoalStatusArray>(
+      std::string(ACTION_NAME) + "/_action/status",
+      rclcpp::QoS(1).transient_local(),
+      [this](action_msgs::msg::GoalStatusArray::ConstSharedPtr status) {
+        goal_status_ = status;
+      });
+
   search_ = frontier_exploration::FrontierSearch(costmap_client_.getCostmap(),
                                                  potential_scale_, gain_scale_,
                                                  min_frontier_size, logger_);
@@ -136,12 +143,6 @@ Explore::Explore()
   auto status_msg = explore_lite_msgs::msg::ExploreStatus();
   status_msg.status = explore_lite_msgs::msg::ExploreStatus::EXPLORATION_STARTED;
   status_pub_->publish(status_msg);
-  makePlan();
-}
-
-Explore::~Explore()
-{
-  stop();
 }
 
 void Explore::resumeCallback(const std_msgs::msg::Bool::SharedPtr msg)
@@ -228,6 +229,9 @@ void Explore::visualizeFrontiers(
 
 void Explore::makePlan()
 {
+  if (paused_ || ownership_uncertain_ || externalGoalActive()) {
+    return;
+  }
   // find frontiers
   auto pose = costmap_client_.getRobotPose();
   // get frontiers sorted according to cost
@@ -270,32 +274,24 @@ void Explore::makePlan()
   // time out if we are not making any progress
   bool same_goal = same_point(prev_goal_, target_position);
 
+  if (goal_active_) {
+    // Track progress on the accepted target. Changing frontiers must not
+    // preempt an outstanding goal or reset its progress watchdog.
+    if (same_goal && frontier->min_distance < prev_distance_) {
+      last_progress_ = this->now();
+      prev_distance_ = frontier->min_distance;
+    }
+    if (!cancel_requested_ &&
+        this->now() - last_progress_ > tf2::durationFromSec(progress_timeout_)) {
+      frontier_blacklist_.push_back(prev_goal_);
+      cancelOwnedGoal();
+    }
+    return;
+  }
+
   prev_goal_ = target_position;
-  if (!same_goal || prev_distance_ > frontier->min_distance) {
-    // we have different goal or we made some progress
-    last_progress_ = this->now();
-    prev_distance_ = frontier->min_distance;
-  }
-  // black list if we've made no progress for a long time
-  if (goal_active_ &&
-      (this->now() - last_progress_ >
-       tf2::durationFromSec(progress_timeout_)) &&
-      !resuming_) {
-    frontier_blacklist_.push_back(target_position);
-    RCLCPP_DEBUG(logger_, "Adding current goal to black list");
-    makePlan();
-    return;
-  }
-
-  // ensure only first call of makePlan was set resuming to true
-  if (resuming_) {
-    resuming_ = false;
-  }
-
-  // we don't need to do anything if we still pursuing the same goal
-  if (same_goal && goal_active_) {
-    return;
-  }
+  last_progress_ = this->now();
+  prev_distance_ = frontier->min_distance;
 
   RCLCPP_DEBUG(logger_, "Sending goal to move base nav2");
 
@@ -306,28 +302,98 @@ void Explore::makePlan()
   goal.pose.header.frame_id = costmap_client_.getGlobalFrameID();
   goal.pose.header.stamp = this->now();
 
-  goal_active_ = true;
-  auto send_goal_options = rclcpp_action::Client<
-      nav2_msgs::action::NavigateToPose>::SendGoalOptions();
+  sendOwnedGoal(goal, false);
+}
 
-  send_goal_options.goal_response_callback =
-      [this](const NavigationGoalHandle::SharedPtr& goal_handle) {
-        if (!goal_handle) {
-          RCLCPP_ERROR(logger_, "Goal was REJECTED by the action server");
+bool Explore::externalGoalActive() const
+{
+  using Status = action_msgs::msg::GoalStatus;
+  if (count_publishers(std::string(ACTION_NAME) + "/_action/status") != 1) {
+    return true;
+  }
+  // ROS actions may publish no status array until the first goal.
+  if (!goal_status_) {
+    return false;
+  }
+  for (const auto& status : goal_status_->status_list) {
+    if (status.status != Status::STATUS_SUCCEEDED &&
+        status.status != Status::STATUS_CANCELED &&
+        status.status != Status::STATUS_ABORTED &&
+        (!navigation_goal_handle_ ||
+         status.goal_info.goal_id.uuid != navigation_goal_handle_->get_goal_id())) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void Explore::cancelOwnedGoal()
+{
+  cancel_requested_ = true;
+  if (navigation_goal_handle_) {
+    try {
+      move_base_client_->async_cancel_goal(navigation_goal_handle_);
+    } catch (const rclcpp_action::exceptions::UnknownGoalHandleError&) {
+      // A terminal callback can still be queued. Keep blocking submissions.
+      RCLCPP_WARN(logger_, "Owned goal cancel unavailable; waiting for result");
+    }
+  }
+}
+
+void Explore::sendOwnedGoal(const nav2_msgs::action::NavigateToPose::Goal& goal,
+                            bool returning)
+{
+  if (goal_active_ || ownership_uncertain_ || externalGoalActive()) {
+    return;
+  }
+  goal_active_ = true;
+  cancel_requested_ = false;
+  decltype(move_base_client_)::element_type::SendGoalOptions options;
+  options.goal_response_callback =
+      [this](const NavigationGoalHandle::SharedPtr& handle) {
+        if (!handle) {
           goal_active_ = false;
-        } else {
-          active_goal_id_ = goal_handle->get_goal_id();
-          RCLCPP_DEBUG(logger_, "Goal ACCEPTED, uuid: %s",
-            rclcpp_action::to_string(active_goal_id_).c_str());
+          RCLCPP_WARN(logger_, "LOCAL_FRONTIER goal rejected");
+          return;
+        }
+        navigation_goal_handle_ = handle;
+        RCLCPP_INFO(logger_, "LOCAL_FRONTIER accepted UUID %s",
+                    rclcpp_action::to_string(handle->get_goal_id()).c_str());
+        if (cancel_requested_) {
+          cancelOwnedGoal();
         }
       };
-
-  send_goal_options.result_callback =
-      [this,
-       target_position](const NavigationGoalHandle::WrappedResult& result) {
-        reachedGoal(result, target_position);
-      };
-  move_base_client_->async_send_goal(goal, send_goal_options);
+  options.result_callback = [this, returning, target = goal.pose.pose.position](
+      const NavigationGoalHandle::WrappedResult& result) {
+    if (!navigation_goal_handle_ || result.goal_id != navigation_goal_handle_->get_goal_id()) {
+      return;
+    }
+    if (result.code == rclcpp_action::ResultCode::UNKNOWN) {
+      ownership_uncertain_ = true;
+      RCLCPP_ERROR(logger_, "LOCAL_FRONTIER result unknown; blocking further goals");
+      return;
+    }
+    navigation_goal_handle_.reset();
+    goal_active_ = false;
+    RCLCPP_INFO(logger_, "LOCAL_FRONTIER terminal UUID %s code %d",
+                rclcpp_action::to_string(result.goal_id).c_str(), static_cast<int>(result.code));
+    if (return_pending_) {
+      return_pending_ = false;
+      returnToInitialPose();
+    } else if (returning && result.code == rclcpp_action::ResultCode::SUCCEEDED) {
+      explore_lite_msgs::msg::ExploreStatus status;
+      status.status = explore_lite_msgs::msg::ExploreStatus::RETURNED_TO_ORIGIN;
+      status_pub_->publish(status);
+    } else if (!returning) {
+      reachedGoal(result, target);
+    }
+  };
+  try {
+    move_base_client_->async_send_goal(goal, options);
+  } catch (const std::exception& ex) {
+    ownership_uncertain_ = true;
+    RCLCPP_ERROR(logger_, "LOCAL_FRONTIER submission uncertain: %s", ex.what());
+  }
 }
 
 void Explore::returnToInitialPose()
@@ -343,19 +409,9 @@ void Explore::returnToInitialPose()
   goal.pose.header.frame_id = costmap_client_.getGlobalFrameID();
   goal.pose.header.stamp = this->now();
 
-  auto send_goal_options =
-      rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
-  send_goal_options.result_callback =
-      [this](const NavigationGoalHandle::WrappedResult& result) {
-        if (result.code == rclcpp_action::ResultCode::SUCCEEDED) {
-          auto status_msg = explore_lite_msgs::msg::ExploreStatus();
-          status_msg.status = explore_lite_msgs::msg::ExploreStatus::RETURNED_TO_ORIGIN;
-          status_pub_->publish(status_msg);
-          RCLCPP_INFO(logger_, "Successfully returned to initial pose.");
-        }
-      };
-  move_base_client_->async_send_goal(goal, send_goal_options);
+  sendOwnedGoal(goal, true);
 }
+
 bool Explore::goalOnBlacklist(const geometry_msgs::msg::Point& goal)
 {
   constexpr static size_t tolerace = 5;
@@ -375,12 +431,6 @@ bool Explore::goalOnBlacklist(const geometry_msgs::msg::Point& goal)
 
 void Explore::reachedGoal(const NavigationGoalHandle::WrappedResult& result,
                           const geometry_msgs::msg::Point& frontier_goal) {
-  // discard stale callbacks from previously preempted goals
-  if (result.goal_id != active_goal_id_) {
-    return;
-  }
-
-  goal_active_ = false;
   switch (result.code) {
     case rclcpp_action::ResultCode::SUCCEEDED:
       RCLCPP_DEBUG(logger_, "Goal was successful");
@@ -413,17 +463,7 @@ void Explore::reachedGoal(const NavigationGoalHandle::WrappedResult& result,
       RCLCPP_WARN(logger_, "Unknown result code from move base nav2");
       break;
   }
-  // find new goal immediately regardless of planning frequency.
-  // execute via timer to prevent dead lock in move_base_client (this is
-  // callback for sendGoal, which is called in makePlan). the timer must live
-  // until callback is executed.
-  // oneshot_ = relative_nh_.createTimer(
-  //     ros::Duration(0, 0), [this](const ros::TimerEvent&) { makePlan(); },
-  //     true);
 
-  // Because of the 1-thread-executor nature of ros2 I think timer is not
-  // needed.
-  makePlan();
 }
 
 void Explore::start()
@@ -438,7 +478,8 @@ void Explore::stop(bool finished_exploring)
 {
   RCLCPP_INFO(logger_, "Exploration stopped.");
 
-  goal_active_ = false;
+  paused_ = true;
+  return_pending_ = return_to_init_ && finished_exploring;
   // Only publish paused status if manually stopped (not finished exploring)
   if (!finished_exploring) {
     auto status_msg = explore_lite_msgs::msg::ExploreStatus();
@@ -446,17 +487,19 @@ void Explore::stop(bool finished_exploring)
     status_pub_->publish(status_msg);
   }
 
-  move_base_client_->async_cancel_all_goals();
   exploring_timer_->cancel();
-
-  if (return_to_init_ && finished_exploring) {
+  if (goal_active_) {
+    cancelOwnedGoal();
+  } else if (return_pending_) {
+    return_pending_ = false;
     returnToInitialPose();
   }
 }
 
 void Explore::resume()
 {
-  resuming_ = true;
+  paused_ = false;
+  return_pending_ = false;
   RCLCPP_INFO(logger_, "Exploration resuming.");
   auto status_msg = explore_lite_msgs::msg::ExploreStatus();
   status_msg.status = explore_lite_msgs::msg::ExploreStatus::EXPLORATION_IN_PROGRESS;

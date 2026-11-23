@@ -1,5 +1,7 @@
 # F4 LiDAR odometry 벽 평행 구간 실패 조사 (2026-11-11)
 
+> **정리본 상태 (2026-11-11).** **검증 수준:** 시뮬레이션 전용 연구. F4 점대선(point-to-line) ICP 등 개선안은 **실험 제안**이며 실차 검증 없음. 이 기록은 당시 설정과 환경에서 얻은 값이며 이후 정리된 파일 이름·값으로 다시 측정한 것이 아니다. 전체 목록: `experiments/README.md`.
+
 범위: 전체 자동 맵핑은 반복하지 않았다. 기존의 짧은 벽 평행 직진 시험을 5개 추정기와 같은 조건으로 돌렸고, 기록한 스캔으로 ICP를 오프라인에서 분석했다. 시뮬레이션만 사용했고 실차 구동은 없다.
 
 수정하지 않은 것: 저장소의 모든 소스(F4 노드, safety gate, 실차 launch, sim launch, explore 원본, explore_relaxed), 현재 sim 설정. `stall_detector_node.py`와 실차 launch의 체크섬은 기준과 같다(두 sim launch는 오늘 00:28에 의도적으로 바꾼 것으로 이번 작업에서 건드리지 않았다). Git commit/push 없음. 새로 만든 것은 `variants/`의 실험 launch와 생성기, `scripts/`의 프로브·분석 스크립트, 이 폴더뿐이다.

@@ -52,6 +52,15 @@ class Core(unittest.TestCase):
   with self.assertRaises(ValueError):s.ingest(packet(session='a',sequence=9))
  def test_reupload_does_not_make_old_sensor_fresh(self):
   s=Store('live');s.ingest(packet(grids={'map':grid(source_age_s=20)}));self.assertEqual(s.snapshot()['layers']['map']['status'],'STALE')
+ def test_duplicate_depth_keeps_first_receive_time(self):
+  depth=metric_depth(b'\xe8\x03',width=1,height=1,step=2,encoding='16UC1')
+  depth.update(stamp_ns=NS,frame_id='depth',source_age_s=0.)
+  store=Store('live');store.ingest(packet(depth=depth))
+  first=store.depth[1]
+  store.ingest(packet(sequence=2,depth=dict(depth,source_age_s=1.)))
+  self.assertEqual(store.depth[1],first)
+  store.ingest(packet(sequence=3,depth=dict(depth,stamp_ns=NS+1)))
+  self.assertGreater(store.depth[1],first)
  def test_no_timestamp_never_claimed_ok(self):
   self.assertEqual(fresh_status(0,None,True),'TIME_UNVERIFIED')
  def test_depth_16uc1_mm_invalid_and_padding(self):

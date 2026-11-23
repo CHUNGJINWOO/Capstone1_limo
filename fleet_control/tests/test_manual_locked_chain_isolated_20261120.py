@@ -93,7 +93,7 @@ try:
  path='/robots/test-lock/manual-bench';session=operator.post(path,{'action':'start','epoch':epoch})['session_id'];seq=[0]
  def frame(v,w,pressed=True):
   def send():
-   seq[0]+=1;operator.post(path,{'action':'sample','epoch':epoch,'session_id':session,'seq':seq[0],'linear':v,'turn':w,'deadman':pressed})
+   seq[0]+=1;operator.post(path,{'action':'sample', 'input_format': 'normalized_axes_v1','epoch':epoch,'session_id':session,'seq':seq[0],'linear':v,'turn':w,'deadman':pressed})
   return send
  start=time.monotonic();pump(.9,frame(1.,.5))
  print('nonzero locked',[(v,w) for t,v,w in locked if t>=start][-8:],flush=True)

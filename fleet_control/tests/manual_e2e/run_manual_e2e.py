@@ -175,7 +175,7 @@ class Driver:
 
     def send_once(self, **override):
         self.seq += 1
-        body = {'action': 'sample', 'epoch': self.epoch, 'session_id': self.session, 'seq': self.seq,
+        body = {'action': 'sample', 'input_format': 'normalized_axes_v1', 'epoch': self.epoch, 'session_id': self.session, 'seq': self.seq,
                 'linear': self.v, 'turn': self.w, 'deadman': self.dead}
         body.update(override)
         return OP.post(self.path(), body)
@@ -401,7 +401,7 @@ def s05_stop_button():
 @scenario
 def s06_bad_inputs_rejected():
     DRV.start(EPOCH[0])
-    nan = expect_http(lambda: OP.post(DRV.path(), json.loads(json.dumps({'action': 'sample', 'epoch': EPOCH[0], 'session_id': DRV.session,
+    nan = expect_http(lambda: OP.post(DRV.path(), json.loads(json.dumps({'action': 'sample', 'input_format': 'normalized_axes_v1', 'epoch': EPOCH[0], 'session_id': DRV.session,
                       'seq': 1, 'linear': float('nan'), 'turn': 0., 'deadman': True}))), 400)
     big = expect_http(lambda: DRV.send_once(linear=1.5), 400)
     DRV.send_once(linear=0., turn=0., deadman=False)

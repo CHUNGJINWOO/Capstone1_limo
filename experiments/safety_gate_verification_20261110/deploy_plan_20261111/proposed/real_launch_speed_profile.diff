@@ -1,5 +1,5 @@
 --- launch/limo_integrated_auto_mapping_real.launch.py	2026-11-11 12:28:07.813695482 +0900
-+++ /home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/real_launch_speed_profile.py	2026-11-11 12:50:44.750485742 +0900
++++ <repo>/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/real_launch_speed_profile.py	2026-11-11 12:50:44.750485742 +0900
 @@ -22,7 +22,7 @@
  import os
  from ament_index_python.packages import get_package_share_directory

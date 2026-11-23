@@ -18,7 +18,7 @@
 2026년 11월 8일, `capstone_ws`를 메인 자립형 워크스페이스로 확정하고 시뮬레이션 통합 자동 맵핑 파이프라인의 1차 기능 동등성 및 안전 회귀 검증을 완료하였습니다.
 
 - **워크스페이스 역할 분담:**
-  - **`capstone_ws` (메인 워크스페이스):** 정식 ROS 2 패키지(`limo_capstone`, `limo_depth_obstacles`), 정식 Launch 2종(`sim`, `real`), 설정 YAML, SDF/URDF 모델을 포함하며 외부 참조 없이 독립 빌드·실행됩니다.
+  - **`capstone_ws` (메인 워크스페이스):** 정식 ROS 2 패키지(`limo_capstone`, `limo_depth_obstacles`), 정식 Launch 2종(`sim`, `real`), 설정 YAML, SDF/URDF 모델을 포함합니다. 단, **외부 의존성이 필요합니다**: 시뮬레이션·실차 launch 모두 AgileX `limo_ros2`의 `limo_description`을, 실차는 추가로 `limo_base`, `ydlidar_ros2_driver`(시스템 라이브러리 `ydlidar_sdk` 필요), `astra_camera`(깊이 카메라 사용 시)를 요구하며 이들은 `capstone_ws/src`에 포함되어 있지 않습니다(출처: `docs/third_party.repos`). 이 의존성이 없는 환경에서는 launch가 `PackageNotFoundError`로 실패합니다.
   - **`experiments/limo_integrated_auto_mapping_20261108/` (실험 아카이브):** 자동 회귀 검증 스크립트, 장시간 탐색 벤치마크 로그, 고장 주입 시험 JSON, 공식 rosbag2 아카이브 및 기술 보고서 5종을 보존합니다.
 - **핵심 통합 서브시스템:**
   - **F4/F5_improved 선택형 상태 추정:** 2D LiDAR ICP 오도메트리(F4, 10.0Hz) 및 ICP + IMU 요 각속도 EKF 융합 오도메트리(F5_improved, 50.0Hz).
@@ -27,12 +27,17 @@
   - **Stall Detector 안전 명령 게이트:** 후진 금지(`enable_auto_reverse:=false`), 0.38초 센서 단절 페일세이프, 모터 구동 잠금(`allow_motor_drive:=false`).
   - **rosbag2 기록 프로파일:** 12개 핵심 토픽 기록 및 배속 재생 검증 (경량 프로파일 및 상세 진단 프로파일 분리).
 
+> [!IMPORTANT]
+> **검증 수준 구분 (2026-11-11).** 위 "1차 완료"는 **시뮬레이션** 기준이다. 실차(LIMO)에서는 모터 잠금 launch, 벤치 MCU 정지 시간 측정, 느린 감독 주행 몇 건만 확인했고 **실차 자동 맵핑의 정상 동작은 미검증**이다. SLAM 지도 갱신 문제의 해결안(스캔 정규화)은 저장된 실차 bag으로 **오프라인 검증**했을 뿐 실차 launch에 적용하지 않았다. F4 점대선 ICP는 실험 제안이고, `explore_relaxed`는 시뮬레이션 평가용 실험 변형이며 기본 탐색기가 아니다. 항목별 근거와 한계는 [실차·시뮬레이션 검증 현황](docs/REAL_ROBOT_STATUS.md), 시뮬레이션/실차 설정 차이는 [설정 분리](docs/CONFIG_SIM_VS_REAL.md)를 본다.
+
 | 확인할 핵심 자료 | 위치 |
 |---|---|
 | **정식 통합 운영 가이드** | [운영 가이드](docs/INTEGRATED_AUTO_MAPPING_OPERATIONS_GUIDE.md) |
 | **최종 회귀 검증 보고서** | [최종 회귀 보고서](experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_FINAL_REGRESSION_REPORT.md) |
 | **최종 회귀 결과 데이터 (JSON)** | [회귀 결과 JSON](experiments/limo_integrated_auto_mapping_20261108/evaluation/results/capstone_ws_final_regression_audit_20261108.json) |
 | **장기 맵핑 및 우회 벤치마크** | [확장 검증 보고서](experiments/limo_integrated_auto_mapping_20261108/docs/EXTENDED_INTEGRATION_VERIFICATION_REPORT.md) |
+| **실차·시뮬레이션 검증 현황** | [검증 현황](docs/REAL_ROBOT_STATUS.md) |
+| **시뮬레이션/실차 설정 차이** | [설정 분리](docs/CONFIG_SIM_VS_REAL.md) |
 | **기존 개발 상태 및 로드맵** | [개발 상태](docs/roadmap.md) |
 
 > [!NOTE]
@@ -74,8 +79,6 @@
 - 주행 성능 및 기능 검증
 
 ---
-
-## 3. 시스템 구성
 
 ## 3. 시스템 구성
 
@@ -168,10 +171,8 @@
 │       │   ├── urdf/                      # limo_ackermann_fortress.urdf
 │       │   ├── worlds/                    # lounge_evaluation_world.sdf
 │       │   └── setup.py                   # 정식 배포 엔트리포인트 8종 정의
-│       ├── limo_ros2/                     # LIMO 기본 구동 드라이버 및 모델
-│       ├── m-explore-ros2/                # 프론티어 탐색 소스 (middle 패치 적용)
-│       └── ydlidar_ros2_driver/           # 2D 라이다 드라이버
-├── experiments/                           # [신규] 통합 자동 맵핑 실험 및 회귀 검증 아카이브
+│       ├── (m-explore-ros2, robot_localization, ydlidar_ros2_driver, wego*, libuvc, magic_enum  # 외부 소스: 출처는 docs/EXTERNAL_REFERENCES.md)
+├── experiments/                           # 실험·회귀 검증 기록 (목록과 검증 수준: experiments/README.md)
 │   └── limo_integrated_auto_mapping_20261108/
 │       ├── docs/                          # 회귀 감사 보고서 및 장기 맵핑 보고서 5종
 │       │   └── LIMO_PRO_WORKSPACE_FINAL_REGRESSION_REPORT.md
@@ -181,8 +182,7 @@
 │       └── videos/                        # 시뮬레이션 자율 탐색 및 우회 녹화 MP4
 ├── scripts/
 │   └── remote_teleop_node.py              # 원격 조향 제어 퍼블리셔 노드
-└── src/
-    └── limo_ros2/                         # 공식 하드웨어 원본 패키지
+└── (src/limo_ros2: AgileX 원본은 저장소에 포함하지 않음 — docs/third_party.repos 참고)
 ```
 
 ### `docs`
@@ -211,8 +211,8 @@
 | **기본 패키지** | LIMO 드라이버·모델·메시지 | 소스 보유 | 원제공 소스와 프로젝트 수정 사항은 Git 이력으로 구분 |
 | **상태 추정 (F4)** | 2D LiDAR ICP 오도메트리 | **통합 완료** | 시뮬레이션 10.0 Hz 실측 검증. 고유 TF는 `odom_tf_relay_node`를 통해 중재 |
 | **상태 추정 (F5)** | ICP + IMU EKF 융합 | **통합 완료** | 시뮬레이션 50.0 Hz 실측 검증. 슬립 방지를 위해 휠 오도는 EKF에서 배제 |
-| **SLAM 지도 작성** | SLAM Toolbox 온라인 비동기 | **통합 완료** | `map -> odom` TF 단일 소유. 실시간 점유 격자 확장 검증 |
-| **자율 탐색 주행** | Nav2 RPP + explore_lite | **통합 완료** | 프론티어 자동 감지 및 NavigateToPose 액션 연동 자율 탐색 완주 |
+| **SLAM 지도 작성** | SLAM Toolbox 온라인 비동기 | 시뮬레이션 통합 완료 / **실차 미해결** | 시뮬레이션: `map -> odom` TF 단일 소유, 점유 격자 확장 검증. 실차: LiDAR 스캔 점 수 불일치로 지도가 갱신되지 않는 문제 확인, 정규화 해결안은 오프라인 검증만 됐고 실차 미적용 (`docs/REAL_ROBOT_STATUS.md`) |
+| **자율 탐색 주행** | Nav2 RPP + explore_lite | 시뮬레이션 통합 완료 / **실차 맵핑 미검증** | 시뮬레이션: 프론티어 자동 감지 및 NavigateToPose 연동 탐색 완주. 실차: 감독 하의 짧은 시행만 있고 정상 맵핑은 확인되지 않음 |
 | **3D 장애물 필터** | DaBai Depth 높이 윈도잉 | **통합 완료** | `limo_depth_obstacles` 패키지. 지상 [0.025, 0.35]m 윈도잉, 0.38초 워치독 |
 | **안전 명령 게이트** | Stall Detector 노드 | **통합 완료** | 후진 차단(`enable_auto_reverse:=false`), 0.38초 센서 단절 제동, 휠 헛돎 감지 |
 | **모터 잠금 격리** | 실물 Launch 안전 격리 | **통합 완료** | `allow_motor_drive:=false` 시 `/cmd_vel` 0건 누출, `/cmd_vel_locked` 전량 라우팅 |
@@ -248,9 +248,9 @@ export LD_LIBRARY_PATH=$PWD/install/robot_localization/lib:/opt/ros/humble/lib:$
 
 ---
 
-### 5.3 현재 실행 가능한 기능 및 명령 (실제 검증 완료)
+### 5.3 주요 실행 명령과 검증 수준
 
-현재 저장소 상태에서 즉시 실행 및 재현이 검증된 주요 런치 및 운영 명령입니다.
+시뮬레이션 명령은 시뮬레이션에서 실행·재현을 확인했다. 실차 명령은 모터 잠금 상태의 토픽 흐름 점검이 목적이며, 실차 자동 맵핑이 정상 동작한다는 뜻이 아니다(`docs/REAL_ROBOT_STATUS.md`).
 
 #### 1) 시뮬레이션 통합 자동 맵핑 실행 (Gazebo Fortress)
 실내 라운지 평가 월드에서 F4 또는 F5_improved 기반으로 explore_lite 자율 탐색 및 맵핑을 구동합니다.
@@ -264,13 +264,16 @@ ros2 launch limo_capstone limo_integrated_auto_mapping_sim.launch.py \
   use_sim_time:=true estimator_type:=f5_improved start_explore:=true depth_mode:=required
 ```
 
-#### 2) 실물 로봇 안전 모의 실행 (모터 잠금 상태)
-실물 센서와 토픽 흐름을 검증하되, 모터 구동 명령을 원천 차단하여 안전하게 점검합니다.
+#### 2) 실물 로봇 모터 잠금 실행
+실물 센서와 토픽 흐름을 점검하되 `/cmd_vel`을 소프트웨어로 막습니다. 모든 Nav2 명령은 `/cmd_vel_raw`로 나가 안전 게이트 하나를 거치며, `allow_motor_drive`가 문자열 `true`일 때만 `/cmd_vel`로 나갑니다. 실차에서는 이 launch로 구동 시험도 했으나(사용자 입회, 느린 프로파일) 범위는 `docs/REAL_ROBOT_STATUS.md`에 한정되어 있습니다.
 ```bash
 ros2 launch limo_capstone limo_integrated_auto_mapping_real.launch.py \
   allow_motor_drive:=false estimator_type:=f4
 ```
-*(※ 모터 드라이버 토픽 `/cmd_vel`은 0건으로 완전 침묵하며, 모든 명령은 `/cmd_vel_locked`로 우회 격리됩니다.)*
+*(※ 잠금 모드에서 `/cmd_vel` 발행자는 0개이며 명령은 `/cmd_vel_locked`로 격리됩니다. 실차에서는 LiDAR가 시작 직후와 정상 상태에서 점 수가 달라 slam_toolbox가 스캔을 거부해 지도가 갱신되지 않는 문제가 확인되었고, 정규화 해결안은 아직 실차 launch에 적용되지 않았습니다.)*
+
+> [!CAUTION]
+> **레거시 launch 사용 금지:** `limo_nav2.launch.py`, `limo_auto_mapping.launch.py`, `limo_nav2_sim.launch.py`, `limo_auto_mapping_sim.launch.py`, `limo_mc3f_sim.launch.py` 등 (Nav2를 띄우는 비통합 launch) `limo_integrated_auto_mapping_*`가 아닌 launch에는 현재 안전 게이트(`/cmd_vel_raw` → `stall_detector_node`)가 적용되어 있지 않습니다. Nav2 출력이 `/cmd_vel`로 직접 나갈 수 있으므로 **실차 자율 주행에 사용하지 마십시오.** (게이트 적용은 구현하지 않았고 경고만 추가한 상태입니다.)
 
 #### 3) RViz2 시각화 설정
 별도 터미널에서 RViz2를 실행하여 점유 격자 지도 및 센서를 확인합니다.
@@ -283,7 +286,7 @@ source /opt/ros/humble/setup.bash && rviz2
 - **3D Depth:** Topic `/depth_obstacles/points` (Reliability: `Reliable`)
 
 #### 4) 안전 래치 확인 및 수동 리셋
-센서 단절이나 정체로 인해 로봇이 멈춘 경우, 센서 복구 후 다음 서비스로 주행을 재개합니다.
+정체(STALL) 래치는 아래 서비스로 운영자가 해제해야 합니다. **실차 launch(`require_operator_unlatch=False`)에서 센서 단절 FAILSAFE는 필요한 입력이 모두 다시 정상이 되고 Nav2 명령이 0 근처(선·각속도 0.02 미만)일 때 운영자 확인 없이 자동으로 NORMAL로 복귀합니다**(코드상 동작이며 실차에서 안전성이 검증되지 않았음). 시뮬레이션 launch는 `require_operator_unlatch=True`라 센서 FAILSAFE도 서비스로 해제합니다.
 ```bash
 # 안전 게이트 텔레메트리 모니터링
 ros2 topic echo /stall_detector/status_json
@@ -593,18 +596,19 @@ Navigation Goal 전송
 
 #### 1) 전 부문 감사 판정 매트릭스
 
-#### 1) 전 부문 감사 판정 매트릭스
-
 | 감사 영역 | 검증 항목 | 합격 기준 | 실제 측정값 | 최종 판정 |
 | :--- | :--- | :--- | :--- | :---: |
 | **Audit 1: 패키지 이식 정합성** | 엔트리포인트 9종, share 디렉터리, experiments 참조 0건, 레거시 파일 보존 | 결함/오류 0건, 레거시 보존 | 엔트리포인트 9종 정상 등록, share 접근 정상, experiments 참조 0건, 원본 6종 100% 보존 | **PASS** |
-| **Audit 2: 실물 구동 안전 게이트** | `allow_motor_drive:=false` 모터 잠금, Nav2 바이패스 차단 | `/cmd_vel` 0건, `/cmd_vel_locked` 라우팅 | `/cmd_vel` 0건 (누출 제로), `/cmd_vel_locked` 160건 전량 라우팅 | **PASS** |
+| **Audit 2: 실물 구동 안전 게이트** | `allow_motor_drive:=false` 모터 잠금, Nav2 바이패스 차단 | `/cmd_vel` 0건, `/cmd_vel_locked` 라우팅 | `/cmd_vel` 0건 (누출 제로), `/cmd_vel_locked` 160건 전량 라우팅 | **PASS** (※ 아래 주의) |
 | **Audit 3: F4 통합 자동 탐색** | 단일 TF 트리, 오도메트리 주기, 지도 확장, rosbag2 기록/재생 | TF 100%, Freq $\ge 8\text{Hz}$, Map 확장, 재생 가능 | TF 단일 소유, Freq 10.0 Hz, Map 격자 확장, 2.509 MB 재생 성공 | **PASS** |
 | **Audit 4: F5 통합 자동 탐색** | 단일 TF 트리, EKF 오도메트리 주기, 지도 확장, rosbag2 기록/재생 | TF 100%, Freq $\ge 40\text{Hz}$, Map 확장, 재생 가능 | TF 단일 소유, Freq 50.0 Hz, Map 격자 확장, 3.267 MB 재생 성공 | **PASS** |
 | **Audit 5A: Depth 차단 (상태 반응성)** | 인공 `DEPTH_STALE` JSON 상태 주입 (Test A) | 반응 $\le 0.05\text{s}$, 정지거리 $< 0.20\text{m}$ | 감지 0.004s, 차단 0.003s, 총변위 0.100m (고장주입~정지), 완전정지 6.455s | **PASS** |
 | **Audit 5B: Depth 차단 (물리 단절)** | 실제 PointCloud2 발행 프로세스 강제 종료 (Test B) | 감지 $0.30\sim0.55\text{s}$, 정지거리 $< 0.20\text{m}$ | 감지 0.421s, 차단 0.421s (PASS) / 정지변위 0.165m (UNVERIFIED) | **PASS (지연시간)** / **UNVERIFIED (제동거리)** |
 | **Audit 6: LiDAR/ICP 고장 차단** | 주행 중 F4 스캔매처 노드 강제 종료 | 감지 $\le 0.55\text{s}$, 차단 $\le 0.58\text{s}$, 정지거리 $< 0.20\text{m}$ | 감지 0.406s, 차단 0.403s, 총변위 0.174m (고장주입~정지), 즉시 제동 | **PASS** |
 | **종합 평가** | 전 7개 세부 감사 기준 충족 | 전 부문 합격 | **기능 동등성 및 지연시간 충족 / 실측 정지거리 UNVERIFIED** | **PASS (기능)** |
+
+> [!WARNING]
+> **11월 8일 감사(위 표)의 한계:** Audit 2 등 안전 게이트 PASS는 당시 launch 구조에서 얻은 값입니다. 그 구조에서는 전역 `cmd_vel` remap 때문에 `velocity_smoother`의 출력이 안전 게이트를 거치지 않고 `/cmd_vel`로 나갈 수 있었고, 이 감사는 주행 없이 유휴 상태에서 `/cmd_vel` 0건을 본 것이어서 그 우회를 검증하지 못했습니다. 11월 10일에 이 배선을 고쳤습니다(`cmd_vel_smoothed`, `behavior_server:cmd_vel` → `/cmd_vel_raw`, 게이트 1개; 기록: `docs/dev_notes/2026_11_10_cmd_vel_안전게이트_경로_점검.md`). 수정 후에는 게이트 단독 시험 86/86과 launch 그래프 확인(`/cmd_vel` 발행자가 게이트 하나)을 했지만, 위 표의 수치(0.421 s 등)를 수정된 배선으로 다시 측정한 것은 아닙니다.
 
 #### 2) Depth 센서 단절 지연 및 제동 거리 정밀 분석 (0.421초 지연 및 0.165m 변위 검증)
 
@@ -656,8 +660,8 @@ t_last = 6.100s (마지막 유효 패킷 타임스탬프)
 > 1. **소프트웨어 차단의 한계:** `allow_motor_drive:=false` 설정은 **ROS 2 소프트웨어 레벨에서 `/cmd_vel`을 차단하고 `/cmd_vel_locked`로 우회 격리**하는 기능입니다. 온보드 PC의 커널 패닉, OS 정지, 전원 차단 시의 하드웨어 페일세이프를 보장하지 못합니다.
 > 2. **종료 수단과 비상 정지 구분:** `Ctrl + C`는 소프트웨어 정상 종료(Graceful Shutdown) 절차이며 비상 정지 장치가 아닙니다.
 > 3. **RC 비상 채널 미검증:** 원격 무선 조종기(RC)의 비상 정지 채널 맵핑 및 실제 하드웨어 수신기 기능은 실측되지 않았으므로 **UNVERIFIED (미검증)** 상태로 유지합니다.
-> 4. **MCU 워치독 및 전압 기준:** 통상 언급되는 STM32 MCU 200ms 통신 타임아웃 및 배터리 12.0V 기준은 현장 경험적 참고치일 뿐 제조사 공식 규격서나 펌웨어 소스 상에서 확인된 값이 아닙니다(**UNVERIFIED**).
-> 5. **실물 자동 주행 승인 조건:** **독립적인 물리적 비상 정지(E-Stop) 장치 및 하위 STM32 MCU 워치독이 무부하 벤치 시험대에서 실측 입증되기 전까지는 실물 로봇의 자율 주행을 승인하지 않습니다 (STRICTLY BLOCKED).** 주행 중 임의 케이블 강제 분리 시험은 엄격히 금지합니다.
+> 4. **MCU 워치독 및 전압 기준:** 바퀴를 띄운 무부하 벤치(0.10 m/s 직진)에서 `/cmd_vel` 발행이 끊긴 뒤 속도가 0이 되기까지 약 0.37~0.38 s(3회, `/odom` 기준)를 측정했고, `limo_base`를 SIGINT/SIGKILL로 종료해도 육안 1초 이내에 멈췄습니다(영상·타임스탬프 없음). 그러나 제조사 규격서·펌웨어로 확인한 값이 아니며 지상 주행·고속·회전 조건은 측정하지 않았습니다. 배터리 12.0V 기준도 현장 참고치입니다(**제한적 실측, 규격 UNVERIFIED**).
+> 5. **실물 자동 주행 승인 조건:** 독립적인 물리적 비상 정지(E-Stop) 검증은 아직 없습니다. 실차 구동은 사용자가 입회하고 전원 스위치에 손을 둔 상태에서 단계별 승인을 받은 감독 시험에 한정했으며, 무인·장시간 자율 주행은 승인되지 않았습니다. 주행 중 임의 케이블 강제 분리 시험은 엄격히 금지합니다.
 
 ---
 
@@ -704,6 +708,12 @@ t_last = 6.100s (마지막 유효 패킷 타임스탬프)
 - **[experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_FINAL_REGRESSION_REPORT.md](experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_FINAL_REGRESSION_REPORT.md)**: 메인 워크스페이스 패키지 이식 최종 회귀 검증 보고서 (7개 부문 실측 데이터 및 판정 수록)
 - **[experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_PORTING_AND_INTEGRATION_REPORT.md](experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_PORTING_AND_INTEGRATION_REPORT.md)**: 메인 워크스페이스 패키지 이식 및 인터페이스 구현 보고서
 - **[experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_PORTING_AND_INTEGRATION_PLAN.md](experiments/limo_integrated_auto_mapping_20261108/docs/LIMO_PRO_WORKSPACE_PORTING_AND_INTEGRATION_PLAN.md)**: 메인 워크스페이스 패키지 이식 및 인터페이스 설계서
+
+### 검증 현황 · 설정 · 설계
+- **[docs/REAL_ROBOT_STATUS.md](docs/REAL_ROBOT_STATUS.md)**: 실차 검증 / 시뮬레이션 검증 / 오프라인 검증 / 제안의 구분
+- **[docs/CONFIG_SIM_VS_REAL.md](docs/CONFIG_SIM_VS_REAL.md)**: 시뮬레이션 기준선과 실차 설정의 파일·값 차이
+- **[docs/design/AUTONOMOUS_DRIVING_DESIGN.md](docs/design/AUTONOMOUS_DRIVING_DESIGN.md)**: 자율주행 설계 합의 기록(대부분 제안 단계)
+- **[docs/dev_notes/2026_11_10_cmd_vel_안전게이트_경로_점검.md](docs/dev_notes/2026_11_10_cmd_vel_안전게이트_경로_점검.md)**: cmd_vel 안전 게이트 경로 점검
 
 ### 기존 핵심 기술 및 문제 해결 기록
 - **[docs/troubleshooting.md](docs/troubleshooting.md)**: 7단계 표준 형식으로 작성된 핵심 트러블슈팅 7선 가이드
@@ -796,5 +806,5 @@ Navigation2 (완료)
 | **6** | **센서 및 TF 단일 소유** | `/scan` (10Hz), `/imu` (50Hz), `map->odom->base_footprint->base_link` 점검 | [ ] 확인 |
 | **7** | **Depth 장애물 필터** | DaBai Depth 카메라 구동 후 `/depth_obstacles/points` 토픽 확인 | [ ] 확인 |
 | **8** | **안전 게이트 텔레메트리** | `/stall_detector/status_json`에서 `state: "NORMAL"`, `allow_motor_drive: false` 확인 | [ ] 확인 |
-| **9** | **STM32 워치독 벤치 점검** | 무부하 회전 중 통신 단절 시 모터 정지 확인 (200ms 기준은 펌웨어 미검증 참고치, **케이블 강제 분리 금지**) | [ ] 확인 |
-| **10** | **실차 주행 승인 조건** | **독립 물리 E-Stop 및 MCU 워치독이 벤치에서 입증될 때까지 실물 자동 주행 엄격 금지 (STRICTLY BLOCKED)** | [ ] BLOCKED |
+| **9** | **STM32 워치독 벤치 점검** | 무부하 상태에서 명령 중단 시 모터 정지 확인 (2026-11-11 벤치 측정값 약 0.4 s는 펌웨어 미검증, **케이블 강제 분리 금지**) | [ ] 확인 |
+| **10** | **실차 주행 승인 조건** | **물리 E-Stop 검증 전에는 감독 입회 없는 실물 자율 주행 금지. 구동은 단계별 사용자 승인 후에만** | [ ] BLOCKED |

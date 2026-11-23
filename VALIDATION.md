@@ -973,3 +973,114 @@ Workspace runtime 검증: 실제 loopback Lease→Drawer 확인→POST missions 
 | `colcon build --packages-select limo_robot_agent` | PASS (경고: byte-compiling 비활성만) |
 | 설치 진입점 / 모듈 import | `robot_agent`·`mock_robot`·`motion_watchdog` / 실패 0 |
 | 미실시 | rosdep install(미초기화), 로봇 ROS 환경 확인, Agent 실행·시험 재실행, 배포 |
+
+## G2 병합 (2026-11-23): origin/main `ea2d9632` 판의 이 문서에만 있던 줄
+> 통합 브랜치(v5b) 판을 기준으로 두고, origin/main 판에만 있던 줄을 원래 순서대로 아래에 보존한다. 날짜가 이른 기록(11-14~11-18)이며 위 본문의 최신 상태와 다르면 위 본문이 우선한다. 원문: `git show ea2d9632:VALIDATION.md`.
+
+| `final4` | 2026-11-13 | Gazebo + YOLO | `419e798` + 로컬 `Capstone1_limo_integrated_sim` | `fleet_control/integrated_sim/RESULTS.md` (`29818e8` / `ed53d81` / PR #9 `b350efa`, 12/13 PASS; 풀스택 재실행 미검증) | `$HOME/.local/share/robot-sim-projects/limo_integrated_sim/runs/` | 업로드 예정 (`02_GAZEBO_SIM/...`) | 미등록 |
+## 4. PR #9 · PR #10 병합 기준 검증 및 미검증 구분 (`origin/main` `a8132c7`)
+| 구분 | 대상 | 결과 | 실행 환경 / 한계 |
+| **PASS** | `fleet_control/tests/run_checks.py` | **46/46 PASS** | PR #9(`dab07d1`) `git archive` 격리 + 호스트 ROS 2 Humble mock Nav2 |
+| **PASS** | `fleet_control` 단위·JS 시험 | `test_ownership` 37/37, `test_recovery` 14/14, `test_dedupe` 14/14, `test_agent_recovery` 2/2, `test_sim_motor_policy` 12/12, `test_auth_reload` 2/2, `test_cancel_results` 14/14, `test_runner_policy` 33/33, `test_visualization` 31/31, JS 3종 PASS | `git archive` 격리 검증 (`test_cancel_results`는 호스트 `rclpy`) |
+| **PASS** | `run_recorder.py` 경로 정책 (PR #10) | 합성 시험 **16/16 PASS** | `f63688e` 격리 검증 (신규 clone `local_data/` 미존재, `--dry-run`, 저장소 밖 fallback 포함) |
+| **이전 기준선** | `run_gazebo_checks.py` | 이전 **69/69 PASS** | PR #9 격리 검증에서는 Ignition Gazebo / `$HOME/rmf_isolated` 미비로 미재실행 |
+| **부분 검증** | `run_rmf_checks.py` | **47/51** | §7 타이밍 레이스 기존 한계, PR #9 격리 검증 미재실행 |
+| **미검증** | `dashboard_lab/tests/test_lab.py` | **미검증** | `aiohttp` 의존성 부재 |
+| **미검증** | `integrated_sim` 풀스택, GPU Video AI 실환경, LIMO 실차 안전·주행 전체, 실제 `rosbag2` 기록 | **미검증** | 실환경/실차 감독 시험 및 별도 GPU 런타임 필요 |
+## 2026-11-18 Depth TF와 잠금 수동 입력
+실차 비주행 관측에서 촬영 시각 TF 대기 전후 오류 상태 표본은 214/270과 38/5,976이었다. 이후 wheel odometry 중단으로 Gate FAILSAFE가 발생했다. 2026-11-18 로컬 격리 시험에서 수동 잠금 프로파일은 Nav2 속도 출력 4개를 별도 토픽으로 격리했다. 실차 웹 수동 주행 및 AUTO E2E는 미검증이다.
+2026-11-18 선택 통합에서 Frontier Coordinator의 단일 Goal·취소·결과 소유권 시험 4개를 실행했다. 실제 로봇과 Gazebo 재시험은 수행하지 않았다. Nav2 map saver의 trinary UNKNOWN 픽셀 보존을 위해 기존 실험 관리자의 자유공간 임계값을 0.196으로 지정했으며, 당시에는 이 경로의 원점 정밀도 및 동일 스냅샷 정합성이 미검증이었다.
+## 2026-11-18 선택 통합: 고정 지도 스냅샷
+격리 ROS 2 Humble에서 합성 trinary 3×2 지도를 실제 Nav2 map_saver_cli로 저장하고 map_server에서 재로드했다. UNKNOWN/FREE/OCCUPIED 각 2셀, 전체 6셀, 크기·해상도·원점 x/y/yaw가 일치했다. `capstone_ws/src/limo_capstone/tests/map_roundtrip_ros.py`로 재현한다. posegraph는 별도 서비스 요청으로 직렬화하므로 지도와 동일한 시각의 상태라고 보장하지 않는다. 실차 및 실제 posegraph 재로드는 이번 통합에서 SKIP이다. 전체 의존 패키지 빌드는 ydlidar_sdk 미설치로 실패했다.
+### 2026-11-18 비실차 마무리
+- 격리 ROS 2 Humble Mock Nav2에서 실제 `explore_lite`를 빌드·실행했다. 외부 Goal 진행 중 Explorer 제출 0건, 일시 정지 시 Explorer UUID에만 취소 1건, 취소 ACK 후 추가 Goal 0건, 두 Goal의 terminal 이후 새 Frontier 제출을 확인했다. Fleet Adapter의 활성·복수·미확인 상태 거부와 기존 취소/복구 회귀 등 21개 시험 및 3개 하위 케이스가 통과했다. Fleet Lease·RMF 중재·재시작 복구 회귀는 37/37 통과했다.
+- 헤드리스 Chrome에서 합성 ROS 지도·Depth와 별도 viewer 인증을 사용한 모의 RGB 호스트의 JPEG가 함께 표시됐다. RGB 호스트 중단 시 Depth는 유지됐고 Depth ROS 소스 중단 시 오래됨 표시로 전환됐다. 대시보드 Python 32개와 JavaScript 2개 시험이 통과했다.
+- 기존 현장 번들의 정책 17개 및 실행 없는 launch 검사 22개가 통과했다. 격리 Nav2 지도 저장·재로드 6셀과 원점·해상도 일치. 합성 bag은 SIGINT 종료 후 `ros2 bag info`에서 28개 메시지(지도 9, Depth 19)를 확인했다. 합성 LaserScan으로 SLAM Toolbox posegraph와 data를 직렬화하고, 별도 SLAM 프로세스에서 두 파일을 읽었다. 현장 번들 전체 실행 및 실차 모터·Gate·센서 시험은 SKIP이다.
+### 2026-11-18 웹 Gamepad 모의 입력과 속도 선택
+- 별도 Fleet Server, ROS Agent, Mock Nav2 Action Server, 헤드리스 Chrome에서 Gamepad 객체를 주입했다. 비기본 축 5·3 및 버튼 7, 반전, 전진·제자리 회전·후진 차단, Deadman 해제, 타임스탬프 정지, 장치 끊김, 브라우저 종료, Lease 반환, 재전송·만료 및 Agent 새 boot ID의 영속도 초기화를 확인했다. 실행 중 /cmd_vel과 /cmd_vel_raw 발행자 수는 각각 0이었다. 기존 Agent의 SIGTERM 종료 대기 실패는 보존했으며 SIGINT 종료를 사용했다.
+- 격리 ROS의 별도 mock nav/manual 입력을 동시에 공급해 단일 선택, terminal 증거 없는 수동 입력 차단, 입력 만료 영속도를 확인했다. Agent/Goal/조이스틱 단위시험 28개(하위 케이스 6개)와 Fleet Lease 기존 회귀 37개가 통과했다.
+- 영상 E2E에서 합성 ROS 지도·Depth와 별도 인증 모의 RGB가 동시에 나왔고 입력 중단 표시를 다시 확인했다. 실물 USB Gamepad·Gate 속도 라우팅·실차 구동은 SKIP이다.
+### 2026-11-18 Mapping Session 및 관제 정리
+- Chrome + Fleet HTTP/SQLite + ROS Mock Nav2로 두 모의 로봇을 사용했다. 첫 Agent의 입력을 끊고 영속도·Nav2 유휴 상태를 확인한 뒤 Lease를 반환하고 둘째 로봇을 선택했다.
+- 둘째 로봇의 mock worker로 START/PAUSE/SAVE/RESUME/STOP 및 독립 Bag을 검증했다. YAML/PGM 성공과 posegraph 실패를 UI에서 구분했다. SQLite 단위시험에서 저장 중 worker 연결 유실, Goal 종료 불명, Agent boot 변경, 명령 재전송을 검증했다. 이번 시험에서 실제 Frontier·SLAM·bag 프로세스를 실행하는 시험은 수행하지 않았다.
+- 장치 프로필 저장, 짧은 조합, 긴 버튼 입력, Deadman 중복 차단을 Chrome 합성 Gamepad에서 확인했다. 읽기 전용 관제의 RGB 단절·지도/Depth 유지 E2E를 재실행했다.
+- 기존 현장 런치의 모터 잠금·Gate·Frontier 비활성 기본값 등 정적 검사 22/22 통과. 실물 Gamepad와 실차는 SKIP.
+### 2026-11-18 4차 선택 통합 재검증
+- **격리 ROS PASS** — `explore_lite_msgs`, `explore_lite`, `limo_robot_agent` 빌드. Mock Nav2에서 외부 Goal 차단, 자기 UUID만 취소, ACK 이후 terminal 대기, 종료 후 다음 Frontier 제출을 재확인했다. 별도 속도 입력 선택과 만료 시험은 베이스 속도 발행을 사용하지 않았다.
+- **Mock Fleet·브라우저 PASS** — Agent/Mapping/Bag/Gamepad 32개 및 하위 케이스 6개, Fleet Lease·복구 37/37, 시각화 Python 32개·JavaScript 2개. Chrome에서 두 로봇의 제어권 전환, 모의 Mapping·Bag, Gamepad 버튼과 지도·RGB·Depth 및 영상 연결 장애를 재확인했다.
+- **현장 번들 정적 검사 PASS 22/22** — 기존 런치 구성을 검사했다. **SKIP** — 전체 Gazebo 재실행, 실제 USB 조이스틱, 실제 Mapping·Bag Worker, 실차. 모의 worker 결과는 실제 SLAM·rosbag 프로세스 검증과 구분한다.
+### Phase 3A 격리 rosbag Worker 부분 검증
+Fleet 웹 Bag START/STOP → 격리 모드 Agent → 실제 rosbag2를 실행했다. Recorder의 /map 구독을 확인한 뒤 RECORDING으로 보고했고, SIGINT 종료 후 metadata 및 `ros2 bag info`에서 /map 6개 메시지를 확인했다. 원본 합성 발행자를 종료하고 `ros2 bag play`의 /map을 별도 구독했다. 다른 세션·epoch·robot 차단과 중복 START, 미확정 상태 차단은 단위시험으로만 확인했다. Agent/Server 실제 재시작, 통신 단절, 프로세스 강제 종료 및 별도 recorder 보호의 전체 E2E는 미검증이다.
+### Phase 3A 장애 주입 부분 결과
+격리 ROS에서 독립 recorder 2개를 실행해 다른 session STOP 거부, 한 recorder 정상 종료 중 다른 recorder 생존을 확인했다. 별도 실행에서 recorder SIGKILL과 metadata 미생성 시 성공 판정이 거부됐다. 정상 웹 기록·재생을 수정 후 재실행했다. Agent/Mapping/Gamepad/Goal 36개와 하위 6개, Fleet Lease·Recovery 37개, Agent 빌드가 통과했다.
+Agent·Server 실제 재시작, 네트워크 단절·복구, SIGINT 지연 및 SIGTERM/SIGKILL 단계, 재전송 전체 HTTP E2E, 부분 metadata와 강제 종료 후 복구는 아직 실행하지 않았다. 기존 자원 보호 상한은 Worker 실행 중 검사하며 Agent 프로세스 자체가 강제 종료된 후 recorder가 살아남을 경우 독립 watchdog이 없어 이 한도는 보장되지 않는다. 전체 Phase 3A는 미완료다.
+전체 기능 구현 우선 작업에서 Bag opt-in 기동을 안전상 차단한 뒤 Agent 관련 핵심 시험 36개(하위 6개), Mock Nav2 소유 Goal 취소, Agent 빌드를 실행했다. 독립 Supervisor·실제 Mapping·속도 중재 E2E 및 실차 검증은 미실행이다.
+### 전체 기능 구현 우선 단계의 최소 검증
+- **빌드 PASS** — ROS 2 Humble에서 `explore_lite_msgs`, `explore_lite`, `limo_capstone`, `limo_depth_obstacles`, `limo_robot_agent`, `limo_fleet_bringup` 빌드. 변경된 두 패키지를 재빌드했다.
+- **핵심 PASS** — 단위·로컬 HTTP 시험 68개와 하위 6개, Fleet Lease·소유권 회귀 37/37, 명령 중복 방지 14/14. Mock Nav2에서 기존 Frontier의 소유 UUID 취소와 terminal 대기 3건, 단위시험에서 Fleet·Frontier 최초 슬롯 경쟁을 확인했다.
+- **Bag PASS** — 격리 API에서 실제 rosbag2 START/STOP과 metadata 검사. 실제 Linux Supervisor의 테스트 recorder를 사용해 Agent SIGKILL 뒤 자기 recorder 종료·UNKNOWN·다른 recorder 생존을 확인했다. 실제 rosbag2 장애 주입 매트릭스는 대기다.
+- **격리 ROS 정상 경로 PASS** — 합성 센서, 실제 SLAM/Frontier/Nav2로 START·PAUSE·SAVE·RESUME·STOP, 소유 Goal UUID의 CANCELED, YAML·PGM·posegraph·data 생성, 로봇별 지도 PNG와 RGB·Depth JPEG API를 확인했다. posegraph 응답 유실 주입에서 YAML·PGM 증거와 UNKNOWN이 보존됐다.
+- **잠금 속도 체인 PASS** — 실제 Smoother와 Gate가 있는 격리 그래프에서 AUTO와 MANUAL 입력을 선택했다. MANUAL 샘플 만료 후 영속도와 `/cmd_vel_locked` 상태를 확인했다. 한 회차에서 Nav2가 하위 FollowPath의 halt 응답 지연을 기록했다. 상위 Goal CANCELED와 후속 FollowPath 취소가 확인됐으며 반복 전환에서 하위 Action 종료 순서를 추가 확인한다.
+- **종료 PASS** — 앞선 하네스 실행에서 남은 조회용 Agent의 SIGTERM 처리를 수정했다. 새 실행은 전체 정상 경로와 MANUAL 타임아웃을 완료하고, SIGTERM으로 하네스와 소유 프로세스를 정리했다.
+- **문법 및 공백 PASS** — Python, JavaScript, Bash, `git diff --check`.
+- **SKIP / 최종 통합 대기** — systemd 서비스 호스트 시험, 실제 rosbag2 강제 종료·한도·복구 매트릭스, 실제 두 제출자의 타이밍 반복, 실제 Agent/Server 재시작 조합, 브라우저·실물 Gamepad, Gazebo 장애물 회피, 저장 지도·posegraph 재로드, 실차. 실행 절차와 PASS 조건은 [격리 통합 시험](fleet_control/docs/ISOLATED_E2E.md)을 따른다.
+### 2026-11-18 A–E 잠금 통합 검증 캠페인
+A–E 미커밋 스냅샷을 통합 HEAD `8b03e0f` 및 패치 해시로 고정했다. 아래 결과는 이번 캠페인의 새 증거다. 선행 빌드·Lease·Journal 회귀 기록을 재사용했다.
+| 범위 | 결과 |
+| A · 실제 Bag 장애 | **PASS**. Agent·Supervisor·recorder SIGKILL, Fleet 중단 및 같은 DB 재시작, Lease 만료에서 소유 recorder 종료와 다른 recorder 생존을 확인했다. Fleet는 UNKNOWN을 유지하고 START 재실행을 거부했다. Supervisor 강제 종료 후 세션 저널이 SPAWNED에 머무는 결함을 수정해 UNKNOWN을 재확인했다. 실제 recorder를 사용한 낮은 시간·용량 한계와 디스크 부족 신호 주입도 PASS. 운영 상한의 장시간 소크와 실제 파일시스템 고갈 시험은 SKIP. |
+| B · Mapping 및 저장 | **PASS**. Chrome에서 START·PAUSE·SAVE·RESUME·STOP, 소유 Goal UUID CANCELED, YAML·PGM·posegraph 생성. Gazebo 저장 기준선의 미관측 픽셀 11,210개가 Map Server에서 자유 공간으로 로드되는 결함을 재현했다. free threshold를 0.196으로 바꾼 뒤 같은 Bag 입력으로 11,210개 모두 미관측 보존을 확인했다. 원본 posegraph 재로드로 115×109 지도를 재생성했다. |
+| C · Goal 및 전환 | **PASS**. 실제 DDS ActionServer에 동시 제출한 Fleet·Frontier 중 한 Goal만 수락됐고, 타 소스 취소는 거부됐다. 소유 UUID만 CANCELED. Gazebo에서 상위 NavigateToPose보다 하위 FollowPath 종료가 늦는 순서를 관측해 격리 PAUSE·STOP과 MANUAL 진입에 FollowPath 종결 조건을 추가했다. 활성 목표 중 수동 요청 거부, 종료 후 브라우저 MANUAL 선택, Deadman 해제 후 영속도, 모터 잠금을 확인했다. |
+| D · 브라우저 | **PASS**. 실제 Chrome에서 인증, Lease, 지도·RGB·Depth, Mapping·Bag 버튼과 완료 상태를 확인했다. 합성 Gamepad로 보정 프로필 저장, 버튼 조합 실행, Deadman 해제, 두 번째 로봇 전환 시 이전 영상과 Lease 정리를 확인했다. 실물 Gamepad는 SKIP. |
+| E · Gazebo 및 Launch | **PASS**. Gazebo Fortress의 360빔 LiDAR와 odom을 격리 잠금 Bringup에 연결했다. 실제 SLAM·Frontier와 Bag 실행, Nav2의 장애물 우회 경로 120점 및 장애물 x 구간의 횡방향 오프셋 최소 약 0.85 m를 확인했다. `/cmd_vel` publisher와 subscriber는 모두 0이었다. Gazebo 차체의 폐루프 주행 및 실차는 SKIP. |
+브라우저 하네스 조기 종료 시 lifecycle 노드가 남아 DDS Action publisher 수가 일시적으로 늘어나는 결함을 확인했다. 하네스가 자신이 시작한 세션 그룹을 정리하도록 수정하고 새 도메인에서 재검증했다. 변경 패키지 빌드, FollowPath 입장·철회 단위시험, 문법 및 공백 검사를 실행했다.
+### 최종 코드 리뷰 보완
+FollowPath의 이전 목표 terminal 상태가 다음 목표의 종료 증거로 재사용될 수 있어 Frontier 제출 때 증거를 초기화하고 이후 활성 상태 관측과 terminal을 요구한다. 관측을 놓치면 UNKNOWN으로 차단한다. 이 변경에 대한 목표·수동 전환 단위시험 26개와 하위 6개가 PASS했다. 기존 캠페인은 수정 전 코드에 대한 결과다.
+
+## 2026-11-23 (32) 로컬 통합 브랜치 (Claude)
+| 항목 | 결과 |
+|---|---|
+| 커밋 4개 파일 수·해시·Tailnet 치환 | R1 43, R2 4, R3 5, 문서 8 — 예상 목록 일치, 트리 내 Tailnet 0, 토큰 0 |
+
+## 2026-11-23 (33) G2 통합 검증 (G2 worktree; 오프라인; 실차·18190 없음; 기록 `real_limo_integ_claude_20261122/g2_01/`)
+| 시험 | 결과 |
+|---|---|
+| R1·Mapping STOP·G2 신규·main mapping/bag (평문 17 모듈) | 210 실행, 2 FAIL(main `test_mapping_session` 설계 차이), 7 SKIP |
+| `test_g2_frontier_authority_20261123` | 10/10 (수정 전 v5b 트리: 하위 포함 20 실패) |
+| `test_g2_bag_operation_20261123` | 6/6 |
+| 루프백 E2E·Recovery·Admission·SIGKILL / Dedupe / Ownership | 36/36 / 14/14 / 45/45 |
+| R2 Watchdog (격리 ROS, domain 218) | 66/66 |
+| 격리 ROS 3 | 3/3 |
+| R3 (ROS source, 일반 사용자) | 11/11 (`unshare -Urn` 안에서는 test_05 FAIL: root라 chmod 차단 무효, 환경) |
+| Gate reset worker / Arbiter 세대 / locked Arbiter | 11 / 14 / 3 |
+| `test_g2_bringup_chain_20261123` (ROS launch) | 3/3 (main bringup: 실패 — smoother → `/cmd_vel_raw` 직결) |
+| colcon `limo_robot_agent`·`limo_fleet_bringup`·`limo_capstone` | PASS |
+| main `test_cancel_results` (ROS) / `test_locked_velocity` / `test_web_gamepad_bench` | 11/17 / FAIL / ImportError — v5b API로 대체됨, 결정 필요 |
+| 전체 discover (평문) | 1016 실행, 4 FAIL, 36 ERROR, 33 SKIP — **PASS 아님**; R1.4.6 기준 대비 새 실패 이름 5개(위 main 시험 4 + worktree에 미추적 experiments 없음 1) |
+| 미실시 | bringup 실제 launch·Nav2·DDS 결합, 웹 UI 브라우저 확인, 실차 |
+
+## 2026-11-23 (34) G2 조정 검증 (G2 worktree; 오프라인; 기록 `g2_01/p5_*`, `p6_*`)
+| 시험 | 결과 |
+|---|---|
+| R1·Mapping STOP·G2(Frontier 10, Bag 6, UNKNOWN 8, Cancel 이식 1)·main mapping/bag/agent recovery (평문 19 모듈) | 219 실행, 0 FAIL, 7 SKIP |
+| 수정 전 트리의 UNKNOWN·main mapping 시험 | 5건 FAIL·ERROR (수정 후 PASS) |
+| main `test_cancel_results` (ROS) | 17/17; 경합 2개 30회 반복 PASS |
+| Nav2 publisher 2개 probe | 수정 전 goal 1건 전송 → 수정 후 REJECTED |
+| 루프백 36 / Dedupe 14 / Ownership 45 | PASS |
+| R2 66 (격리 ROS) / R3 11 (일반 사용자) | PASS |
+| 격리 ROS 3 | 모듈별 프로세스·domain: 각 PASS(late goal 3회). 한 프로세스에서 이어 실행하면 late goal FAIL — 앞 시험의 action 서버가 DDS 그래프에 남아 publisher 2개, 새 규칙의 정상 거부(환경) |
+| Gate reset·Arbiter 세대·locked Arbiter·bringup 체인 | 31 PASS, 2 SKIP(ROS launch 시험 중 limo_capstone share 없음) |
+| 전체 discover (평문) | 1025 실행, 2 FAIL, 36 ERROR, 33 SKIP — **PASS 아님**. R1.4.6 기준 대비 새 이름 3개: `test_locked_velocity`·`test_web_gamepad_bench`(main 프로토콜, 미해결), `test_map_registry` 1개(worktree에 미추적 experiments 없음, 환경) |
+
+## 2026-11-23 (35) 현장 준비 검증 (G2 worktree; 오프라인; 기록 `field_ready_01/`)
+| 시험 | 결과 |
+|---|---|
+| 계약·Mapping·Bag·Frontier·UNKNOWN·Cancel·bench·atomic swap·preflight (평문 25 모듈) | 271 실행, 0 FAIL, 7 SKIP |
+| 루프백 36 / Dedupe 14 / Ownership 45 | PASS |
+| R2 66 / R3 11 / 격리 ROS 3(모듈별) / bench·Cancel 28 / Gate reset·Arbiter·bringup 31 | PASS (R3·R2·Agent 종료 시험은 E2E 스택이 떠 있으면 프로세스 검사로 실패 — 정지 후 PASS) |
+| 안전 체인 프로브 `probe_field_chain` (격리 ROS, `--faults`) | 20/20 |
+| 웹 UI(브라우저, 격리 서버): 콘솔 로드, Field Ops 탭, Lease, Mapping START·PAUSE·SAVE | 동작; 패널 전역 함수 3개 누락 발견→수정 |
+| 모드 E2E / 저장 지도 E2E / supervisor E2E | 17/20 / 14/18 / 7 PASS 1 SKIP |
+| 원자 교체 리허설(v5b↔G2, colcon, 롤백) | 양방향 FILES.sha256 일치 |
+| 미실시·미해결 | 안내·순찰 UI E2E(Playwright 없음), Nav2 유효 목표 성공(n03)·Agent 강제 종료 후 복구(f08)·Gate 입력 우회(g01~g03·f07b), 실차 전부 |
+
+| (36) Gate 입력 출처 검증(격리 ROS) | Gate 단위 24 OK; 체인 프로브 27/27, 27/27, 29/29(+플레이크 1회 23/28); g01/g02/f07b FAIL→PASS; g03 실행 불가; 정지 0.045 s; 실차 미검증 |

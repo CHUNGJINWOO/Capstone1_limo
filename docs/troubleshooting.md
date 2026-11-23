@@ -58,8 +58,8 @@
 - **남아 있는 한계:** 하드웨어 전원부의 물리적 한계이므로, 장시간 연속 주행 시 배터리 모니터링 노드를 통한 소프트웨어적 안전 복귀(Return to Base) 로직 추가 필요.
 
 ### 7. 관련 파일
-- [`src/limo_ros2/limo_base/src/limo_driver.cpp`](../src/limo_ros2/limo_base/src/limo_driver.cpp)
-- [`src/limo_ros2/limo_base/launch/limo_base.launch.py`](../src/limo_ros2/limo_base/launch/limo_base.launch.py)
+- `src/limo_ros2/limo_base/src/limo_driver.cpp` (저장소에 포함되지 않은 경로: `../src/limo_ros2/limo_base/src/limo_driver.cpp`)
+- `src/limo_ros2/limo_base/launch/limo_base.launch.py` (저장소에 포함되지 않은 경로: `../src/limo_ros2/limo_base/launch/limo_base.launch.py`)
 
 ---
 

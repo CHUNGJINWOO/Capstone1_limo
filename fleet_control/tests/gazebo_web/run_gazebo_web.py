@@ -223,7 +223,7 @@ class Manual:
 
     def sample(self, deadman=None, session=None, seq=None):
         self.seq += 1
-        return OP.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'epoch': EPOCH[0], 'session_id': session or self.session,
+        return OP.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'input_format': 'normalized_axes_v1', 'epoch': EPOCH[0], 'session_id': session or self.session,
                                                        'seq': seq or self.seq, 'linear': self.lin, 'turn': self.turn,
                                                        'deadman': self.deadman if deadman is None else deadman})
 

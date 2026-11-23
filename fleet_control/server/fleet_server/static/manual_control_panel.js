@@ -176,7 +176,7 @@
       view(sample);
       if (s.busy) return;
       s.busy = true;
-      try { await post(s.path, { action:'sample', epoch:s.epoch, session_id:s.id, seq:++s.seq, ...sample }); }
+      try { await post(s.path, { action:'sample', epoch:s.epoch, session_id:s.id, input_format:'normalized_axes_v1', seq:++s.seq, ...sample }); }
       catch (e) { if (session === s) stop(`입력 만료 / 연결 오류: ${e.message}`); }
       finally { s.busy = false; }
     }

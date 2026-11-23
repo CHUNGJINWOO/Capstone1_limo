@@ -39,7 +39,7 @@ class ManualBenchContract(unittest.TestCase):
     def started(self):
         return self.call(action='start')['session_id']
     def sample(self, sid, seq=1, **overrides):
-        body = {'action': 'sample', 'session_id': sid, 'seq': seq, 'linear': 1., 'turn': -.5, 'deadman': True}
+        body = {'action': 'sample', 'input_format': 'normalized_axes_v1', 'session_id': sid, 'seq': seq, 'linear': 1., 'turn': -.5, 'deadman': True}
         body.update(overrides)
         return self.call(**body)
     def test_lease_owner_and_second_browser(self):

@@ -39,7 +39,7 @@ $('missions').onclick=e=>{const m=state?.mission.missions?.find(m=>m.mission_id=
 function drawVideo(data){const v=data.video||{};const fresh=v.fresh&&v.paired,old=!fresh;const txt=!v.connected?'영상 호스트 연결 실패':v.ai_state==='SENDER_DISCONNECTED'?'송신 연결 끊김':v.ai_state==='NO_SENDER'?'송신 데이터 없음':!v.paired?'프레임 정합 대기':old?'오래된 영상 · 현재 값 아님':'RECEIVING';$('rgb-status').textContent=fresh?'RECEIVING':old?'STALE':'UNAVAILABLE';$('rgb-status').className='badge '+(fresh?'ok':'warn');$('rgb-overlay').hidden=fresh;$('rgb-overlay').querySelector('strong').textContent=txt;$('rgb-image').parentElement.classList.toggle('stale',old);
  const rt=v.robot_telemetry||{},r=v.result;
  $('rgb-metrics').innerHTML=[['수신 FPS',fmt(v.rx_fps), 'fps'],[old?'과거 YOLO 평균':'YOLO 평균',fmt(v.infer_ms_avg),'ms'],[old?'과거 로봇 RTT':'로봇 RTT',fmt(rt.rtt_ms_avg),'ms'],['오래된 결과',fmt(rt.counters?.stale_results_blocked,0),'건']].map(([a,b,c])=>`<div class="metric"><label>${a}</label><strong>${b} <small>${c}</small></strong></div>`).join('');
- $('rgb-warning').textContent=`원본 프레임과 결과 정합 ${v.paired?'확인':'미확인'} · 마지막 프레임 ${fmt(v.last_frame_age_s)}s · 시계 동기화 미검증: 장치 간 단방향 지연은 사용하지 않습니다.`;
+ $('rgb-warning').textContent=`원본 프레임과 결과 정합 ${v.paired?'확인':'미확인'} · 마지막 수신 ${v.last_frame_wall ? new Date(v.last_frame_wall * 1000).toLocaleTimeString() : '-'} · 프레임 나이 ${fmt(v.last_frame_age_s)} s · 시계 동기화 미검증: 장치 간 단방향 지연은 사용하지 않습니다.`;
  if(!fresh)$('detections').innerHTML='<div class="panel-note">현재 검출 결과 없음 · 통신 실패/STALE와 검출 0개는 다릅니다.</div>';
  if(v.frame_id&&videoId!==v.frame_id)loadVideo(v).catch(()=>{});
  else if(fresh&&v.frame_id===videoId)showDetections(r);
@@ -50,7 +50,26 @@ async function loadDepth(meta){if(!meta||meta.stamp_ns===depthStamp)return;const
 function drawDepth(){if(!depth)return;const lo=Number($('depth-min').value),hi=Number($('depth-max').value);if(!(hi>lo&&lo>=0))return;const cv=$('depth');cv.width=depth.width;cv.height=depth.height;const c=cv.getContext('2d'),image=c.createImageData(cv.width,cv.height);for(let i=0;i<depth.values.length;i++)image.data.set(depthColor(depth.values[i],lo,hi),i*4);c.putImageData(image,0,0);$('legend-min').textContent=lo.toFixed(1)+' m';$('legend-max').textContent=hi.toFixed(1)+' m';}
 for(const id of ['depth-min','depth-max'])$(id).onchange=()=>{const valid=Number($('depth-max').value)>Number($('depth-min').value);$(id).setCustomValidity(valid?'':'최대 거리는 최소보다 커야 합니다.');if(valid)drawDepth();else $(id).reportValidity();};
 $('depth').onpointermove=e=>{if(!depth)return;const r=e.currentTarget.getBoundingClientRect(),w=Math.min(r.width,r.height*depth.width/depth.height),h=w*depth.height/depth.width,x=e.clientX-r.left-(r.width-w)/2,y=e.clientY-r.top-(r.height-h)/2;if(x<0||y<0||x>=w||y>=h)return;const u=Math.floor(x/w*depth.width),v=Math.floor(y/h*depth.height),n=depth.values[v*depth.width+u];$('depth-value').textContent=`(${u}, ${v}) · ${Number.isFinite(n)&&n>0?fmt(n,3)+' m':'INVALID'}${lastDepthMeta?.status==='STALE'?' · 과거 프레임':''}`;};
-function drawDepthStatus(data){const d=data.visualization.depth;lastDepthMeta=d;$('depth-status').textContent=d?.status||'UNAVAILABLE';$('depth-status').className='badge '+statusStyle(d?.status);$('depth-overlay').hidden=!!(d&&d.status==='OK');$('depth-overlay').querySelector('strong').textContent=d?d.status==='STALE'?'오래된 Depth · 현재 값 아님':'시각 정합 미확인':'Depth 데이터 미연동';if(d){$('depth-meta').textContent=`${d.encoding} · scale ${d.scale_m} m${d.scale_source?.includes('unverified')?' (가정 배율·거리 정확성 미검증)':''} · ${d.width}×${d.height} (원본 ${d.source_width}×${d.source_height}) · ${d.frame_id} · stamp ${d.stamp_ns} · 유효 ${fmt(d.valid_fraction*100,0)}% · 표시 ${(depthFrames.length/5).toFixed(1)}fps`;loadDepth(d).catch(()=>{$('depth-overlay').hidden=false;$('depth-overlay').querySelector('strong').textContent='Depth 디코딩 실패';});}}
+function drawDepthStatus(data) {
+ const d = data.visualization.depth;
+ lastDepthMeta = d;
+ $('depth-status').textContent = d?.status || 'UNAVAILABLE';
+ $('depth-status').className = 'badge ' + statusStyle(d?.status);
+ $('depth-overlay').hidden = d?.status === 'OK' && depthStamp === d.stamp_ns;
+ const overlay = $('depth-overlay').querySelector('strong');
+ overlay.textContent = !d ? 'Depth 데이터 미연동' : d.status === 'STALE' ? '오래된 Depth · 현재 값 아님'
+   : d.status === 'OK' ? 'Depth 프레임 수신 대기' : '시각 정합 미확인';
+ if (!d) return;
+ while (depthFrames.length && depthFrames[0] < performance.now() - 5000) depthFrames.shift();
+ const received = Number.isFinite(d.receive_age_s)
+   ? new Date((data.server_time - d.receive_age_s) * 1000).toLocaleTimeString() : '-';
+ $('depth-meta').textContent = `${d.encoding} · ${d.width}×${d.height} · ${d.frame_id} · 마지막 수신 ${received} · 수신 후 ${fmt(d.receive_age_s, 2)} s · 브리지에서 프레임 나이 ${fmt(d.source_age_s, 2)} s · 표시 ${(depthFrames.length / 5).toFixed(1)} fps`;
+ loadDepth(d).then(() => {
+   if (lastDepthMeta === d && d.status === 'OK' && depthStamp === d.stamp_ns) $('depth-overlay').hidden = true;
+ }).catch(() => {
+   if (lastDepthMeta === d) overlay.textContent = 'Depth 디코딩 실패';
+ });
+}
 async function refresh(){if(!state||!view)return;const robot=drawStatus(state);await view.setData(state,robot);drawVideo(state);drawDepthStatus(state);}
 async function poll(){if(busy||$('app').hidden)return;busy=true;try{const r=await api('/api/state');if(!r.ok)throw Error('gateway response');state=await r.json();$('app').classList.remove('gateway-offline');await refresh();}catch(e){$('app').classList.add('gateway-offline');$('connection').textContent='GATEWAY OFFLINE';$('connection').className='badge bad';$('source-banner').textContent='연결 끊김 · 모든 화면은 마지막 수신값입니다. 현재 상태로 사용하지 마세요.';for(const name of ['rgb','depth']){$(name+'-overlay').hidden=false;$(name+'-overlay').querySelector('strong').textContent='관제 연결 끊김 · 과거 프레임';$(name+'-status').textContent='STALE';}}finally{busy=false;}}
 setInterval(()=>{if(!$('app').hidden)poll();$('clock').textContent=new Date().toLocaleString('ko-KR');if(view){const now=performance.now(),recent=traffic.filter(([t])=>t>now-5000);while(traffic[0]?.[0]<now-10000)traffic.shift();const p=[...view.renderTimes].sort((a,b)=>a-b),p95=p[Math.floor(p.length*.95)];$('render-metrics').textContent=`Canvas ${(view.renders.length/5).toFixed(1)}fps · render p95 ${fmt(p95,2)}ms · Rx ${(recent.reduce((a,x)=>a+x[1],0)/5000).toFixed(1)} KB/s`; }},500);

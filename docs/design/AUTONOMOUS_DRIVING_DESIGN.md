@@ -3,6 +3,8 @@
 작성일: 2026-11-10 / 문서 범위: 자율주행, 동적 장애물 회피
 상태 표기: **[확인]** 파일·교재에서 직접 확인 / **[제안]** 설계 제안 / **[미확인]** 실행·실측 전이라 단정 불가
 
+> 실차 검증 범위는 `docs/REAL_ROBOT_STATUS.md`, 설정 분리는 `docs/CONFIG_SIM_VS_REAL.md`를 본다. 설계에 적힌 내용은 별도 표기가 없으면 구현·검증된 것이 아니다.
+>
 > 이 문서는 설계 합의 기록이다. 구현·검증된 내용은 각 단계의 합격 기준을 통과한 뒤 `DEVELOPMENT_LOG.md`에 별도로 적는다.
 
 ## 1. 합의한 결정
@@ -99,7 +101,7 @@ python3 run_recorder.py --label corridor_f1b --snapshot-params \
 python3 run_recorder.py --label cable_test --extra /camera/color/image_raw   # 영상은 필요할 때만 지정
 ```
 
-- 저장 위치: `$LIMO_RUNS_DIR` 또는 `~/limo_runs/<시각>_<label>/` (`meta.json`, `params/`, `bag/`, `exit.json`).
+- 저장 위치: `<root>/<시각>_<label>/` (`meta.json`, `params/`, `bag/`, `exit.json`). `<root>`는 다음 순서로 정한다: ① `--root` 인자 → ② `$LIMO_RUNS_DIR` → ③ 프로젝트 저장소(`capstone_ws/src/limo_capstone/`)가 확인되면(`local_data/` 미생성 신규 clone 포함) `<저장소>/local_data/raw_results/limo_runs/` → ④ 그 외(실차 온보드 단독 워크스페이스 등 저장소를 찾지 못한 경우)는 기존 `~/limo_runs/`.
 - 종료: Ctrl+C(SIGINT) 또는 SIGTERM → rosbag2에 SIGINT를 전달해 파일을 정상 마감.
 - 한계: `exit.json`은 **기록기 프로세스**의 종료 사유다. launch/개별 노드의 종료 원인은 ROS logger 로그와 이후 단계(launch `OnProcessExit` 핸들러)에서 다룬다.
 - 토픽 목록은 프로젝트 코드·launch에서 확인한 이름이다. Nav2 costmap 토픽은 표준 이름이므로 `ros2 topic list`로 확인한다.

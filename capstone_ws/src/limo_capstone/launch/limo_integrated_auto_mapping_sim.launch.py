@@ -278,7 +278,8 @@ def generate_launch_description():
     nav2_launch = GroupAction(
         actions=[
             # Every Nav2 velocity command must reach /cmd_vel only through the stall gate:
-            # controller_server -> cmd_vel_nav (Nav2 default) -> velocity_smoother -> /cmd_vel_raw
+            # controller_server -> cmd_vel_nav (Nav2 default) -> velocity_smoother -> /cmd_vel_raw.
+            # (A global 'cmd_vel' remap would also feed the smoother's own input, creating a loop.)
             SetRemap(src='cmd_vel_smoothed', dst='/cmd_vel_raw'),
             # behavior_server (spin/backup/drive_on_heading) publishes 'cmd_vel' directly
             SetRemap(src='behavior_server:cmd_vel', dst='/cmd_vel_raw'),

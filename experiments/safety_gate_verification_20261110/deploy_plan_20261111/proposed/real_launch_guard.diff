@@ -1,5 +1,5 @@
 --- launch/limo_integrated_auto_mapping_real.launch.py	2026-11-11 12:51:43.536937339 +0900
-+++ /home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/real_launch_guard.py	2026-11-11 12:54:33.333119959 +0900
++++ <repo>/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/real_launch_guard.py	2026-11-11 12:54:33.333119959 +0900
 @@ -352,12 +352,13 @@
          "' if '", speed_profile, "' == 'slow' else '", config_nav2_lidar, "')"
      ])

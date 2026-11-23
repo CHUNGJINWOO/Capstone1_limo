@@ -1,11 +1,12 @@
 # integrated_nav2_diff_params.yaml
-# Differential-drive (4WD) variant of integrated_nav2_params.yaml.
-# Only change vs. the Ackermann file: RPP use_rotate_to_heading true
-# (in-place rotation is possible). Spin/BackUp/Wait recoveries come from the
-# default BT (no Ackermann BT is referenced). Everything else is unchanged.
-# integrated_nav2_params.yaml
-# Production Nav2 Configuration for LIMO Pro Integrated Auto-Mapping System
-# Configured for SLAM Toolbox dynamic mapping (/map) + Active State Estimator (odom -> base_footprint)
+# Differential-drive (4WD) SIMULATION variant. The baseline integrated_nav2_params.yaml is NOT modified.
+# Differences vs. integrated_nav2_params.yaml (main baseline), verified with a line diff:
+#   controller (RPP): use_rotate_to_heading true; desired_linear_vel 0.32 (baseline 0.26);
+#     lookahead 0.40/0.20/0.70 s=1.2 (baseline 0.50/0.30/0.80 s=1.5); min_approach_linear_velocity 0.15;
+#     approach_velocity_scaling_dist 0.30; regulated_linear_scaling_min_radius 0.6 / min_speed 0.18;
+#     goal checker xy_goal_tolerance 0.12 (baseline 0.25).
+# Status: simulation only. Not used by any real-robot launch and not verified on the physical LIMO.
+# Real-robot settings live in integrated_nav2_real_depth_params.yaml (see docs/CONFIG_SIM_VS_REAL.md).
 
 bt_navigator:
   ros__parameters:

@@ -117,3 +117,59 @@ flowchart TB
 공개 기준선의 Velocity Arbiter는 잠금 격리 구성에서 Nav2·수동 입력을 선택한다. 후속 로컬 격리 시험은 별도 Motion Watchdog을 사용했다. Nav2 → `/fleet/nav_cmd_vel` → Watchdog → `/cmd_vel_raw` → Safety Gate → 잠금 출력 경로다. Watchdog은 heartbeat·승인·입력 시간 초과와 비유한 속도를 검사하고 외부 Goal에서 정지·취소를 요청한다. Gate는 센서와 속도 경로를 감시한다. 최신 실차 Launch는 Watchdog 미통합 상태다.
 
 Fleet Server가 lease·Safety Context와 임무 상태를 관리한다. Agent가 로컬 journal과 Frontier/Fleet 공유 Goal 슬롯을 관리하고 UUID를 Nav2 결과와 대조한다. Mapping Worker는 자신이 기동한 SLAM·Frontier 프로세스와 세션을 관리한다. Frontier 후보 노드와 직접 제출형 Explore는 별개 경로다. `map→odom`은 SLAM, `odom→base_footprint`는 선택 추정기와 relay가 담당하는 경로가 있다. Scan normalizer·장애물 기억의 패키지 편입, 실차와 Gazebo 진입점 통합, 중복 구현 정리는 제안 상태다.
+
+## G2 병합 (2026-11-23): origin/main `ea2d9632` 판의 이 문서에만 있던 줄
+> 통합 브랜치(v5b) 판을 기준으로 두고, origin/main 판에만 있던 줄을 원래 순서대로 아래에 보존한다. 날짜가 이른 기록(11-14~11-18)이며 위 본문의 최신 상태와 다르면 위 본문이 우선한다. 원문: `git show ea2d9632:ARCHITECTURE.md`.
+
+- **3D Depth 장애물**: Orbbec DaBai `/camera/depth/image_raw`(`16UC1`)를 `limo_depth_obstacles`(`depth_obstacle_filter_node`)가 바닥 제거·높이 필터링 후 `/depth_obstacles/points` 및 `/auto_mapping/depth_status`로 발행합니다.
+## 11-18 기능별 노드와 제어 경계
+기준 소스는 `limo_integrated_auto_mapping_real.launch.py`, `limo_integrated_auto_mapping_sim_diff.launch.py`, `fleet_control/`이다. 현장 번들, 공개 launch, Gazebo r8 시험은 서로 다른 구성이다.
+| 기능 | 실제 패키지와 진입점 | 토픽·Action 및 의존성 | 검증 범위 |
+| 하드웨어·센서 | `limo_base` 드라이버, `ydlidar_ros2_driver/ydlidar.launch.py`, `astra_camera` DaBai launch | USB–UART, /cmd_vel, /odom, /imu, /limo_status, /scan, RGB·Depth·CameraInfo | 기존 실차 잠금 수신. USB–UART 불안정. |
+| Gazebo | `ros_gz_sim/create`, `ros_gz_bridge/parameter_bridge`, `limo_capstone/ground_truth_publisher_node` | 모델, ROS 센서·속도 브리지, /clock, GT | 기존 Gazebo 시험. |
+| 센서 전처리 | `limo_scan_normalizer/scan_normalizer_node`(현장 번들), `limo_depth_obstacles/depth_obstacle_filter_node`, `limo_capstone/sensor_normalizer_node`·`depth_to_pointcloud_fixed_node`(모의) | /scan → /scan_slam, 촬영 시각 TF와 포인트클라우드 → /depth_obstacles/points | 기존 실차·Gazebo 설정별 관측. |
+| 위치·TF | `limo_capstone/complementary_filter_node`, `lidar_scan_matcher_odom_node`, `odom_tf_relay_node`, `robot_localization/ekf_node`, `tf2_ros/static_transform_publisher`, 모의 `robot_state_publisher` | 센서·휠 odom → 추정기 선택 → odom→base. URDF·정적 변환. | 기존 실차·Gazebo 추정기별 기록. |
+| SLAM·탐색 | `slam_toolbox/async_slam_toolbox_node`, `explore_lite/explore`, 독립 후보 `fleet_frontier_candidates` | /scan_slam 및 TF → /map, map→odom, serialize_map. Costmap → Frontier → NavigateToPose. | 기존 실차 Frontier 경로. UUID 취소 수정은 격리 Mock Nav2. |
+| Nav2 | `nav2_bt_navigator/bt_navigator`, `nav2_planner/planner_server`, `nav2_controller/controller_server`, `nav2_behaviors/behavior_server`, `nav2_velocity_smoother/velocity_smoother`, `nav2_lifecycle_manager/lifecycle_manager` | NavigateToPose → 경로·FollowPath. 현장 launch controller → cmd_vel_nav → smoother → /cmd_vel_raw. Behavior 출력도 Gate 입력. Collision Monitor는 해당 프로파일에 위치. | 기존 실차·Gazebo 프로파일별 기록. |
+| Safety Gate | `limo_capstone/stall_detector_node` | 깊이·LiDAR·odom·TF와 /cmd_vel_raw → /cmd_vel_locked 또는 구동 승인 구성의 /cmd_vel. /stall_detector/status_json. | 기존 실차 잠금 및 Gazebo. |
+| Goal 관리·Fleet | `limo_robot_agent/agent_node`, `limo_rmf_adapter`, HTTP `fleet_server` | NavigateToPose와 _action/status, Lease·Journal, RMF principal·idempotency key | 격리 Mock 및 기존 Gazebo SIM. 웹 수동은 발행 없는 모의 입력. |
+| 영상·기록 | `dashboard.bridge_node`, `dashboard.readonly_rgb`, 별도 RGB/AI 호스트, `nav2_map_server/map_saver_cli`, `ros2 bag record` | 읽기 전용 지도·Depth·TF, RGB 인증 전달, YAML/PGM·posegraph·bag | 기존 실차 읽기 전용, 이번 Chrome 합성 ROS·모의 RGB. |
+### 현재 실행 구조
+flowchart LR
+  IO["LIMO 센서 / Gazebo 브리지"] --> Prep["Scan·Depth 전처리"]
+  IO --> TF["Odometry·TF"]
+  Prep --> SLAM["SLAM Toolbox"]
+  TF --> SLAM
+  SLAM --> Nav["공용 Nav2"]
+  Prep --> Nav
+  TF --> Nav
+  Explore["LOCAL_FRONTIER · explore_lite"] -->|NavigateToPose| Nav
+  Agent["Fleet / RMF → Lease·Journal → Agent"] -->|NavigateToPose| Nav
+  Nav --> Smooth["Smoother / 프로파일별 Collision Monitor"]
+  Smooth --> Gate["Safety Gate /cmd_vel_raw"]
+  Nav -->|현장 behavior remap| Gate
+  Gate --> Output["잠금 출력 또는 승인된 베이스 경로"]
+  SLAM --> View["읽기 전용 지도·RGB·Depth"]
+  Prep --> View
+  IO --> RGB["별도 인증 RGB/AI 호스트"] --> View
+  SLAM --> Store["YAML/PGM · posegraph · rosbag"]
+### 제안하는 분리 구조
+flowchart LR
+  Goals["단일 모드의 Goal 제출자"] --> Nav["공용 Nav2"]
+  Nav --> N["Nav 전용 입력 · 기존 Smoother"]
+  Pad["Gamepad"] --> Agent["Fleet Lease · Agent · deadman/만료"]
+  Agent --> M["Manual 전용 입력"]
+  N --> Arb["Velocity Arbiter · 단일 모드 선택"]
+  M --> Arb
+  Nav -. "Goal terminal 확인" .-> Arb
+  Arb --> CM["해당 프로파일의 Collision Monitor"]
+  CM --> Gate["기존 Safety Gate"]
+  Arb -->|Collision Monitor 없는 프로파일| Gate
+  Gate --> Lock["격리 검증에서는 잠금 경로"]
+제안도의 ROS 속도 라우팅은 미구현이다. 이번 모의 제어는 Agent에서 선택된 값을 상태로 보고한다. LOCAL_FRONTIER는 UUID와 현장 run 디렉터리, FLEET_NAVIGATION은 Mission ID와 Agent UUID, RMF_TASK는 RMF principal과 idempotency key로 추적한다. WEB_MANUAL은 Action Goal을 생성하지 않는다. 전용 모드별로 Goal 제출자가 하나라면 별도 Goal Manager를 도입할 필요가 없다. 같은 Nav2에 여러 독립 제출자를 허용하려면 관측 검사에 더해 원자적 소유권 중재가 필요하다.
+### Mapping Session 및 관제 경계
+Perception·Localization·Safety·Bringup의 기존 launch와 패키지 배치를 유지했다. Mapping 명령의 중앙 계약은 `fleet_control/server/fleet_server/mapping.py`에 있고, Navigation의 기존 Mission·Lease·Recovery와 SQLite를 공유한다. 명령과 결과는 별도 Mapping/Bag 저널에 기록한다. 웹 Gamepad는 Teleoperation에서 소유 Lease 동안 모의 입력을 제공한다. Mapping이 STOPPED로 확인되기 전에는 Fleet 목적지 dispatch와 수동 입력을 차단한다. 모드 간 ROS 속도 및 Gate 연결은 기존 분리 제안 범위에 남아 있다.
+브라우저는 목적지 Goal, 영상, Mapping과 Bag을 서로 다른 계약으로 다룬다. 현재 Mapping/Bag 실행 증거는 격리 시험의 mock worker가 보낸다. 설치된 SLAM, Frontier, 저장기 또는 기록기와 연동하려면 실제 worker에서 상태·소유 프로세스·Goal UUID를 관측하고 별도 시험해야 한다. 동시 최초 Goal 제출을 위한 원자적 ROS 중재는 아직 없다.
+### 전체 기능 구현 우선 격리 경로
+`limo_fleet_bringup`은 기존 Perception·Localization·Navigation·Safety 노드 및 Fleet Bridge를 기능별 launch 모듈로 조합한다. Mapping은 Agent가 SLAM Toolbox와 Frontier 후보 프로세스를 소유한다. Fleet Server는 Mapping 명령 저널에 Frontier 슬롯 예약을 같은 Agent boot와 session으로 기록한다. Agent는 Fleet·Frontier 제출을 단일 ROS 작업 큐와 공유 Goal 슬롯으로 중재한다. PAUSE/STOP은 소유 Action 핸들이 반환한 terminal 결과를 기다린다.
+격리 속도 체인은 Nav2의 `/fleet/cmd_vel_nav`와 Lease가 검증된 웹 입력에서 샘플 하나를 골라 Smoother → `/cmd_vel_raw` → 기존 Safety Gate → `/cmd_vel_locked`로 전달한다. Bag recorder는 Agent 밖의 세션 Supervisor가 소유하며 익명 pipe로 Fleet 연결 상태를 갱신한다. 로봇별 RGB·Depth는 Agent에서 읽기 전용으로 수집해 Fleet 관제 화면에 표시한다. 인터페이스와 하네스는 [ISOLATED_E2E.md](fleet_control/docs/ISOLATED_E2E.md)에 정리했다.

@@ -1,5 +1,5 @@
 --- config/integrated_nav2_lidar_only_slow_params.yaml	2026-11-11 16:02:57.212962163 +0900
-+++ /home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/integrated_nav2_lidar_only_slow_params_nobumper_global.yaml	2026-11-11 16:31:20.319325095 +0900
++++ <repo>/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/integrated_nav2_lidar_only_slow_params_nobumper_global.yaml	2026-11-11 16:31:20.319325095 +0900
 @@ -7,6 +7,7 @@
  #   velocity_smoother.max_velocity/min_velocity (new): hard cap on the Nav2 controller output path
  #   general_goal_checker.yaw_goal_tolerance 0.60 -> 0.45 rad (about 34 deg -> 26 deg). 0.30 rad was tried first: it hunted for 21 s with 3 progress-check failures (see DRIVE_TEST_PLAN.md)

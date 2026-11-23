@@ -8,9 +8,11 @@ import os, signal, socket, sys, threading, time, uuid
 
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
+from rclpy.signals import SignalHandlerOptions
 
 from . import core
 from .ros_adapter import RosRobot
+from .manual_web_bench import ManualWebBench
 
 
 def _install_stop_handlers(agent):
@@ -46,9 +48,10 @@ def _install_stop_handlers(agent):
 
 
 def main(args=None):
-    rclpy.init(args=args)
+    rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
     tmp = rclpy.create_node('fleet_agent_params')
-    for n, d in (('server_url', 'http://127.0.0.1:8080'), ('token_file', ''), ('robot_id', 'pcu'), ('mode', 'real'), ('simulated', False), ('allow_missions', False), ('state_dir', os.path.expanduser('~/.local/state/limo_robot_agent')), ('period_s', 1.0), ('allow_sim_safety_gate', False), ('cancel_result_timeout_s', 5.0), ('disconnect_cancel_after_s', 3.0), ('recording_enabled', False), ('recording_root', ''), ('recorder_script', ''), ('verifier_script', '')):
+    for n, d in (('server_url', 'http://127.0.0.1:8080'), ('token_file', ''), ('robot_id', 'pcu'), ('mode', 'real'), ('simulated', False), ('allow_missions', False), ('state_dir', os.path.expanduser('~/.local/state/limo_robot_agent')), ('period_s', 1.0), ('allow_sim_safety_gate', False), ('cancel_result_timeout_s', 5.0), ('disconnect_cancel_after_s', 3.0), ('recording_enabled', False), ('recording_root', ''), ('recorder_script', ''), ('verifier_script', ''),
+                 ('camera_preview', False), ('isolated_ros_bag', False), ('rgb_topic', '/camera/color/image_raw'), ('depth_topic', '/camera/depth/image_raw')):
         tmp.declare_parameter(n, d)
     tmp.declare_parameter('slam_sim_enabled', False)
     tmp.declare_parameter('slam_root', '')
@@ -133,6 +136,12 @@ def main(args=None):
                                 or real_locked_requested or recording_enabled or slam_sim_enabled
                                 or os.environ.get('ROS_LOCALHOST_ONLY') != '1'):
         sys.exit('manual_web_bench requires a local real Agent with motion and recording disabled')
+    bag_enabled = bool(g('isolated_ros_bag'))           # main: operator ROS bag session (BagWorker); one rosbag owner per Agent
+    if bag_enabled and (mode != 'mock' or not sim or allow or recording_enabled or not sys.platform.startswith('linux')
+                        or os.environ.get('ROS_LOCALHOST_ONLY') != '1'):
+        sys.exit('isolated_ros_bag requires mock, simulated, missions disabled, no local recording_session, Linux and ROS_LOCALHOST_ONLY=1')
+    camera_enabled = bool(g('camera_preview'))           # main: read-only RGB/depth JPEG preview (no motion path)
+    rgb_topic, depth_topic = g('rgb_topic'), g('depth_topic')
     tmp.destroy_node()
     from .real_locked_policy import require_available
     try:
@@ -187,13 +196,14 @@ def main(args=None):
     spin_thread.start()
     info = {'agent_version': '0.1.0', 'boot_id': boot_id, 'host': socket.gethostname(), 'mode': mode, 'simulated': sim, 'missions_enabled': allow, 'recording_enabled': recording_enabled,
             'interlocks': ['missions_enabled', 'safety_context_v1', 'safety_gate_contract', 'server_lease', 'nav2_action_server_ready', 'no_publisher_on_/cmd_vel'], 'ros_domain_id': os.environ.get('ROS_DOMAIN_ID')}
+    bagw = None
     agent = core.AgentCore(
         rid,
         server_url,
         token,
-        lambda: dict(robot.snapshot(), map_save=savew.snapshot() if savew else None, mapping_worker=mapping.snapshot() if mapping else {'enabled': False, 'status': 'UNAVAILABLE'}, manual_web_bench=bench.snapshot() if bench else None, gate_reset=gresetw.snapshot() if gresetw else {'enabled': False}, localization=locw.snapshot() if locw else {'enabled': False, 'status': 'UNAVAILABLE'}, velocity_arbiter=arbiter.snapshot() if arbiter else None, joystick=manual.snapshot() if manual else {'enabled': False, 'connected': False}, mapping_mode=(('MANUAL_MAPPING' if slam.snapshot().get('status') == 'RUNNING' else slam.snapshot().get('status')) if manual else 'IDLE'), recording=recording.snapshot() if recording else {'enabled': False, 'status': 'UNAVAILABLE'}, slam=slam.snapshot() if slam else {'enabled': False, 'status': 'UNAVAILABLE'}),
+        lambda: dict(robot.snapshot(), bag_worker=bagw.snapshot() if bagw else None, map_save=savew.snapshot() if savew else None, mapping_worker=mapping.snapshot() if mapping else {'enabled': False, 'status': 'UNAVAILABLE'}, manual_web_bench=bench.snapshot() if bench else None, gate_reset=gresetw.snapshot() if gresetw else {'enabled': False}, localization=locw.snapshot() if locw else {'enabled': False, 'status': 'UNAVAILABLE'}, velocity_arbiter=arbiter.snapshot() if arbiter else None, joystick=manual.snapshot() if manual else {'enabled': False, 'connected': False}, mapping_mode=(('MANUAL_MAPPING' if slam.snapshot().get('status') == 'RUNNING' else slam.snapshot().get('status')) if manual else 'IDLE'), recording=recording.snapshot() if recording else {'enabled': False, 'status': 'UNAVAILABLE'}, slam=slam.snapshot() if slam else {'enabled': False, 'status': 'UNAVAILABLE'}),
         robot,
-        dict(info, gate_reset=g_gate_reset, navigation_localization=nav_loc_enabled, manual_web_bench=web_bench_enabled, locked_velocity_arbiter=locked_arbiter, mapping_worker=web_mapping_enabled, map_save=map_save_enabled),
+        dict(info, camera_preview=camera_enabled, isolated_ros_bag=bag_enabled, recording_enabled=recording_enabled, gate_reset=g_gate_reset, navigation_localization=nav_loc_enabled, manual_web_bench=web_bench_enabled, locked_velocity_arbiter=locked_arbiter, mapping_worker=web_mapping_enabled, map_save=map_save_enabled),
         sdir,
         map_fn=robot.map_for_upload,
         period_s=period,
@@ -223,6 +233,13 @@ def main(args=None):
     if locked_arbiter:
         from .velocity_arbiter import VelocityArbiter
         arbiter = VelocityArbiter(robot, agent, bench)
+    if bag_enabled:
+        from .bag_worker import BagWorker
+        bagw = BagWorker(robot, agent, sdir)
+    camera = None
+    if camera_enabled:
+        from .camera_preview import CameraPreview
+        camera = CameraPreview(robot, agent, rgb_topic, depth_topic)
     gresetw = None
     if g_gate_reset:                                   # 2026-11-21: admin web Gate reset (server-delivered, Agent- and Gate-checked)
         from .gate_reset_worker import GateResetWorker
@@ -268,6 +285,8 @@ def main(args=None):
         if locw: step('localization.close', locw.close)
         if gresetw: step('gate_reset.close', gresetw.close)
         if bench: step('bench.close', bench.close)
+        if camera: step('camera.close', camera.close)
+        if bagw: step('bag_worker.close', bagw.close)
         step('destroy_node', robot.destroy_node)
         if recording: step('recording.close', recording.close)
         if slam: step('slam.close', slam.close)

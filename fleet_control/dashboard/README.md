@@ -44,6 +44,10 @@ python3 -m dashboard.run_local stop
 
 현재 실행 상태를 다시 만들 때 필요한 개인 설정은 런타임 폴더 `live.json`에 보관되어 있습니다. `run_local start --source-config ~/.local/state/capstone-dashboard-visualization/live.json`으로 재사용할 수 있습니다. 이미 실행 중이면 먼저 `status`를 확인합니다. 기존 서버는 이 런처로 종료하지 않습니다.
 
+### 영상 경로 확인
+
+`mission_url`은 Fleet Mission Manager, `ai_url`은 별도 RGB/AI HTTP 호스트다. 영상 호스트의 viewer 토큰으로 `/api/v1/status`와 `/api/v1/frame.jpg`를 조회한다. 이 두 경로를 Fleet 주소에 요청하면 등록된 라우트가 없어 404가 반환된다. 시각화 콘솔 자체의 `/api/video.jpg`는 호스트에서 인증과 프레임 정합이 완료되면 제공되며, 준비 전에는 `no matched video frame` 404가 정상이다. Depth는 ROS 브리지에서 별도로 수신하며 RGB/AI 호스트 장애와 독립적이다.
+
 ## 화면 사용
 
 지도 드래그/휠 또는 포커스 후 방향키·+/−로 이동·확대합니다. 지도 맞춤, 보기 회전, 레이어 토글, Costmap 투명도를 제공합니다. 보기 회전은 화면에만 적용됩니다. 오른쪽 경계 드래그/방향키로 영상 패널 너비를 조절하고 각 패널 확대 버튼/Esc로 크게 보기/복원합니다. 작업·이벤트 패널은 접을 수 있습니다. 다크·라이트 테마와 작은 화면 세로 배치를 지원합니다.

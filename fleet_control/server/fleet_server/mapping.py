@@ -63,6 +63,8 @@ class MappingMixin:
     def operation_status(self, robot_id, kind='mapping'):
         from .service import ApiError
 
+        if kind == 'bag':                      # G2: origin/main's generic (robot, kind) call shape; Bag lives in bag_operation.py
+            return self.bag_status(robot_id)
         with self.lock:
             if robot_id not in self.robots:
                 raise ApiError(404, 'unknown_robot', 'robot not registered')
@@ -92,17 +94,34 @@ class MappingMixin:
             return session
 
     def owns_mapping_goal(self, robot_id, boot, active):
-        """A Frontier goal reported as `active` is owned only by the live session's reserved goal on the same boot."""
+        """Authorization: a Frontier goal reported as `active` is owned only by a LIVE session's reserved goal on the same boot.
+
+        G2 (2026-11-23, origin/main semantics): an UNKNOWN or RECONCILING session never owns a goal for this purpose. Its goal
+        is still tracked (tracked_mapping_goal) for cancellation and terminal evidence, but it is never a reason to accept an
+        active goal as legitimate."""
+        s = self._mapping_goal_session(robot_id, boot, active)
+        return bool(s) and s['state'] in ('MAPPING', 'PAUSING', 'STOPPING')
+
+    def tracked_mapping_goal(self, robot_id, boot, active):
+        """Tracking only (never authorization): the UNKNOWN/RECONCILING session whose reserved goal matches `active` on the same
+        boot, with the identity evidence (session, boot, reserved command id, goal UUID) the cancel / terminal check needs."""
+        s = self._mapping_goal_session(robot_id, boot, active)
+        if not s or s['state'] not in ('UNKNOWN', 'RECONCILING'):
+            return None
+        return {'state': s['state'], 'session_id': s.get('session_id'), 'boot': s.get('boot'), 'epoch': s.get('epoch'),
+                'command_id': active.get('command_id'), 'goal_uuid': active.get('goal_uuid')}
+
+    def _mapping_goal_session(self, robot_id, boot, active):
         if not isinstance(active, dict) or active.get('owner') != 'frontier':
-            return False
+            return None
         robot = self.robots.get(robot_id) or {}
         if (robot.get('agent') or {}).get('mapping_worker') is not True:
-            return False
+            return None
         s = self.operation_status(robot_id)
-        # UNKNOWN keeps ownership of the reserved goal: the session blocks motion and START, but the goal is ours
-        # (same boot, session and reserved id) and the worker is halting it, so it is not an unowned-goal fault.
-        return (s['state'] in ('MAPPING', 'PAUSING', 'STOPPING', 'UNKNOWN', 'RECONCILING') and s.get('boot') == boot
-                and s.get('session_id') == active.get('mission_id') and s.get('owned_goal') == active.get('command_id'))
+        if (s.get('boot') == boot and s.get('session_id') == active.get('mission_id')
+                and s.get('owned_goal') == active.get('command_id')):
+            return s
+        return None
 
     def mapping_blocks_motion(self, robot_id):
         """Any non-final session (including UNKNOWN) owns the goal slot; Fleet navigation must wait."""
@@ -148,9 +167,15 @@ class MappingMixin:
         return r
 
     # ------------------------------------------------------------ operator requests
-    def request_operation(self, robot_id, actor, body):
+    def request_operation(self, robot_id, actor, body, *rest):
         from .service import ApiError
 
+        if rest:                               # G2: origin/main call shape request_operation(robot, kind, actor, body)
+            kind_arg, actor, body = actor, body, rest[0]
+            if kind_arg == 'bag':
+                return self.request_bag(robot_id, actor, body)
+            if kind_arg != self.KIND:
+                raise ApiError(400, 'bad_kind', 'mapping or bag required')
         kind = self.KIND
         if not isinstance(body, dict):
             raise ApiError(400, 'bad_operation', 'JSON object required')
@@ -300,6 +325,8 @@ class MappingMixin:
     def worker_operation(self, robot_id, boot, body):
         from .service import ApiError
 
+        if isinstance(body, dict) and body.get('kind') == 'bag':          # G2: origin/main BagWorker journal
+            return self.bag_worker_operation(robot_id, boot, body)
         with self.lock:
             self.check_session(robot_id, boot)
             if body.get('kind') != self.KIND:
@@ -343,8 +370,16 @@ class MappingMixin:
                 if first:
                     self._write_operation(s)
                 return {'accepted': first, 'status': c['status']}
-            if body.get('action') == 'result' and c['status'] in ('COMPLETED', 'FAILED', 'UNKNOWN'):
+            if body.get('action') == 'result' and c['status'] in ('COMPLETED', 'FAILED'):
                 return s  # the response may have been lost; never rewrite the first result
+            if body.get('action') == 'result' and c['status'] == 'UNKNOWN':
+                # G2 (origin/main semantics): a result that arrives after the session became UNKNOWN is refused (409) and never
+                # rewrites the session or an earlier result; the attempt is kept as a diagnostic event.
+                self.db.event('mapping_late_result', f"late {c['action']} result refused (session {s['state']})", robot_id,
+                              data={'session_id': s.get('session_id'), 'command_id': c['command_id'], 'boot': boot,
+                                    'outcome': body.get('outcome'), 'evidence': body.get('evidence') if isinstance(body.get('evidence'), dict) else None},
+                              level='warning')
+                raise ApiError(409, 'operation_not_active', 'UNKNOWN')
             if body.get('action') != 'result' or c['status'] != 'ACCEPTED':
                 raise ApiError(409, 'operation_not_active', c['status'])
             evidence = body.get('evidence')

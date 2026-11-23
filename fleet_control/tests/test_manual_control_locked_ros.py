@@ -33,7 +33,12 @@ class LockedROS(unittest.TestCase):
         gate.create_subscription(Twist,'/cmd_vel_raw',relay,10)
         watch.create_subscription(Twist,'/cmd_vel_locked',lambda m:locked.append((m.linear.x,m.angular.z)),10)
         bench=ManualWebBench.__new__(ManualWebBench)
-        bench.robot=robot; bench.agent=SimpleNamespace(is_execution_allowed=lambda:True)
+        bench.robot=robot
+        session = dict(connected=True, reconciliation_required=False, server_boot_id='server',
+                       protocol_version=2, safety_contract_version=1, contract_generation=0,
+                       lease=dict(owner='operator', epoch=1, expires_at=time.time()+30))
+        bench.agent=SimpleNamespace(is_execution_allowed=lambda:True, boot_id='agent',
+                                    session_snapshot=lambda:session)
         bench.config=JoystickConfig(1,0,4,.10,.30,.25);bench.lock=threading.Lock()
         bench.sample=None;bench.publisher=None;bench.state={}
         def spin(seconds, use_bench=False):
@@ -45,21 +50,27 @@ class LockedROS(unittest.TestCase):
             spin(.8)
             self.assertEqual(robot.count_publishers('/cmd_vel'),0)
             self.assertIsNone(bench._graph_blocker())
-            bench.sample={'linear':1.,'turn':.5,'deadman':True,'expires':time.monotonic()+2,'session_id':'s','seq':1}
+            bench.sample={'linear':1.,'turn':.5,'deadman':True,'expires':time.monotonic()+2,'session_id':'s','authority':bench.authority(),'seq':1}
             spin(.35,True)
             self.assertEqual(bench.state['requested_linear'],.1)
             self.assertEqual(bench.state['requested_turn'],.15)
             self.assertTrue(raw and locked)
             self.assertTrue(all(v==(0.,0.) for v in raw+locked))
-            bench.sample={'linear':1.,'turn':1.,'deadman':False,'expires':time.monotonic()+1,'session_id':'s','seq':2}
+            bench.sample={'linear':1.,'turn':1.,'deadman':False,'expires':time.monotonic()+1,'session_id':'s','authority':bench.authority(),'seq':2}
             spin(.15,True)
             self.assertEqual((bench.state['requested_linear'],bench.state['requested_turn']),(0.,0.))
-            bench.sample={'linear':1.,'turn':1.,'deadman':True,'expires':time.monotonic()-.01,'session_id':'s','seq':3}
+            bench.sample={'linear':1.,'turn':1.,'deadman':True,'expires':time.monotonic()-.01,'session_id':'s','authority':bench.authority(),'seq':3}
             spin(.15,True)
             self.assertEqual(bench.state['status'],'input_expired')
             self.assertEqual((bench.state['requested_linear'],bench.state['requested_turn']),(0.,0.))
+            robot.mode = 'real'
+            bench.sample = dict(bench.sample, expires=time.monotonic()+1, deadman=True)
+            spin(.15,True)
+            self.assertIsNone(bench.publisher)
+            self.assertEqual(robot.count_publishers('/cmd_vel_raw'), 0)
+            self.assertFalse(bench.state['motor_output'])
             robot.gate['state'] = 'FAILSAFE_SENSOR_TIMEOUT'
-            bench.sample={'linear':1.,'turn':1.,'deadman':True,'expires':time.monotonic()+1,'session_id':'s','seq':4}
+            bench.sample={'linear':1.,'turn':1.,'deadman':True,'expires':time.monotonic()+1,'session_id':'s','authority':bench.authority(),'seq':4}
             spin(.15,True)
             self.assertEqual(bench.state['status'],'gate_or_odom_not_ready')
             self.assertTrue(all(v==(0.,0.) for v in raw+locked))

@@ -15,6 +15,8 @@ class Harness:
     _on_goal_response=RosRobot._on_goal_response
     _set_mission=RosRobot._set_mission
     _do_nav=RosRobot._do_nav
+    _do_frontier=RosRobot._do_frontier
+    def _nav2_goals(self): return dict(publishers=1, active_count=0)
     _on_fb=RosRobot._on_fb
     def __init__(self):
         self.active=None;self.last_mission={};self.lock=threading.RLock()
@@ -24,6 +26,18 @@ class Harness:
         self._nav2_goals=lambda: {}
         self._verify_nav_preconditions=lambda cmd: (True,'','','synthetic-context')
         self._monitor_active_goal=lambda: None
+        # G2 2026-11-23 fixture (v5 RosRobot): the R1 submission fence, the continuity tracker behind follow_path_idle, a ROS
+        # clock, and for Frontier goals (now RosRobot._do_frontier, origin/main used _do_nav with goal_owner='frontier') a
+        # SIM_GATED locked motor path and a valid R1 session (generation 1). No assertion of the original tests is changed.
+        self._fence=threading.RLock(); self._submission_fence=lambda: self._fence
+        from limo_robot_agent.action_status_evidence import ActionStatusEvidence
+        self.follow_idle_tracker=ActionStatusEvidence('FOLLOW_PATH', expected_node='controller_server', settle_s=1.0)
+        self.get_clock=lambda: NS(now=lambda: NS(to_msg=lambda: Time()))
+        self.require_motion_watchdog=False
+        self._motor_path_status=lambda: ('SIM_GATED', {})
+        self._session_context=lambda: {'reconciliation_required': False, 'protocol_version': 2, 'safety_contract_version': 1,
+                                       'connected': True, 'contract_generation': 1,
+                                       'lease': {'owner': 'op', 'epoch': 1, 'expires_at': time.time() + 60}}
 class Handle:
     accepted=True
     def __init__(self):
@@ -77,6 +91,16 @@ class Tests(unittest.TestCase):
     def test_unknown_terminal_result_stays_uncertain(self):
         r,h,rec,nav,c=self.setup_goal();f=Future();f.set_result(NS(status=GoalStatus.STATUS_UNKNOWN));r._on_result(rec,f)
         self.assertEqual(nav,['RECONCILIATION_REQUIRED']);self.assertIsNone(rec['handle']);self.assertIs(r.active,rec)
+    def test_live_or_ambiguous_foreign_goals_prevent_submission(self):
+        # G2 2026-11-23 port to the v5 API: the check needs the real Safety Context v1 preconditions, i.e. the v5 test fixture,
+        # whose ROS message stubs must not leak into this module's real-rclpy tests. It therefore runs in its own process:
+        # test_g2_cancel_ports_20261123.ForeignGoals (same three cases, same REJECTED / nothing-sent / no-active assertions).
+        import os, subprocess
+        here = os.path.dirname(os.path.abspath(__file__))
+        r = subprocess.run([sys.executable, '-W', 'ignore', '-m', 'unittest', 'test_g2_cancel_ports_20261123.ForeignGoals'],
+                           cwd=here, capture_output=True, text=True, timeout=120)
+        self.assertEqual(r.returncode, 0, r.stderr[-2000:])
+
     def test_submission_exception_does_not_free_robot_for_next_goal(self):
         r=Harness();out=[];r.allow_missions=True;r.execution_allowed=lambda:True;r.get_publishers_info_by_topic=lambda _:[]
         r.get_clock=lambda:NS(now=lambda:NS(to_msg=lambda:Time()))
@@ -85,6 +109,54 @@ class Tests(unittest.TestCase):
             def send_goal_async(self,*args,**kw):raise TimeoutError('injected submission ambiguity')
         r.nav=Nav();r._do_nav({'mission_id':'m','command_id':'c','expires_at':time.time()+60,'payload':{'goal':{'frame_id':'map','x':1,'y':2}}},lambda s,*a:out.append(s))
         self.assertEqual(out,['RECONCILIATION_REQUIRED']);self.assertIsNotNone(r.active)
+    def test_fleet_and_frontier_share_the_first_goal_slot(self):
+        robot = Harness()
+        robot.allow_missions = True
+        robot.execution_allowed = lambda: True
+        robot.frontier_allowed = lambda _: True
+        robot.get_publishers_info_by_topic = lambda _: []
+        robot.get_clock = lambda: NS(now=lambda: NS(to_msg=lambda: Time()))
+        barrier = threading.Barrier(2, timeout=2)
+        sent, replies = [], []
+        robot.nav = NS(wait_for_server=lambda **_: barrier.wait() >= 0,
+                       send_goal_async=lambda *_, **__: sent.append(True) or Future())
+
+        def submit(owner):
+            # G2: the v5 Frontier entry is _do_frontier (stamped generation); origin/main used _do_nav(goal_owner='frontier')
+            (robot._do_frontier if owner == 'frontier' else robot._do_nav)(
+                          {'mission_id': owner, 'command_id': owner, 'goal_owner': owner, 'contract_generation': 1,
+                           'expires_at': time.time() + 5,
+                           'payload': {'goal': {'frame_id': 'map', 'x': 1, 'y': 2}}},
+                          lambda status, *_: replies.append(status))
+
+        threads = [threading.Thread(target=submit, args=(owner,)) for owner in ('fleet', 'frontier')]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=3)
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(replies, ['REJECTED'])
+        self.assertIn(robot.active['owner'], ('fleet', 'frontier'))
+
+    def test_follow_path_terminal_requires_active_observation_after_reset(self):
+        r = Harness()
+        r.follow_path_topic = 'follow_path/_action/status'
+        r.follow_path_status = None
+        r.follow_path_observed_active = False
+        r.get_publishers_info_by_topic = lambda _: [NS(node_name='controller_server', endpoint_gid=[1])]
+        callback = lambda status: RosRobot._on_follow_path_status(
+            r, NS(status_list=[NS(status=status)]))
+        callback(GoalStatus.STATUS_CANCELED)
+        self.assertFalse(RosRobot.follow_path_idle(r))
+        callback(GoalStatus.STATUS_EXECUTING)
+        self.assertFalse(RosRobot.follow_path_idle(r))
+        callback(GoalStatus.STATUS_CANCELED)
+        self.assertTrue(RosRobot.follow_path_idle(r))
+        r.follow_path_status = None
+        r.follow_path_observed_active = False
+        callback(GoalStatus.STATUS_CANCELED)
+        self.assertFalse(RosRobot.follow_path_idle(r))
+
     def test_late_feedback_cannot_overwrite_terminal_display(self):
         r,h,rec,nav,c=self.setup_goal();r.active=None;r.last_mission={'state':'CANCELED'}
         r._on_fb(rec,NS());self.assertEqual(r.last_mission['state'],'CANCELED');self.assertEqual(nav,[])

@@ -20,11 +20,11 @@ class BenchSafety(unittest.TestCase):
           'state':{'execution':{'active':None,'nav2_goals':{'known':True,'publishers':1,'active_count':0,'received_status_array':True,'age_s':0.}}}}}
         f.check_session=lambda *args:None
     def start(self): return self.f.manual_bench('r','op',{'action':'start','epoch':3})['session_id']
-    def sample(self,sid,seq=1): return self.f.manual_bench('r','op',{'action':'sample','epoch':3,'session_id':sid,'seq':seq,'linear':.7,'turn':.2,'deadman':True})
+    def sample(self,sid,seq=1): return self.f.manual_bench('r','op',{'action':'sample', 'input_format': 'normalized_axes_v1','epoch':3,'session_id':sid,'seq':seq,'linear':.7,'turn':.2,'deadman':True})
     def test_normal_bench_and_deadman(self):
         sid=self.start();self.sample(sid);v=self.f.pull_manual_bench('r','a')['sample']
         self.assertEqual((v['linear'],v['turn']),(.7,.2))
-        self.f.manual_bench('r','op',{'action':'sample','epoch':3,'session_id':sid,'seq':2,'linear':0.,'turn':0.,'deadman':False})
+        self.f.manual_bench('r','op',{'action':'sample', 'input_format': 'normalized_axes_v1','epoch':3,'session_id':sid,'seq':2,'linear':0.,'turn':0.,'deadman':False})
         self.assertFalse(self.f.pull_manual_bench('r','a')['sample']['deadman'])
     def test_offline_reconnect_never_revives(self):
         sid=self.start();self.f.robots['r']['online']=False

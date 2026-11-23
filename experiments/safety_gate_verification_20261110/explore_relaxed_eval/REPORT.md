@@ -1,5 +1,7 @@
 # explore_relaxed 실험 보고 (2026-11-11)
 
+> **정리본 상태 (2026-11-11).** **검증 수준:** 시뮬레이션 전용 평가. `explore_relaxed`는 **실험용 변형**이며 기본 탐색기가 아니다(기본은 원본 `explore_lite`). 이 기록은 당시 설정과 환경에서 얻은 값이며 이후 정리된 파일 이름·값으로 다시 측정한 것이 아니다. 전체 목록: `experiments/README.md`.
+
 수정한 원본 없음: `src/m-explore-ros2`(git 변경 0줄), 안전 게이트, 실차 launch, 기존 sim 설정은 그대로다. 기존 자동 맵핑 launch의 탐색 노드는 교체하지 않았다. 변형 패키지와 실험 launch는 모두 `variants/` 아래에 있다. Git commit/push 없음.
 
 ## 1. 원본과 변형의 차이

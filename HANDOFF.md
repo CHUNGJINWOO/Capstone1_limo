@@ -566,3 +566,71 @@ R4·실차 배포·모터 잠금 해제는 이번 종료로 승인되지 않음.
 
 ## 2026-11-23 (31) v5b 다음 (Claude)
 v5b(`c71b166f…`)가 현재 후보. 남은 승인 순서는 (30)과 같음: commit 범위(목록은 AGENT_V5 문서 §8) → 후보 재생성 → R3 이중 실패 복구 → 서버 선배포 → 실차 격리 검증.
+
+## G2 병합 (2026-11-23): origin/main `ea2d9632` 판의 이 문서에만 있던 줄
+> 통합 브랜치(v5b) 판을 기준으로 두고, origin/main 판에만 있던 줄을 원래 순서대로 아래에 보존한다. 날짜가 이른 기록(11-14~11-18)이며 위 본문의 최신 상태와 다르면 위 본문이 우선한다. 원문: `git show ea2d9632:HANDOFF.md`.
+
+   - 경로: 로컬 미추적 `experiments/real_limo_field_20261113/`, `experiments/real_depth_integration_20261113/`, `fleet_control/dashboard` (PR #9 병합)
+   - `fleet_control/{dashboard,dashboard_lab,dashboard_v2_design,rmf_web_research}` (스냅샷 `bc3df5e` → PR #9 병합): `dashboard_lab` 이전 121 PASS 기록(`test_lab.py`는 `aiohttp` 미설치로 미검증), `rmf_web_research` Storybook(18410) 확인.
+   - `fleet_control/{agent,rmf_adapter,gazebo}` (스냅샷 `0dc7ef9` → PR #9 병합): 이전 Gazebo × Open-RMF E2E 69/69 PASS(PR #9 격리 검증 미재실행).
+   - `fleet_control/integrated_sim` (스냅샷 `29818e8` → PR #9 병합): 이전 단일 통합 실행(`final4`) 12/13 PASS(통합 후 풀스택 재실행 미검증).
+   - **PR #9(`fleet_control/` 173개) 및 PR #10(`run_recorder.py` 경로 개선) `main`(`a8132c7`) 병합 완료.**
+   - 남은 정리 대상: (a) 공통 문서 PR-A 반영, (b) 외부 실험 스크립트 3개 및 형제 스크립트 PR-D 검토, (c) 메인 폴더 `c804241` 미추적 실험/노트 정리.
+3. **[폴더/Git 후속 마무리]** 사용자 승인 하에 (a) `feat/fleet-control-unified`(`ed53d81`) 및 공통 문서 증분(`a021186` + 이번 `WORKTREES.md`/`CODE_INDEX.md` 등) `origin/main` PR 반영, (b) `integrate_worktree` scratch 및 홈 디렉터리 잔여 후보(`~/limo_runs`, `~/slam_toolbox_source`, `webots_limo_pro`, `coppeliasim_limo_pro`) 정리 여부 확정.
+- **통합 경로 및 실험 스크립트 보호**: `fleet_control/` 및 `experiments/office_limo_sim_20261113` 경로는 실험 스크립트(`lf_env.sh`, `lf_setup.sh`, `offline_registration_test.py`, `office_limo_*.launch.py`)가 참조하므로 임의 이동·삭제를 금지합니다.
+## 다음 현장 개발 우선순위
+1. 전원·USB 및 물리 정지 수단을 확인하고, 별도 승인 후 기존 실차 Frontier 맵핑을 시험한다.
+2. 지도·posegraph·rosbag을 확보하고 재로드한다.
+3. 현장 건물·층 정보를 확인해 Map Registry에 등록한다.
+4. 저장 지도 기반 Nav2 주행을 별도 승인 후 시험한다.
+5. 웹 지도·RGB·Depth 동시 모니터링을 검증한다.
+6. 웹 AUTO와 조이스틱 캘리브레이션·버튼 설정을 개발한다.
+기존 실차 실행 진입점은 현장 번들의 `start_real_auto_mapping.sh`다. 실제 주행은 현장 조건 확인과 별도 승인이 필요하다.
+Frontier 후보 및 Coordinator는 독립 계산·상태 추적 단계다. Agent 연결, 라이브 SLAM Mapping Goal 계약과 웹 AUTO는 미완료다. 기존 실차 자동 맵핑 진입점은 현장 배포본의 `start_real_auto_mapping.sh`이며, 모터 잠금 기동 후 Frontier 명령은 현장 안전 조건과 별도 구동 승인에 따른다.
+## 2026-11-18 선택 통합 후 남은 작업 소유 위치
+- 실차 현장 자동 맵핑은 기존 배포본의 `~/real_auto_mapping_ready_20261113/start_real_auto_mapping.sh`를 사용한다. 배터리, USB–UART, Gate와 물리 정지 수단을 확인하고 주행 전 별도 승인을 받는다. 지도·posegraph·rosbag 확보 후 건물·층을 확인해 Registry에 등록한다.
+- 공개 `fleet_control/`은 기존 Fleet 구현이며, 로컬 staging의 `fleet_control/`에 있는 웹 SLAM START/SAVE/STOP 및 rosbag 제어는 Server·Agent의 Lease/Journal 및 상태 처리 구조가 달라 일괄 교체하지 않았다. 소유권과 안전 차단을 유지하는 설계·통합 및 회귀 검증이 필요하다. 웹 AUTO와 실차 MANUAL은 미완성이다.
+- 공개 `capstone_ws/src/limo_capstone/`의 고정 지도 저장은 격리 합성 지도로 검증됐다. 현장 자동 맵핑 배포본 `experiments/real_auto_mapping_ready_20261113/`의 저장 경로와는 별도이며 실차에 이 수정본을 배포하거나 재시험하지 않았다. posegraph와 OccupancyGrid는 서로 다른 시각에 저장될 수 있다.
+- 후속 개발은 현장 지도 수집과 병행해 웹 Fleet 지도·RGB·Depth 모니터링을 다룬다. 기존 미추적 실험 및 데이터는 로컬 보관하고 공개하지 않는다.
+### 11월 19일 현장 Frontier Runbook
+1. 현장 LIMO 로컬 터미널에서 배터리, USB–UART, 휠 odom 연속성, 물리 정지 수단을 확인한다. 기존 SLAM·Nav2·Explorer·bag 프로세스는 소유자를 확인한다. 별도 bringup을 겹쳐 실행하지 않는다. Fleet Agent는 `allow_missions:=false`로 확인하고, 같은 로봇의 RMF runner와 웹 수동 제어는 비활성 상태를 확인한다.
+2. `cd ~/real_auto_mapping_ready_20261113`에서 기존 현장 ROS 환경으로 `./start_real_auto_mapping.sh`를 먼저 잠금 상태에서 기동한다. 안내된 현장 확인 후 잠금 프롬프트를 사용한다. `READY`와 `status`에서 Gate NORMAL, 단일 Nav2, 센서·TF·출력 상태를 확인한다. Depth와 slow 조합은 보존된 배포본에서 지원되지 않는다.
+3. 실제 주행은 현장 승인 후 기존 번들의 drive 절차로 별도 세션을 열고, `READY` 확인 후 운영자가 `frontier`를 입력한다. 영상은 별도 읽기 전용 시각화 콘솔에서 확인한다. 카메라나 관제 장애는 탐색 실행 조건으로 사용하지 않는다.
+4. 이상 시 현장 정지 수단을 사용하고 `pause`로 Goal terminal 및 정지를 확인한다. `save` 후 raster와 posegraph 결과를 따로 확인한다. `stop`으로 자기 bag과 launch를 종료한다. 실행 디렉터리의 `summary.json`, YAML/PGM, posegraph/data, bag과 로그를 확인하고 `ros2 bag info <bag>`를 실행한다. OccupancyGrid와 posegraph는 별도 시점에 저장될 수 있다.
+5. 보존된 현장 supervisor는 자기 Nav2가 독점이라는 전제에서 pause 후 광역 취소를 보낸다. 다른 Goal 제출자가 존재하거나 결과가 불명확하면 Frontier를 시작하거나 재개하지 않는다. 이 브랜치의 Explorer UUID별 취소 수정은 현장 설치본에서 검증·배포되지 않았다.
+LOCAL_FRONTIER는 Explorer 로그의 UUID와 현장 run 디렉터리로 추적한다. FLEET_NAVIGATION은 Fleet Mission ID와 Agent UUID 로그를 연결한다. RMF_TASK는 기존 RMF principal 및 rmf idempotency key를 통해 같은 Fleet 경로의 임무에 연결한다. WEB_MANUAL은 별도 속도 제어다. ROS Action 상태 검사는 관측된 Goal을 차단하며 동시 최초 제출의 원자적 잠금은 제공하지 않으므로 실행 모드별 제출자 분리가 필요하다.
+### 웹 조이스틱 격리 실행
+Fleet 테스트 서버와 Mock Nav2 Action Server를 별도 환경에 두고 Agent를 `mode:=mock simulated:=true allow_missions:=false manual_web_bench:=true`로 실행한다. Chrome에서 localhost 또는 HTTPS 관제 페이지를 열고 게임패드를 조작하여 장치·축·버튼 표시를 노출한다. 장치 확인 → 실제 축·Deadman 번호 및 방향 설정 → Fleet 제어권 획득 → Deadman을 놓은 상태에서 모의 입력 시작. Deadman을 놓거나 연결이 끊기면 세션이 종료되어 다음 입력 전에 명시적으로 다시 시작한다. 같은 탭에서 Lease를 갱신할 수 있다.
+현장 자동 맵핑은 위의 기존 Runbook만 사용한다. 이번 모의 수동 제어는 ROS 속도를 발행하지 않는다. 후속 잠금 검증의 조건은 Nav2 Goal terminal 확인, 지정 모드의 단일 제어권, Smoother/Collision Monitor/Gate remap 확인, Gamepad 실물 매핑과 해제·단절 검증이다. 배터리·USB–UART·Gate·정지 수단·별도 구동 승인도 현장에서 확인한다.
+11월 19일 기존 현장 번들의 로컬 실행 순서와 프로파일을 유지한다. 새 Fleet Mapping API는 모의 플래그를 등록한 worker 전용이다. UNKNOWN 세션에는 자동 재개나 Goal 제출이 없다. 후속 연결은 실제 Goal UUID 쌍의 종료 증거, SLAM 상태, 래스터와 posegraph의 개별 저장 결과, session이 시작한 rosbag만 종료하는 절차를 실제 worker로 연결한 뒤 격리 ROS에서 재시험한다. Depth는 기존 읽기 전용 콘솔에서 계속 볼 수 있다.
+4차 통합 이후 기능별 ROS 2 구조 정리의 기준은 공개 `main` `1ca1393d229a1a3e1727079d61f8a1210a9520ac`와 4차 선택 변경이다. 복구 위치는 `WORKTREES.md`에 기록했다. 실제 Mapping·Bag Worker부터 격리 환경에 연결한다. Goal terminal과 소유 프로세스 종료를 관측한 뒤 완료 상태를 보고하고, 게이트 속도 경로는 별도 검증한다.
+Phase 3A의 Bag Worker 웹 기록·재생은 격리 ROS에서 확인됐다. 중복 STOP, 실제 Agent/Server 재시작, 통신 단절, 녹화 중 비정상 종료·강제 종료 및 다른 recorder 보호 시험이 남았다. 연결 유실 중 recorder는 종료되지 않을 수 있으며 재시작 시 소유권 복구 없이 UNKNOWN으로 남는다. 이 상태에서 현장 적용을 진행하지 않는다.
+Phase 3A 격리 Worker는 실행 중 최대 300초, 파일 합계 256 MiB, 남은 디스크 1 GiB, Fleet 단절 5초를 검사해 recorder 종료를 요청한다. 프로세스 PID·start ticks·PGID·session·경로를 저널에 남기며 재시작 시 인수하지 않는다. Agent가 SIGKILL되면 검사 스레드도 함께 중지되므로 살아남은 recorder의 무제한 기록을 아직 방지하지 못한다. 이 한계와 잔여 장애 E2E를 해결하기 전 Phase 3B를 시작하지 않는다.
+이전 단계에서 `isolated_ros_bag`를 독립 Supervisor 부재로 fail-closed 처리했다. 기존 Bag 코드는 보존돼 있으며 활성화 전에 세션 단위 cgroup 및 독립 자원 감시를 연결해야 한다. 이후 격리 ROS Worker와 Depth 화면 연결을 추가했다.
+### 전체 통합 검증 인계
+현재 격리 경로에서 독립 Bag Supervisor와 실제 Mapping Worker를 사용할 수 있다. 새 하네스는 로컬 Fleet, 두 로봇, 합성 센서, 실제 SLAM·Nav2·rosbag2를 새 런 디렉터리에서 시작한다. 명령 결과의 UUID 및 세션 저널을 [격리 통합 매트릭스](fleet_control/docs/ISOLATED_E2E.md)에 따라 대조한다. UNKNOWN/FAILED의 원본 저널과 Bag·지도 파일을 보존한다. 실차 시나리오는 별도 승인 이후 기존 Runbook으로 진행한다.
+### 잠금 캠페인 후속 확인
+A–E 기준선과 캠페인 수정분은 별도 해시로 보존한다. 이전 기본 임계값으로 생성된 PGM/YAML은 Map Server가 미관측 셀을 자유 공간으로 해석할 수 있다. 캠페인은 원본을 보존하고 같은 Gazebo Bag으로 수정본을 별도 생성해 분류를 확인했다. 다음 검증 범위는 Gazebo에서의 폐루프 이동, 실물 Gamepad, 별도 승인 후 실차다. 격리 Launch의 모터 잠금과 기존 실차 진입점을 유지한다.
+
+## 2026-11-23 (32) 통합 브랜치 다음 (Claude)
+승인 필요: 통합 브랜치 push/PR 여부, 커밋 기준 candidate 재생성, G2, R3 이중 실패 복구 → 서버 선배포 → 실차 격리 검증(R4).
+
+## 2026-11-23 (33) G2 다음 (Claude)
+1. 결정: main `test_mapping_session` 2건(UNKNOWN 세션의 goal 소유권, 늦은 결과 응답 형태) — v5b 동작 유지 + main 시험 기대값 갱신 여부. main velocity/bench/`test_cancel_results`(API 대체) — v5b API로 이식 또는 은퇴.
+2. 승인: G2 merge commit 생성(현재 worktree에 병합 진행 상태 보존, 작성자 noreply), 이후 push/PR.
+3. G2 트리로 Agent v5 candidate 재생성(v5b `c71b166f…` 무효), 격리 bringup 실제 launch 시험(모터 잠금, 별도 domain).
+4. Gate의 `require_motion_watchdog`·입력원 검증 적용 여부(Gate 소유자), R4 차단 조건 유지.
+
+## 2026-11-23 (34) G2 조정 다음 (Claude)
+1. 결정: Bench 프로토콜 통일(main ticket·m/s 서버 검사 채택, mock bench의 Arbiter 필수, 실차 zero-output bench 유지 여부)과 Arbiter AUTO 상한(main ±0.10/±0.30 대 v5 slow profile). 그 전까지 `test_locked_velocity`·`test_web_gamepad_bench`는 FAIL로 남김.
+2. 승인: G2 merge commit(현재 no-commit 병합 상태 보존). ROS 시험은 모듈별 프로세스·domain으로 실행.
+3. 이후 v5 candidate 재생성, 격리 bringup launch 시험, R4 차단 유지.
+
+## 2026-11-23 (35) 현장 준비 다음 (Claude)
+1. **차단 해제 전 필수**: Gate 입력 출처 검증(`docs/proposals_20261120/05_*.patch`, Gate r11+) 적용·검증, 물리 E-Stop·제동거리, 전원·USB/UART·STM32, `/cmd_vel` 드라이버 우회 확인, 실차 Mapping Worker 허용 정책(코드 변경과 재검증), REAL_LOCKED 증거 생산자.
+2. 승인 필요: G2 merge commit → G2 후보 재생성(커밋 기준) → 서버 선배포 → LIMO에 후보 배포(R3 + `atomic_swap`) → supervisor 유닛 설치(1회) → 현장 점검(`field_preflight --real`).
+3. 이 노트북에 Playwright를 설치하면 안내·순찰 UI E2E(`phase5`)와 브라우저 시험 `.cjs`를 돌릴 수 있다. n03·f08 원인 조사.
+
+## 2026-11-23 (36) Gate 입력 출처 검증 (Claude)
+1. G2 index에 Gate·`safety.py`·시험·문서 스테이징, 커밋 안 함. 실차 launch는 Watchdog 도입(제안 02b) 전까지 검증 OFF.
+2. 남은 것: 물리 E-Stop·제동거리, 벤더 `/cmd_vel` 발행 노드 차단, SROS2, r7+ Gate에서 g03, n03/n05/f08(목표 일관성) 조사.

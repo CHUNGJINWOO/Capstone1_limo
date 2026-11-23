@@ -217,7 +217,7 @@ def s04_agent_killed_no_stale_session_reuse():
     offline = wait_until(lambda: (F.robot().get('agent') or {}).get('boot_id') not in (None, boot0) or 'AGENT_OFFLINE' in ready().get('reasons', []), 60, 0.5)
     back = wait_until(lambda: svc_state('agent') == 'READY' and F.robot().get('online'), 90, 1.0)
     time.sleep(3)
-    replay = expect_http(lambda: F.post('/robots/iso_bench/manual-bench', {'action': 'sample', 'epoch': ep, 'session_id': sess, 'seq': 99,
+    replay = expect_http(lambda: F.post('/robots/iso_bench/manual-bench', {'action': 'sample', 'input_format': 'normalized_axes_v1', 'epoch': ep, 'session_id': sess, 'seq': 99,
                                                                           'linear': 1.0, 'turn': 0.0, 'deadman': True}), 409)
     mode_after = F.mode().get('mode')
     rec = admin_recover('s04')
@@ -238,7 +238,7 @@ def s05_server_killed_restarted():
     start_server(); up = wait_until(lambda: ready().get('level') != 'NO_SERVER', 30, 0.5)
     rd = wait_until(lambda: level() == 'READY' or None, 120, 1.0)
     mode_after = F.mode().get('mode')
-    stale = expect_http(lambda: F.post('/robots/iso_bench/manual-bench', {'action': 'sample', 'epoch': ep, 'session_id': sess, 'seq': 50,
+    stale = expect_http(lambda: F.post('/robots/iso_bench/manual-bench', {'action': 'sample', 'input_format': 'normalized_axes_v1', 'epoch': ep, 'session_id': sess, 'seq': 50,
                                                                           'linear': 1.0, 'turn': 0.0, 'deadman': True}), 409)
     arb = (F.robot().get('state') or {}).get('velocity_arbiter') or {}
     R.record('s05_server_killed_restarted', sup_alive and bool(up) and bool(rd) and mode_after != 'MANUAL' and stale[0] and arb.get('source') in (None, 'NONE'),

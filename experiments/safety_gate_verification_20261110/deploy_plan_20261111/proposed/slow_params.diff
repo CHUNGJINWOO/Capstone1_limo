@@ -1,5 +1,5 @@
 --- config/integrated_nav2_lidar_only_params.yaml	2026-11-10 21:11:16.427290757 +0900
-+++ /home/cjinw/school/2026-2/Capstone1_limo/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/integrated_nav2_lidar_only_slow_params.yaml	2026-11-11 12:50:28.266252934 +0900
++++ <repo>/experiments/safety_gate_verification_20261110/deploy_plan_20261111/proposed/integrated_nav2_lidar_only_slow_params.yaml	2026-11-11 12:50:28.266252934 +0900
 @@ -1,3 +1,11 @@
 +# integrated_nav2_lidar_only_slow_params.yaml
 +# SLOW speed profile of integrated_nav2_lidar_only_params.yaml for the first on-ground drive tests.

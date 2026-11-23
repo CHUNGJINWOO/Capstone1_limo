@@ -39,6 +39,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
+find_package(action_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(map_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
@@ -46,6 +47,7 @@ find_package(nav2_costmap_2d REQUIRED)
 find_package(explore_lite_msgs REQUIRED)
 
 set(DEPENDENCIES
+  action_msgs
   rclcpp
   std_msgs
   sensor_msgs
@@ -107,6 +109,13 @@ endif()
 
 install(TARGETS explore
   DESTINATION lib/${PROJECT_NAME})
+
+# Candidate output only: no action client or robot movement authority.
+add_executable(fleet_frontier_candidates
+  src/costmap_client.cpp src/frontier_search.cpp src/fleet_frontier_candidates.cpp)
+ament_target_dependencies(fleet_frontier_candidates ${DEPENDENCIES} geometry_msgs)
+target_link_libraries(fleet_frontier_candidates nav2_costmap_2d::filters tf2_ros::tf2_ros)
+install(TARGETS fleet_frontier_candidates DESTINATION lib/${PROJECT_NAME})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 

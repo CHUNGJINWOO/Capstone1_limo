@@ -69,4 +69,8 @@ GHCR 메타데이터만 확인: api-server:humble-nightly는404, jazzy-nightly�
 
 별도 연구 harness의 DOM 구조 경고 및 UI 폭이 좁을 때 표 가로 스크롤이 관찰됐습니다. 공식 UI의 반응형/정확한 time stale 처리·지도 yaw·장시간 WebGL 성능이 모두 검증됐다고 확대 해석하지 않습니다. dashboard_lab의 기존31+90 PASS/FPS 결과는 이전 기준선이며 이번 RMF Web 테스트 결과가 아닙니다.
 
+## 증거 해시 목록 안내
+
+[파일 해시 목록](evidence/research-files.sha256.json)은 과거 개발 환경의 파일 목록·해시 기록입니다. 공개 PR에서는 실행이나 회귀 시험의 필수 입력이 아닌 비필수 `.log` 파일 2건(`evidence/isolated-storybook.log`, `evidence/stock-storybook-failure.log` — `dashboard_lab` 7건 포함 총 9건)을 제외했으며, 원본은 로컬 보존 커밋 `ed53d81`에 남아 있습니다. 따라서 공개 저장소의 파일만으로 과거 전체 해시 목록을 재검증할 수는 없습니다.
+
 [기능 비교·도입 우선순위](COMPARISON.md) · [API·Office 연동 설계](API_AND_OFFICE.md) · [버전·자원 근거](evidence/versions.json) · [공식 라이선스](harness/UPSTREAM-LICENSE.md)

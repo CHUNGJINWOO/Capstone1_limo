@@ -7,9 +7,15 @@
   <license>TODO: License declaration</license>
   <depend>rclpy</depend>
   <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>nav2_map_server</exec_depend>
+  <exec_depend>explore_lite</exec_depend>
+  <exec_depend>ros2bag</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
-  <depend>geometry_msgs</depend>
   <depend>std_srvs</depend>
   <depend>rcl_interfaces</depend>
   <depend>tf2_ros</depend>
@@ -18,6 +24,5 @@
   <depend>unique_identifier_msgs</depend>
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>python3-pil</exec_depend>
-  <exec_depend>python3-yaml</exec_depend>
   <export><build_type>ament_python</build_type></export>
 </package>

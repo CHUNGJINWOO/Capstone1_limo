@@ -452,3 +452,49 @@ Fleet `manual-bench`는 오프라인·재연결, lease 세대 변경 및 관측�
 
 ## 2026-11-23 (31) Agent v5b candidate: 의존성 선언·격리 빌드 (Claude)
 - `package.xml`에 geometry_msgs·std_srvs·rcl_interfaces·python3-yaml 추가(직접 import 확인, 코드 무변경). 격리 colcon build PASS, 진입점 3개 설치·모듈 import 실패 0. candidate v5b tar `c71b166f…`(v5 대비 변경은 `package.xml` 1개). [문서 §8](fleet_control/docs/AGENT_V5_CANDIDATE_20261123.md). 소스 미커밋, 실차 배포 BLOCKED 유지.
+
+## G2 병합 (2026-11-23): origin/main `ea2d9632` 판의 이 문서에만 있던 줄
+> 통합 브랜치(v5b) 판을 기준으로 두고, origin/main 판에만 있던 줄을 원래 순서대로 아래에 보존한다. 날짜가 이른 기록(11-14~11-18)이며 위 본문의 최신 상태와 다르면 위 본문이 우선한다. 원문: `git show ea2d9632:CURRENT_STATUS.md`.
+
+### 2.3 중앙 관제 · Robot Agent · Open-RMF (`fleet_control/`, PR #9 `main` 병합 완료)
+| 중앙 관제 서버 (`fleet_server`) + 제어권 Lease + 복구 | 브랜치: `main` (`a8132c7`, PR #9 `b350efa` 병합 · 통합본 `ed53d81` 보존)<br/>로컬: `<WORKSPACE_PARENT>/Capstone1_limo/fleet_control/server` | 구현·통합 완료 | **모터 잠금 연동 검증** (`18190` 서버에 실차 Agent 접속, 상태·지도 API 업로드 및 `map.png` HTTP 200 응답 확인) | **검증 완료** (이전 기준선 `run_gazebo_checks.py` **69/69 PASS**; PR #9 격리 검증에서는 외부 `$HOME/rmf_isolated`/Gazebo 런타임 미비로 미재실행) | **검증 완료** (`run_checks.py` 46/46, `test_ownership.py` 37/37, `test_recovery.py` 14/14, `test_dedupe.py` 14/14, `test_agent_recovery.py` 2/2, `test_cancel_results.py` 14/14) | - 과거 `run_checks.py` 1회 원인 미상 42/46 실패 기록 있음 (`419e798` 브랜치 `fleet_control/docs/VALIDATION.md`)<br/>- 실차 시험 시 브라우저 UI 화면 육안 확인은 아직 사용자 미회신 (`experiments/real_limo_field_20261113/FIELD_RESULTS_20261113.md`) |
+| LIMO Robot Agent (`limo_robot_agent`) | 브랜치: `main` (`a8132c7`, PR #9 `b350efa` 병합 · 통합본 `ed53d81` 보존)<br/>로컬: `<WORKSPACE_PARENT>/Capstone1_limo/fleet_control/agent` (실차: `~/limo_field_agent_ws`) | 구현·통합 완료 | **모터 잠금 상태·지도 보고 검증** (신규 Agent를 실차 `~/limo_field_agent_ws`에 오버레이 빌드 후 `409 agent_session_mismatch` 해결 확인) | **검증 완료** (`mode=sim`, `SIM_GATED` 주행·취소·복구) | **검증 완료** (`test_sim_motor_policy.py` 12/12 등) | **실차에서 관제/RMF를 통한 실제 이동 임무 실행은 미검증** (`allow_missions=false` 유지) |
+| Open-RMF Fleet Adapter (`limo_rmf_adapter`) | 브랜치: `main` (`a8132c7`, PR #9 `b350efa` 병합 · 통합본 `ed53d81` 보존)<br/>로컬: `<WORKSPACE_PARENT>/Capstone1_limo/fleet_control/rmf_adapter` | 구현·통합 완료 | **미검증** (`lf_t2_rmf.sh`는 Gazebo 그래프 기준이라 실차 좌표 `(20,10)`에서 등록 거부됨; `experiments/real_rmf_20261113` 단독 오프라인 등록 시험 40/41 — §4 unconfirmed 타이밍 1건 미해결) | **검증 완료** (이전 기준선 `run_gazebo_checks.py` **69/69 PASS**; PR #9 격리 검증 미재실행) | **부분 검증** (`run_rmf_checks.py` 47/51 — §7 mock 타이밍 레이스, `test_runner_policy.py` 33/33) | - `run_rmf_checks.py` §7(47/51)은 원본·통합본 공통으로 `wp_e` 근거리 재지정에 따른 mock 조기 완료 레이스 확인<br/>- Adapter 재시작 시 이전 RMF 작업이 `underway` 고아 상태로 남는 한계 미해결 |
+### 2.4 대시보드 · 실시간 영상 AI (`fleet_control/`, PR #9 `main` 병합 완료 · 공개 173개 파일)
+### 2.5 기록기 (`run_recorder.py`, PR #10 `main` 병합 완료)
+- **PR #10(`a8132c7`)** 반영으로 `--root` > `LIMO_RUNS_DIR` > 저장소(`capstone_ws/src/limo_capstone/`) 내 `local_data/raw_results/limo_runs/`(신규 clone 포함) > 저장소 밖 `~/limo_runs/` 우선순위가 확정되었습니다.
+- 격리 합성 시험 **16/16 PASS** (실제 `rosbag2` 기록 및 실차 온보드 실행은 **미검증**).
+## 2026-11-18 실차 Depth와 수동 맵핑 현황
+실차 비주행 시험에서 촬영 시각 TF 대기 수정 후 Depth 오류 상태 표본은 214/270에서 38/5,976으로 감소했다. 이후에도 USB–UART 통신 중단과 Gate FAILSAFE가 재발해 원인은 미확정이다. 실차 주행 전 전원·USB와 물리 정지 수단 검증이 필요하다.
+웹 수동 입력은 모터 잠금 시험 단계다. 웹 AUTO START의 HTTP 404와 일반 Fleet 임무 경로의 Mapping Goal 409는 미해결이며, 웹 자동 맵핑 실차 주행은 검증되지 않았다.
+2026-11-18 선택 통합에서 Frontier 후보 발행기와 Fleet Coordinator를 추가했다. 이 코드는 Agent 실행 경로에 연결되지 않았고 웹 AUTO START 404 및 일반 Fleet 임무를 통한 Mapping Goal 409는 미해결이다. 실차 USB–UART 불안정과 웹 MANUAL 제어 미완료 상태도 유지한다.
+2026-11-18 추가 통합에서 실험 관리자의 지도 저장은 고정 스냅샷·셀 검증·원점 정밀도·식별 해시를 사용한다. 격리 합성 지도 Nav2 재로드만 검증했으며 실차 posegraph와 동일 시각의 지도라는 보장은 없다.
+2026-11-18 비실차 개발에서 Explorer UUID별 Goal 취소와 Fleet의 외부 Goal 관측 차단을 검증했다. 동일 Action 서버에 동시에 처음 제출하는 경우의 원자적 중재는 없으므로 현장 LOCAL_AUTO_MAPPING은 Explorer만 활성화한다. 합성 ROS 및 모의 영상 호스트에서 지도·RGB·Depth 동시 표시를 검증했으며, 현장 배포본 재설치와 실차 시험은 미실행이다.
+웹 Gamepad를 통해 Fleet Lease를 획득한 운영자의 입력을 모의 Agent에서 속도 미리보기로 받는다. 축·Deadman 번호는 브라우저에서 확인한 값을 지정한다. 실물 Gamepad, Gate까지의 ROS 속도 연결, 실제 주행은 UNVERIFIED다.
+웹 Mapping/Bag의 명령 계약과 UI는 Mock 검증 단계다. 요청은 QUEUED/ACCEPTED와 실제 완료 보고를 구분한다. Goal terminal 누락·저장 중 worker 연결 유실은 UNKNOWN으로 차단하고 YAML/PGM과 posegraph 결과를 별도로 표시한다. 실제 Frontier·SLAM 저장·rosbag 프로세스 연결, Gate 속도 연결 및 실차 적용은 미구현 또는 미검증이다.
+격리 전용 Bag Worker는 실차 기본 비활성이다. 웹 START/STOP과 rosbag2 기록·재생을 격리 시험했으며, 장애 주입 회귀가 완료되지 않아 Phase 3A 전체 완료로 간주하지 않는다.
+Bag Worker의 독립 recorder 보호와 비정상 종료 판정은 격리 ROS에서 부분 통과했다. Agent 강제 종료 후 살아남은 recorder에 대한 독립 자원 watchdog 및 재시작·연결 단절 전체 시험은 미완료다.
+전체 기능 구현 이전에 Agent 강제 종료 후 Bag recorder가 무제한으로 남는 결함을 확인해 `isolated_ros_bag` 기동을 차단했다. 이후 독립 Supervisor, 실제 Mapping Worker 및 Gate 연결 Velocity Arbiter를 격리 경로에 추가했다.
+### 후속 전체 기능 구현 결과
+격리 ROS opt-in으로 독립 Bag Supervisor, 실제 Mapping Worker, 공유 Goal 중재, 모터 잠금 Velocity Arbiter를 연결했다. 한 관제 화면에 모드·Lease·Gate·명령 상태와 로봇별 RGB·Depth를 표시한다. 새 `limo_fleet_bringup`의 모듈형 launch는 기존 ROS 실행 파일을 사용한다. 실제 SLAM·Nav2·rosbag2를 합성 센서 환경에서 짧게 실행해 Mapping 수명주기, 지도·posegraph 저장과 Bag 정상 종료를 확인했다. 세부 범위와 잔여 검증은 [VALIDATION.md](VALIDATION.md)와 [ISOLATED_E2E.md](fleet_control/docs/ISOLATED_E2E.md)를 참조한다.
+### A–E 잠금 통합 검증 결과
+실제 Chrome·ROS 2·Gazebo Fortress에서 관제 명령, Goal 중재 및 수동 전환, Bag 장애 종료, Gazebo 센서와 Nav2 장애물 우회 계획을 확인했다. 세션 저널의 Supervisor 강제 종료 판정, FollowPath 종결 조건, 저장 지도 미관측 셀 분류, 하네스 프로세스 정리를 수정했다. Gazebo 폐루프 주행과 실차·실물 Gamepad 시험은 대기다. [VALIDATION.md](VALIDATION.md)
+
+## 2026-11-23 (32) 로컬 통합 브랜치 생성 (Claude, push 없음)
+- 브랜치 `integration/fleet-agent-v5b-g1-20261123`(부모 G1 `0ca09dc4`)에 로컬 커밋 4개: R1 `b6d2c651`(43 파일), R2 `a61a9e8c`(4), R3 `126972e0`(5), 공통 문서 `40b666ec`(8, Tailnet 주소를 `<TAILNET_DISCOVERY_IP>`로 치환). staging·G1 ref·작업트리 불변, push/PR 없음. v5b 소스 32개는 커밋 트리와 `FILES.sha256` 일치.
+
+## 2026-11-23 (33) G2 origin/main 통합 (Claude, G2 worktree, 미커밋)
+- worktree `<WORKSPACE_PARENT>/Capstone1_limo_g2_20261123`, 브랜치 `integration/fleet-g2-main-v5b-20261123`에서 `origin/main`(`ea2d9632`) 병합 진행(충돌 77개 해결, merge commit 미생성). 상세 [G2_INTEGRATION](fleet_control/docs/G2_INTEGRATION_20261123.md).
+- 보존한 main 기능: Bag 세션(BagWorker/Supervisor), 카메라 미리보기, 게임패드·Operations UI, `limo_fleet_bringup`, capstone_ws 실차 launch의 manual probe 옵션 등. R1·R2는 v5b 기준 유지, Frontier goal에 R1 권한 추가, bringup에 Watchdog 연결.
+- 오프라인 검증: R2 66/66, R3 11/11, 루프백 36/36, 격리 ROS 3/3, colcon 3 패키지 PASS. **미해결 FAIL**: main `test_mapping_session` 2건(설계 차이), main velocity/bench·`test_cancel_results` 일부(API 대체). 실차·R4 BLOCKED 유지.
+
+## 2026-11-23 (34) G2 UNKNOWN·Frontier·Cancel 조정 (Claude, G2 worktree, 미커밋)
+- UNKNOWN Mapping 세션: goal 소유(승인)와 추적 분리, 활성 goal은 서버가 추적(식별 증거·경고)만 하고 Agent가 취소; 늦은 result는 409. Nav2 상태 publisher 유일성 규칙 추가(v5b 회귀 수정). main Cancel 17/17, Mapping 5/5. **BLOCKED 잔여**: main bench/Arbiter 프로토콜 차이(시험 2개) — 결정 필요. 상세 [G2_INTEGRATION §6](fleet_control/docs/G2_INTEGRATION_20261123.md).
+
+## 2026-11-23 (35) 현장 실행 준비 (Claude, G2 worktree, 미커밋; 실차·18190 없음)
+- 문서 [FIELD_READINESS_20261123](fleet_control/docs/FIELD_READINESS_20261123.md): 구성, 설치 대상(노트북/LIMO), 웹 기능별 검증 수준, 안전 체인, 배포·롤백, 현장 절차.
+- 새 도구: `field_laptop_up_20261123.sh`(서버 1줄 기동), `field_preflight_20261123.py`(읽기 전용 점검, 시험 5), `atomic_swap_20261123.py`(R3 이중 실패 해소: `renameat2(RENAME_EXCHANGE)`, 시험 10), `probe_field_chain_20261123.py`(안전 체인 20/20). G2 agent 후보 `deploy_candidate_agent_g2`(36 파일, tar `0cb04888…`).
+- 격리 E2E(G2 소스): 모드·Mapping 17/20, 저장 지도→Nav2 14/18, supervisor 기동 7/7(+1 SKIP), 안내·순찰 UI E2E 미실행. 안전 체인(그래프·Arbiter·Watchdog·고장 주입) 20/20, 브라우저에서 Field Ops 패널 결함 3개 발견·수정.
+- **차단 확인**: Gate가 `/cmd_vel_raw` 외부 발행자를 막지 않는다(Gate 입력 출처 검증 r11+ 미적용). 실차 모터·Mapping은 코드 수준으로 차단된 상태 그대로(REAL_LOCKED, `mapping_real_blocked`). 실차 판정 **BLOCKED**, 잠금 연결·관측·준비는 READY.
+
+- (36) Gate 입력 출처 검증을 G2 Gate·bringup에 이식(`fleet_control/docs/GATE_INPUT_SOURCE_G2_20261123.md`). 격리 시험: Gate 단위 24, 체인 프로브 29/29, g01/g02/f07b FAIL→PASS. 실차 launch에는 Watchdog이 없어(제안 02b 미적용) 검증이 꺼져 있고 벤더 노드의 `/cmd_vel` 직접 발행은 막지 못한다. g03 미검증, n03/n05/f08은 Gate와 무관한 후속 과제. 실차 READY 아님.

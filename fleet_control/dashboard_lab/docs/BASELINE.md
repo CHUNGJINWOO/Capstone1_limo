@@ -2,6 +2,8 @@
 
 기준선 ID: `dashboard-lab-offline-20261113-v1`. 브랜치 `codex/dashboard-visualization`의 현재 미커밋 파일을 로컬 기준선으로 보존합니다. commit/tag/PR은 만들지 않았습니다. [해시 목록](evidence/baseline-20261113.sha256.json)은 이 문서 정리 전에 존재하던 코드·테스트·문서·계측 근거를 기록하며 비밀·캐시·스크린샷·raw 대용량 파일은 포함하지 않습니다. 해시 목록은 복구용 파일 백업 자체가 아닙니다. 기존 작업 폴더를 삭제하면 복구되지 않습니다.
 
+> **공개 PR 증거 해시 목록 안내**: `evidence/baseline-20261113.sha256.json`은 과거 개발 환경의 파일 목록·해시 기록이며, 공개 PR에서는 실행이나 회귀 시험의 필수 입력이 아닌 비필수 `.log` 파일 7건(`frame-policy-final.log`, `regression-*.log`, `tests-final.log` — `rmf_web_research` 2건 포함 총 9건)을 제외했습니다. 제외된 로그 원본은 로컬 보존 커밋 `ed53d81`에 남아 있으며, 공개 저장소의 파일만으로는 과거 전체 해시 목록을 재검증할 수 없습니다.
+
 ## 기존 dashboard와 dashboard_lab
 
 |항목|기존 dashboard|dashboard_lab 기준선|

@@ -197,7 +197,7 @@ class Manual:
     def loop(self):
         while self.on:
             self.seq += 1
-            try: OP.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'epoch': EPOCH[0], 'session_id': self.session,
+            try: OP.post(f'/robots/{RID}/manual-bench', {'action': 'sample', 'input_format': 'normalized_axes_v1', 'epoch': EPOCH[0], 'session_id': self.session,
                                                           'seq': self.seq, 'linear': 1., 'turn': .3, 'deadman': True})
             except Exception as e: self.errors.append(str(e)[:120]); self.on = False
             time.sleep(.08)

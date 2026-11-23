@@ -16,7 +16,7 @@ const css = path.resolve(__dirname, '../server/fleet_server/static/manual_contro
    Object.defineProperty(window,'isSecureContext',{configurable:true,value:true});
    Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>window.fakePad?[window.fakePad]:[]});
    window.panel=ManualControlPanel.mount(document.querySelector('#panel'),{getContext:()=>window.ctx,isActive:()=>window.active,
-      request:async(path,options)=>{let v=JSON.parse(options.body);window.messages.push({path,...v});if(window.fail) throw Error('disconnected');return new Response(JSON.stringify(v.action==='start'?{session_id:'s'+(++window.testId)}:{received:v.seq}),{status:200,headers:{'Content-Type':'application/json'}})}});
+      request:async(path,options)=>{let v=JSON.parse(options.body);if(v.action==='sample' && (v.input_format !== 'normalized_axes_v1' || 'ticket' in v)) throw Error('wrong Bench input format');window.messages.push({path,...v});if(window.fail) throw Error('disconnected');return new Response(JSON.stringify(v.action==='start'?{session_id:'s'+(++window.testId)}:{received:v.seq}),{status:200,headers:{'Content-Type':'application/json'}})}});
  });
  const get=()=>page.evaluate(()=>window.messages);
  const reset=()=>page.evaluate(()=>{window.messages=[];window.fail=false;window.active=true;Object.assign(window.ctx,{evidenceAgeMs:0,canControl:true,online:true,agentReady:true,motorLocked:true,leaseOwned:true,leaseEpoch:1,mode:'IDLE',navIdleProven:true,gateNormal:true,agentBootId:'a1',serverBootId:'s1'});});

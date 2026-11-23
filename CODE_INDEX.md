@@ -293,3 +293,44 @@ Fleet의 /robots/{id}/manual-bench 및 Agent의 /agent/manual-bench는 기존 �
 
 - Agent v5 candidate: `fleet_control/docs/AGENT_V5_CANDIDATE_20261123.md`, 산출물 `local_data/raw_results/real_limo_integ_claude_20261122/deploy_candidate_agent_v5/`, 서버 계약 프로브 `.../v5_candidate_01/contract_probe.py`.
 - v5b candidate: `local_data/raw_results/real_limo_integ_claude_20261122/deploy_candidate_agent_v5b/`, 빌드 기록 `v5b_build_01/`.
+
+## G2 병합 (2026-11-23): origin/main `ea2d9632` 판의 이 문서에만 있던 줄
+> 통합 브랜치(v5b) 판을 기준으로 두고, origin/main 판에만 있던 줄을 원래 순서대로 아래에 보존한다. 날짜가 이른 기록(11-14~11-18)이며 위 본문의 최신 상태와 다르면 위 본문이 우선한다. 원문: `git show ea2d9632:CODE_INDEX.md`.
+
+`fleet_control/`은 **PR #9(`b350efa`)로 `main`(`a8132c7`)에 병합 완료**된 단일 정본입니다(공개 비런타임 **173개** 파일; 로컬 통합 브랜치 `feat/fleet-control-unified` `ed53d81` 및 기능 스냅샷 4개 보존). 외부 실험 스크립트 3개(`lf_setup.sh`, `lf_env.sh`, `offline_registration_test.py`)는 후속 PR-D 대상이며, `run_recorder.py`는 **PR #10(`a8132c7`)**으로 저장소 내 `local_data/raw_results/limo_runs/` 기본 경로(신규 clone 포함, 저장소 밖은 `~/limo_runs/`)가 반영되었습니다.
+| **중앙 관제 서버 (`fleet_server`) 기본본** | `main` (PR #9, 로컬 통합본 `ed53d81`) `fleet_control/server` | `<WORKSPACE_PARENT>/Capstone1_limo/fleet_control/server` | `fleet_server/{__main__.py, http_api.py, service.py, db.py, auth.py, ownership.py, recovery.py, static/}` (`run_checks` 46/46, `test_ownership` 37/37, `test_recovery` 14/14 PASS) | `Capstone1_limo/fleet_control/`은 **런타임 `data/{auth.json,fleet.db}`와 `secrets/*.token`을 보유**하므로 삭제 금지 (Git 비추적 유지) |
+| **관제 서버 + 실시간 영상 패널 (`video_panel.js`)** | `main` (PR #9, 로컬 통합본 `ed53d81`) `fleet_control/server` (스냅샷: `exp/video-ai-preverify` `e4dd598`) | `<WORKSPACE_PARENT>/Capstone1_limo/fleet_control/server` | `--video-origin` 지원, `static/video_panel.js`, `docs/DASHBOARD_GUIDE.md`, `docs/REAL_LIMO_VIDEO_TEST.md` | `experiments/real_limo_field_20261113/laptop/lf_setup.sh` (로컬 전용·PR-D 보류)가 `$REPO_ROOT/fleet_control` 상대경로를 참조하도록 정정됨 |
+| **Robot Agent (`limo_robot_agent`) + Open-RMF Adapter (`limo_rmf_adapter`) + Gazebo RMF** | `main` (PR #9, 로컬 통합본 `ed53d81`) (스냅샷: `codex/rmf-gazebo-integration` `0dc7ef9`) | `<WORKSPACE_PARENT>/Capstone1_limo/fleet_control/{agent,rmf_adapter,gazebo}` (실차 온보드: `~/limo_field_agent_ws`) | `motor_policy.py`(`SIM_GATED`), `adapter_node.py`, `config/fleet_gazebo.json`, `gazebo/localized_sim.launch.py`, `tests/run_gazebo_checks.py` (Gazebo RMF 69/69 PASS) | `experiments/real_limo_field_20261113/laptop/lf_env.sh` 및 `experiments/real_rmf_20261113/tools/offline_registration_test.py` (로컬 전용·PR-D 보류)가 `Capstone1_limo/fleet_control` 상대경로 참조 |
+| **통합 시뮬레이션 (`integrated_sim`)** | `main` (PR #9, 로컬 통합본 `ed53d81`) (스냅샷: `exp/integrated-sim-20261113` `29818e8`) | `<WORKSPACE_PARENT>/Capstone1_limo/fleet_control/integrated_sim` | `integrated_env.py`, `integrated_sim.launch.py`, `run_integrated.py`, `fleet_integrated.json`, `RESULTS.md` (**Gazebo + CUDA YOLO 통합 시뮬 전용**, 풀스택 재실행 미검증) | RMF + Gazebo + Nav2 + Video/YOLO 통합 실행기 |
+| **시각화 대시보드 (`dashboard` / `dashboard_lab` / `dashboard_v2_design` / `rmf_web_research`)** | `main` (PR #9, 로컬 통합본 `ed53d81`) (스냅샷: `codex/dashboard-visualization` `bc3df5e`) | `<WORKSPACE_PARENT>/Capstone1_limo/fleet_control/{dashboard,dashboard_lab,dashboard_v2_design,rmf_web_research}` | - `dashboard/`: `test_visualization` 31/31, JS 18/18 PASS<br/>- `dashboard_lab/`: `test_lab.py`는 `aiohttp` 미설치로 미검증<br/>- `dashboard_v2_design/`, `rmf_web_research/` | `dashboard*/README.md` 등 문서 4곳 예시 경로도 `Capstone1_limo` 기준으로 정정됨 |
+## 2026-11-18 Depth TF와 수동 잠금 프로파일
+`limo_depth_obstacles/depth_obstacle_filter_node.py`는 촬영 시각의 변환을 짧게 재시도하며 상태에 대기 통계를 포함한다. `limo_integrated_auto_mapping_real.launch.py`의 `manual_mapping_probe`는 기본 비활성이고, 활성 시 모터 잠금과 Frontier 비활성을 요구한다. 이 경로는 비주행 진단용이다.
+### Frontier 후보 및 Fleet Coordinator
+`explore_lite`의 `fleet_frontier_candidates`는 기존 Frontier 검색 결과를 `/fleet/frontier_candidates`에 발행하며 Nav2 Goal을 직접 제출하지 않는다. `frontier_fleet_coordinator.py`는 Fleet 임무 및 Agent 종료 증거를 연결하는 후보 코드다. 현재 Agent 실행 경로와 웹 AUTO에는 연결되지 않았으며 실차 주행은 미검증이다.
+### 고정 지도 저장
+`capstone_ws/src/limo_capstone/scripts/auto_mapping_experiment_manager.py`의 `save-map`은 `/map`의 한 스냅샷으로 PGM/YAML과 식별 메타데이터를 저장한다. `tests/map_roundtrip_ros.py`는 격리 ROS의 Nav2 저장·재로드 회귀 시험이다. posegraph 직렬화는 별도 요청이다.
+11-18 개발에서 `explore/src/explore.cpp`의 LOCAL_FRONTIER 취소는 수락된 Goal 핸들을 사용한다. `ros_adapter.py`는 다른 NavigateToPose 활성 Goal 또는 Action 서버 수 이상에서 Fleet Goal을 거부한다. 지도·RGB·Depth 동시 모니터링 진입점은 `fleet_control/dashboard/README.md`다. 영상 호스트의 `/api/v1/status`, `/api/v1/frame.jpg`와 Fleet 상태 API는 별개의 서비스다.
+웹 모의 수동 입력 진입점은 Fleet 화면의 `static/gamepad_panel.js`, 서버 `/robots/{id}/manual-bench`와 `/agent/manual-bench`, Agent `manual_web_bench.py`다. `ARCHITECTURE.md`의 11-18 항목에 ROS 노드 목록과 현재·제안 구조도를 정리했다.
+### 웹 운용 통합 (모의)
+- `fleet_control/server/fleet_server/mapping.py`와 `db.py`는 별도 Mapping/Bag 상태·요청 저널을 관리한다. Operator는 `/robots/{id}/mapping`, `/robots/{id}/bag`를 사용하고, 명시적 모의 worker는 `/agent/operation`을 사용한다.
+- `static/operations_panel.js`는 선택 로봇·Lease·Mapping·Bag을 표시한다. `static/gamepad_panel.js`는 장치별 보정과 버튼을 브라우저 로컬 프로필로 관리한다. 지도와 RGB는 Fleet 화면의 기존 패널, Depth는 기존 읽기 전용 시각화 콘솔을 사용한다.
+- `fleet_control/tests/test_mapping_session.py`는 독립 Bag 상태, 요청 재전송, 결과 유실, 외부 Goal 및 real Agent 차단을 시험한다.
+`limo_robot_agent/bag_worker.py`는 Fleet Bag 요청을 기록하고 `owned_bag.py`를 통해 자신이 시작한 rosbag2 프로세스만 관리한다. `isolated_ros_bag`은 mock·simulated·로컬 ROS에 한해 명시적으로 켠다.
+`owned_bag.py`는 소유한 PID·시작 tick·PGID를 확인해 신호를 보낸다. `bag_worker.py`의 자원 한도는 독립 Bag Supervisor가 감시한다.
+`agent_node.py`의 `isolated_ros_bag`는 기본 비활성이며 격리 mock 모드에서 Supervisor를 사용한다.
+### 격리 실제 ROS 작업자 및 통합 Launch
+- `fleet_control/agent/limo_robot_agent/limo_robot_agent/`의 `mapping_worker.py`는 SLAM·Frontier 및 지도 저장, `bag_supervisor.py`는 개별 기록 세션, `velocity_arbiter.py`는 Gate 앞 속도 선정, `camera_preview.py`는 이미지 수집을 담당한다.
+- `fleet_control/server/fleet_server/`의 `mapping.py`는 Mapping Goal 예약과 작업 상태, `static/camera_panel.js`와 `static/operations_panel.js`는 운영 화면 연동을 담당한다.
+- `capstone_ws/src/limo_fleet_bringup`은 기존 ROS 패키지를 재사용하는 잠금 전용 Launch의 진입점이다. 토픽·서비스·Action 매핑은 [ISOLATED_E2E.md](fleet_control/docs/ISOLATED_E2E.md)를 참조한다.
+
+## 2026-11-23 G2 통합 진입점 (G2 worktree, 미커밋)
+- Frontier R1 권한: `safety_protocol.frontier_authority_fault`, `ros_adapter.start_frontier`/`_do_frontier`(fence)/`_monitor_active_goal`; 시험 `fleet_control/tests/test_g2_frontier_authority_20261123.py`.
+- Bag: `fleet_control/server/fleet_server/bag_operation.py`(`bag_status`, `request_bag`, `bag_worker_operation`), Agent `bag_worker.py`·`bag_supervisor.py`·`owned_bag.py`; 시험 `test_g2_bag_operation_20261123.py`, main `test_bag_worker.py`·`test_bag_supervisor.py`.
+- 카메라: Agent `camera_preview.py`, 서버 `service.py::ingest_camera`·`camera_frame`, 웹 `static/camera_panel.js`; Field Ops 탭 `static/{operations_panel,gamepad_panel,legacy_panels_shim}.js`.
+- Bringup: `capstone_ws/src/limo_fleet_bringup/launch/isolated_locked.launch.py`, `safety.motion_watchdog`; 시험 `test_g2_bringup_chain_20261123.py`.
+- 보고: `fleet_control/docs/G2_INTEGRATION_20261123.md`.
+
+## 2026-11-23 현장 준비 진입점 (G2 worktree, 미커밋)
+- 문서 `fleet_control/docs/FIELD_READINESS_20261123.md`; 도구 `scripts/{field_laptop_up_20261123.sh,field_preflight_20261123.py,atomic_swap_20261123.py}`; 프로브 `tests/probe_field_chain_20261123.py`; 시험 `tests/{test_atomic_swap_20261123.py,test_field_preflight_20261123.py,test_gamepad_bench_payload.cjs}`; 웹 `server/fleet_server/static/legacy_panels_shim.js`.
+
+- Gate 입력 출처 검증(G2, 미커밋): `capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py`, `limo_fleet_bringup/safety.py`, 시험 `fleet_control/tests/test_gate_input_source_20261123.py`, 문서 `fleet_control/docs/GATE_INPUT_SOURCE_G2_20261123.md`.

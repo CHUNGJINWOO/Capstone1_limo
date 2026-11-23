@@ -191,15 +191,23 @@ class MappingSessionTests(unittest.TestCase):
         self.assertFalse(self.f.owns_mapping_goal('R', 'other-boot', active))
         self.assertFalse(self.f.owns_mapping_goal('R', self.boot, dict(active, owner='fleet')))
 
-    def test_lease_expiry_makes_unknown_but_reserved_goal_stays_owned(self):
+    def test_lease_expiry_makes_unknown_and_the_reserved_goal_is_tracked_not_owned(self):
+        # G2 2026-11-23 (decision: origin/main safety meaning): an UNKNOWN session never OWNS a goal (no authorization), but the
+        # reserved goal stays TRACKED with its identity for the cancel / terminal check. Was: owned while UNKNOWN (v5b).
         sid = self.start()
         g = 'e' * 32
         self.assertTrue(self.worker('reserve_goal', session_id=sid, goal_id=g)['reserved'])
         self.f.db.x('UPDATE locks SET expires_at=? WHERE robot_id=?', (time.time() - 1, 'R'))   # operator tab gone
         self.assertEqual(self.f.operation_status('R')['state'], 'UNKNOWN')
         self.assertTrue(self.f.mapping_blocks_motion('R'))
-        self.assertTrue(self.f.owns_mapping_goal('R', self.boot, {'owner': 'frontier', 'mission_id': sid, 'command_id': g}))
-        self.assertFalse(self.f.owns_mapping_goal('R', self.boot, {'owner': 'frontier', 'mission_id': sid, 'command_id': 'f' * 32}))
+        mine = {'owner': 'frontier', 'mission_id': sid, 'command_id': g, 'goal_uuid': 'a' * 32}
+        self.assertFalse(self.f.owns_mapping_goal('R', self.boot, mine))
+        tracked = self.f.tracked_mapping_goal('R', self.boot, mine)
+        self.assertEqual((tracked['state'], tracked['session_id'], tracked['boot'], tracked['command_id'], tracked['goal_uuid']),
+                         ('UNKNOWN', sid, self.boot, g, 'a' * 32))
+        self.assertIsNone(self.f.tracked_mapping_goal('R', self.boot, dict(mine, command_id='f' * 32)))
+        self.assertIsNone(self.f.tracked_mapping_goal('R', 'other-boot', mine))
+        self.assertFalse(self.f.owns_mapping_goal('R', self.boot, dict(mine, command_id='f' * 32)))
 
     def test_result_replay_does_not_rewrite(self):
         sid = self.start()

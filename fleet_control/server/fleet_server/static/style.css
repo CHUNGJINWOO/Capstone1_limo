@@ -262,3 +262,6 @@ body{background:var(--shell);color:var(--ink)}.topbar,.tabbar{background:var(--h
   .phase .step{font-size:11px;padding:2px 6px}
   #regUploadPanel .reg-kv th{width:auto}
 }
+#robotVideo figure { margin: 0; }
+#robotVideo figcaption { margin-block: .4rem; }
+#robotVideo img { width: min(100%, 480px); height: auto; border-radius: .35rem; }

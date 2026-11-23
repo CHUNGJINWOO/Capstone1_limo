@@ -24,6 +24,7 @@ from .motor_policy import motor_path_allowed
 from .safety_protocol import (
     GateObservationTracker,
     check_active_goal_safety,
+    frontier_authority_fault,
     compute_movement_permitted,
     verify_navigation_execution,
     sim_r7_nav_evidence,
@@ -646,7 +647,11 @@ class RosRobot(Node):
                 'epoch': epoch, 'last_fault': d.get('last_fault'),
                 'agent_boot_matches': d.get('agent_boot_id') == self.agent_boot_id}
 
-    def start_frontier(self, cmd, ack): self.tasks.append(('frontier', cmd, ack))
+    def start_frontier(self, cmd, ack):
+        # G2: stamp the contract generation at enqueue time, exactly like start_navigate (R1.4.3); _do_frontier refuses a changed one.
+        if isinstance(cmd, dict) and 'contract_generation' not in cmd and callable(self.session_fn):
+            cmd = dict(cmd, contract_generation=(self.session_fn() or {}).get('contract_generation'))
+        self.tasks.append(('frontier', cmd, ack))
     def cancel_frontier(self, cmd, ack): self.tasks.append(('cancel', cmd, ack))
 
     def _run_tasks(self):
@@ -736,6 +741,9 @@ class RosRobot(Node):
             return rej('FRONTIER_FENCED', 'mapping session does not allow a goal')
         if not self.execution_allowed():
             return rej('NOT_RECONCILED', 'server session not reconciled; no goal sent')
+        fault = frontier_authority_fault(self._session_context(), cmd.get('contract_generation'))      # G2: R1 authority (Stage 1)
+        if fault is not None:
+            return rej(fault, 'R1 session authority missing or changed; no goal sent')
         if time.time() > cmd.get('expires_at', 0):
             return rej('EXPIRED', 'command expired while queued')
         g = (cmd.get('payload') or {}).get('goal') or {}
@@ -754,13 +762,17 @@ class RosRobot(Node):
         goal.pose.pose.position.x, goal.pose.pose.position.y = x, y
         goal.pose.pose.orientation.z, goal.pose.pose.orientation.w = math.sin(yaw / 2), math.cos(yaw / 2)
         reserved = uuid.uuid4()
-        with self.lock:
+        # G2: same submission fence as _do_nav Stage 3 (lock order contract_fence -> RosRobot.lock; nothing below waits on a Future).
+        with self._submission_fence(), self.lock:
+            fault = frontier_authority_fault(self._session_context(), cmd.get('contract_generation'))
+            if fault is not None:
+                return rej(fault, 'R1 session authority changed before send')
             if self.active is not None:
                 return rej('BUSY', 'the goal slot is reserved')
             if not self.frontier_allowed(mid):
                 return rej('FRONTIER_FENCED', 'mapping session changed before send')
             observed = self._nav2_goals()
-            if observed['publishers'] != 1 or observed['active_count'] != 0 or observed.get('foreign_active_goal_uuids'):
+            if observed.get('publishers') != 1 or observed.get('active_count') != 0 or observed.get('foreign_active_goal_uuids'):   # G2: incomplete evidence refuses, never raises
                 return rej('NAV_GOAL_OWNERSHIP_UNAVAILABLE', 'another or indeterminate NavigateToPose goal is present')
             if self._motor_path_status()[0] not in ('LOCKED', 'SIM_GATED') or not self.execution_allowed():
                 return rej('ABORTED_PRE_SEND', 'motor path or session changed before send')
@@ -768,7 +780,8 @@ class RosRobot(Node):
                    'handle': None, 'goal_uuid': reserved.hex, 'ack': ack, 'last_fb': 0.0, 'cancel_requested': False,
                    'cancel_acks': [], 'cancel_sent': False, 'cancel_started_mono': None, 'cancel_timeout_reported': False,
                    'reconciliation_required': False, 'goal_response_done': False, 'goal_response_lost': False,
-                   'terminal_status': None, 'goal_sent_mono': time.monotonic(), 'fault_cancel_reason': None, 'safety_context': None}
+                   'terminal_status': None, 'goal_sent_mono': time.monotonic(), 'fault_cancel_reason': None, 'safety_context': None,
+                   'contract_generation': cmd.get('contract_generation')}      # G2: the cancel duty follows this generation
             self.follow_path_status = None
             self.follow_path_observed_active = False
             self.active = rec
@@ -870,6 +883,7 @@ class RosRobot(Node):
             'fault_cancel_reason': None,
             'safety_context': sc2,
             'contract_generation': cmd.get('contract_generation'),      # R1.4.3: the obligation to cancel follows this generation
+            'owner': 'fleet',          # G2: explicit goal owner (the Frontier record says 'frontier'); snapshots already defaulted to fleet
         }
         # Persist intent before the ROS submission. This is deliberately before
         # the submission lock to avoid inverting AgentCore/ROS lock ordering;
@@ -954,6 +968,8 @@ class RosRobot(Node):
                     session_ctx=session_ctx,
                     disconnect_cancel_after_s=self.disconnect_cancel_after_s,
                 )
+                if fault is None and a.get('owner') == 'frontier':          # G2: a Frontier goal has no Safety Context; keep the R1 session duty
+                    fault = frontier_authority_fault(session_ctx, a.get('contract_generation'))
                 if fault is not None:
                     a['cancel_requested'] = True
                     a['fault_cancel_reason'] = fault

@@ -85,7 +85,7 @@ try:
         def send():
             global seq
             seq+=1
-            operator.post(path,{'action':'sample','epoch':epoch,'session_id':session,
+            operator.post(path,{'action':'sample', 'input_format': 'normalized_axes_v1','epoch':epoch,'session_id':session,
                                 'seq':seq,'linear':v,'turn':w,'deadman':pressed})
         return send
     pump(.65,sender=frame(1,.5))

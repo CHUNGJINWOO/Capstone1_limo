@@ -1,5 +1,7 @@
 # 2026-11-11 sim 설정 반영 검증 (processing_hz 20, 낮은 레일 임계값)
 
+> **정리본 상태 (2026-11-11).** **검증 수준:** 시뮬레이션 설정 점검. 실차에 적용하지 않은 값이 포함되어 있다(`docs/CONFIG_SIM_VS_REAL.md` 참고). 이 기록은 당시 설정과 환경에서 얻은 값이며 이후 정리된 파일 이름·값으로 다시 측정한 것이 아니다. 전체 목록: `experiments/README.md`.
+
 변경 파일(sim launch만): `launch/limo_integrated_auto_mapping_sim.launch.py`(Ackermann), `launch/limo_integrated_auto_mapping_sim_diff.launch.py`.
 변경 전 값은 같은 폴더의 `S0_*`(기준), 1단계 `S1_*`, 2단계 `S2_*` 결과와 `../depth_analysis/`의 지연 측정에 있다. 패치: `patches/`.
 

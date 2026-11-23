@@ -11,6 +11,7 @@ from .recovery import RecoveryMixin
 from .ownership import OwnershipMixin
 from .safety import SafetyMixin
 from .mapping import MappingMixin
+from .bag_operation import BagOperationMixin
 from .map_save import MapSaveMixin
 from .operating_mode import OperatingModeMixin
 from .navigation import NavigationMixin
@@ -18,6 +19,7 @@ from .gate_reset import GateResetMixin
 from .readiness import ReadinessMixin
 from .guide import GuideMixin
 
+MANUAL_BENCH_TTL = .25
 MISSION_TERMINAL = {'SUCCEEDED', 'FAILED', 'CANCELED', 'REJECTED', 'EXPIRED'}
 MISSION_INFLIGHT = {'DISPATCHED', 'ACCEPTED', 'EXECUTING', 'CANCELING', 'RECONCILIATION_REQUIRED'}
 CMD_RANK = {'PENDING': 0, 'SENT': 1, 'ACCEPTED': 2, 'EXECUTING': 3, 'SUCCEEDED': 4, 'FAILED': 4, 'CANCELED': 4, 'REJECTED': 4, 'EXPIRED': 4}
@@ -36,7 +38,7 @@ def _j(s):
     return json.loads(s) if s else None
 
 
-class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, OperatingModeMixin, MapSaveMixin, MappingMixin, SafetyMixin, RecoveryMixin, OwnershipMixin):
+class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, OperatingModeMixin, MapSaveMixin, MappingMixin, BagOperationMixin, SafetyMixin, RecoveryMixin, OwnershipMixin):
     def __init__(self, db, cfg):
         self.db, self.cfg, self.lock = db, cfg, threading.RLock()
         self.boot_id = uuid.uuid4().hex[:12]
@@ -45,6 +47,7 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
         self.map_registry = None          # set by the HTTP layer when the Map Registry is enabled
         self._ensure_mapping_schema()
         self._ensure_map_save_schema()
+        self.camera_frames = {}
         # restore persisted robots (they start as offline until their agent reports again)
         self.robots = {}
         for r in db.q('SELECT * FROM robots'):
@@ -196,6 +199,8 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
                     or current['epoch'] != lease['epoch'] or current['boot'] != agent['boot_id']
                     or now >= current['until']):
                 raise ApiError(409, 'manual_bench_expired', 'start a fresh bench session')
+            if body.get('input_format') != 'normalized_axes_v1' or 'ticket' in body:
+                raise ApiError(400, 'bad_joy_format', 'normalized_axes_v1 required')
             seq, linear, turn, deadman = (body.get(k) for k in ('seq', 'linear', 'turn', 'deadman'))
             if (type(seq) is not int or not current['seq'] < seq <= 2**53 - 1
                     or type(deadman) is not bool or any(type(axis) not in (int, float)
@@ -204,6 +209,11 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
             current.update(seq=seq, until=now + MANUAL_BENCH_TTL,
                            sample={'linear': linear, 'turn': turn, 'deadman': deadman})
             return {'received': seq}
+
+    def manual_preview_status(self, robot_id):          # main (camera/gamepad UI): read-only bench activity flag
+        with self.lock:
+            current = self.manual_benches.get(robot_id)
+            return {'active': bool(current and current['until'] > time.monotonic())}
 
     def pull_manual_bench(self, robot_id, boot_id):
         with self.lock:
@@ -250,7 +260,9 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
             r['agent'] = agent; r['last_seen'] = now
             # A new hello requires fresh state, even if the process retained its boot ID.
             r['state'], r['state_ts'] = None, None
-            if boot != old_boot: r.pop('seq', None)
+            if boot != old_boot:
+                r.pop('seq', None)
+                self.manual_benches.pop(robot_id, None)          # main: a new Agent boot ends any manual bench session
             r['reconciled'] = False
             r['reconciliation_required'] = False
             self._set_online(r, True, 'agent hello')
@@ -322,6 +334,36 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
             res['gate_reset_request'] = self.gate_reset_for_agent(robot_id)   # delivered once, to the Agent boot it was issued for
             res['recovered_commands'] = self.recovered_command_ids(robot_id)         # operator-recovered commands: the agent may clear them from its own journal after re-checking Nav2
             return res
+
+    def ingest_camera(self, robot_id, boot, body):
+        kind, encoded, age = (body.get(k) for k in ('kind', 'jpeg_base64', 'source_age_s'))
+        if (kind not in ('rgb', 'depth') or not isinstance(encoded, str) or len(encoded) > 350_000
+                or type(age) not in (float, int) or not 0 <= age < 2):
+            raise ApiError(400, 'bad_camera_frame', 'invalid camera frame')
+        try:
+            frame = base64.b64decode(encoded, validate=True)
+        except ValueError:
+            raise ApiError(400, 'bad_camera_frame', 'invalid JPEG encoding') from None
+        if not frame.startswith(b'\xff\xd8\xff') or not frame.endswith(b'\xff\xd9'):
+            raise ApiError(400, 'bad_camera_frame', 'JPEG required')
+        with self.lock:
+            robot = self.check_session(robot_id, boot)
+            if robot['agent'].get('camera_preview') is not True:
+                raise ApiError(409, 'camera_disabled', 'camera preview disabled')
+            source = 'SIMULATED' if robot['agent'].get('simulated') else 'ROS'
+            self.camera_frames[robot_id, kind] = boot, time.monotonic() - age, frame, source
+        return {'ok': True}
+
+    def camera_frame(self, robot_id, kind):
+        with self.lock:
+            robot = self.robots.get(robot_id) or {}
+            value = self.camera_frames.get((robot_id, kind))
+            if not value or robot.get('online') is not True:
+                raise ApiError(404, 'camera_unavailable', 'camera data unavailable')
+            boot, timestamp, frame, source = value
+            if boot != (robot.get('agent') or {}).get('boot_id') or time.monotonic() - timestamp >= 3:
+                raise ApiError(404, 'camera_unavailable', 'camera data expired')
+            return frame, source
 
     def ingest_map(self, robot_id, version, meta, png_b64):
         with self.lock:
@@ -540,6 +582,9 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
                 raise ApiError(409, 'lease_required', 'current owner and lease epoch required')
             if self.mapping_blocks_motion(robot_id):
                 raise ApiError(409, 'mapping_active', 'mapping session must reach STOPPED (UNKNOWN needs reconciliation)')
+            ag = self.robots[robot_id].get('agent', {})
+            if ag.get('manual_web_bench') is True and ag.get('missions_enabled') is not True:          # main: a bench-only Agent takes no destination goals (checked after the R1 safety/lease checks). v5: a locked-Arbiter Agent with missions enabled does NAVIGATION too
+                raise ApiError(409, 'manual_bench_mode', 'destination goals are disabled in manual bench mode')
             mid = 'm_' + uuid.uuid4().hex[:12]; now = time.time()
             self.db.x('INSERT INTO missions(mission_id,robot_id,type,goal_json,idempotency_key,status,detail,created_by,note,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
                       (mid, robot_id, mtype, json.dumps({'frame_id': 'map', 'x': x, 'y': y, 'yaw_rad': yaw}), idempotency_key, 'QUEUED', 'created', created_by, note, now, now))
@@ -572,6 +617,7 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
             m = self.db.one("SELECT * FROM missions WHERE robot_id=? AND status='QUEUED' ORDER BY created_at LIMIT 1", (robot_id,))
             if not m or m['cancel_requested']: return
             if self.mapping_blocks_motion(robot_id): return          # mapping owns the goal slot; keep the mission queued
+            if (lambda ag: ag.get('manual_web_bench') is True and ag.get('missions_enabled') is not True)(self.robots[robot_id].get('agent') or {}): return          # main: a bench-only Agent never dispatches goals
             if not self.mission_authorized(m, self.safety_context(robot_id)):
                 self.invalidate_movement(robot_id, 'admission context missing, stale or changed')
                 return
