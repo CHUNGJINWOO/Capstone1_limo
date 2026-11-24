@@ -31,7 +31,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogI
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
-from launch_ros.actions import Node, SetRemap
+from launch_ros.actions import Node, SetParameter, SetRemap
 from launch_ros.parameter_descriptions import ParameterValue
 from nav2_common.launch import RewrittenYaml
 
@@ -212,10 +212,69 @@ def generate_launch_description():
         ),
     ])
 
+    def _make_limo_base_launch(port_name='ttylimo'):
+        if port_name == 'ttylimo':
+            return limo_base_launch
+        return GroupAction(actions=[
+            SetRemap(src='cmd_vel', dst=DRIVER_CMD_TOPIC),
+            SetRemap(src='/cmd_vel', dst=DRIVER_CMD_TOPIC),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(os.path.join(pkg_limo_base, 'launch', 'limo_base.launch.py')),
+                launch_arguments={'pub_odom_tf': 'false', 'port_name': port_name}.items()
+            ),
+        ])
+
     # B. YDLidar Driver
     ydlidar_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(pkg_ydlidar, 'launch', 'ydlidar.launch.py'))
     )
+
+    def _make_ydlidar_launch(port_path='/dev/ydlidar'):
+        if port_path == '/dev/ydlidar':
+            return ydlidar_launch
+        rewritten = RewrittenYaml(
+            source_file=os.path.join(pkg_ydlidar, 'params', 'ydlidar.yaml'),
+            param_rewrites={'port': port_path},
+            convert_types=True,
+        )
+        return IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(pkg_ydlidar, 'launch', 'ydlidar.launch.py')),
+            launch_arguments={'params_file': rewritten}.items(),
+        )
+
+    def resolve_serial_drivers(context):
+        use_res = LaunchConfiguration('use_usb_resolver').perform(context).strip().lower()
+        if use_res != 'true':
+            return [limo_base_launch, ydlidar_launch]
+
+        from limo_capstone.usb_device_resolver import (
+            ResolverConfig,
+            resolve_with_retry,
+            verify_before_start,
+        )
+
+        timeout_s = float(LaunchConfiguration('usb_resolve_timeout_sec').perform(context))
+        interval_s = float(LaunchConfiguration('usb_resolve_interval_sec').perform(context))
+        cfg = ResolverConfig()
+        res = resolve_with_retry(cfg, timeout_s=timeout_s, interval_s=interval_s)
+        if res.ok:
+            res = verify_before_start(res, cfg)
+        if not res.ok or res.base is None or res.lidar is None:
+            return [
+                LogInfo(msg=(
+                    f'[USB_RESOLVER FAIL-CLOSED] refusing to start limo_base/ydlidar on unverified ports: '
+                    f'errors={res.errors} details={res.details}'
+                ))
+            ]
+        return [
+            LogInfo(msg=(
+                f'[USB_RESOLVER OK] base={res.base.preferred_path} (port_name={res.base.port_name}, '
+                f'real={res.base.real_path}, src={res.base.source}) | '
+                f'lidar={res.lidar.preferred_path} (real={res.lidar.real_path}, src={res.lidar.source})'
+            )),
+            _make_limo_base_launch(res.base.port_name),
+            _make_ydlidar_launch(res.lidar.preferred_path),
+        ]
 
     # C. Orbbec DaBai Depth Camera Driver (Launched only when use_depth_camera is true)
     dabai_launch = IncludeLaunchDescription(
@@ -573,12 +632,17 @@ def generate_launch_description():
         declare_camera_roll,
         declare_camera_pitch,
         declare_camera_yaw,
+        DeclareLaunchArgument('use_usb_resolver', default_value='true', choices=['true', 'false'],
+                              description='Fail-closed USB topology resolver for limo_base and ydlidar serial ports'),
+        DeclareLaunchArgument('usb_resolve_timeout_sec', default_value='5.0',
+                              description='Bounded max wait seconds for delayed USB serial enumeration'),
+        DeclareLaunchArgument('usb_resolve_interval_sec', default_value='0.5',
+                              description='Polling interval seconds during bounded USB serial resolution'),
         log_lock_notice,
         OpaqueFunction(function=validate_manual_probe),
         bad_speed_profile,
         log_deprecated_stall_arg,
-        limo_base_launch,
-        ydlidar_launch,
+        OpaqueFunction(function=resolve_serial_drivers),
         dabai_launch,
         load_urdf_launch,
         base_footprint_tf,
