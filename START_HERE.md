@@ -70,3 +70,6 @@ Map Registry, Operation Manager와 Gate 후보의 최신 근거 및 차단 조�
 - **중앙 관제 · 실차형 안전 체인 · 건식 임무 문서**: [fleet_control/docs/REAL_AGENT_MODE_SELECTION_20261124.md](fleet_control/docs/REAL_AGENT_MODE_SELECTION_20261124.md), [fleet_control/docs/REAL_NAV_DRY_RUN_20261126.md](fleet_control/docs/REAL_NAV_DRY_RUN_20261126.md), [fleet_control/docs/GATE_EVIDENCE_AND_DRY_RUN_RECOVERY_20261127.md](fleet_control/docs/GATE_EVIDENCE_AND_DRY_RUN_RECOVERY_20261127.md).
 - **Nav2 안정화 · 순찰 및 웹 UI 통합 문서**: [fleet_control/docs/NAV2_STABILIZATION_AND_PATROL_20261124.md](fleet_control/docs/NAV2_STABILIZATION_AND_PATROL_20261124.md), [fleet_control/docs/WEB_MAP_SPEED_INTEGRATION_PROPOSAL_20261123.md](fleet_control/docs/WEB_MAP_SPEED_INTEGRATION_PROPOSAL_20261123.md).
 - **실차 LOCKED 현장 점검 절차**: [fleet_control/docs/REAL_LIMO_LOCKED_PREFLIGHT_20261123.md](fleet_control/docs/REAL_LIMO_LOCKED_PREFLIGHT_20261123.md) 및 `fleet_control/scripts/field_preflight_20261123.py`. (로컬 전용 배포 후보·상세 인계 기록은 GitHub에 포함되지 않으며 로컬 `local_data/raw_results/real_limo_integ_claude_20261122/field_ready_01/`에 보관됩니다.)
+
+### USB Device Resolver 및 실차 LOCKED 현장 안내 (2026-11-24 추가)
+- **USB 시리얼 포트 자동 탐색/검증 문서**: [fleet_control/docs/USB_DEVICE_RESOLVER_20261124.md](fleet_control/docs/USB_DEVICE_RESOLVER_20261124.md) (`use_usb_resolver=true` 기본 유지; `false`는 안전 검사 우회용이므로 정상 운용에서 비권장).

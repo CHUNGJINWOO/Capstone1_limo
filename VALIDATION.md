@@ -1142,3 +1142,14 @@ FollowPath의 이전 목표 terminal 상태가 다음 목표의 종료 증거로
 | **B. 최종 통합 Git 소스 재실행** | G2 안전·모드·속도·건식 Python 단위·서버 회귀 (`test_field_preflight`, `test_agent_safety_v1`, `test_dry_run_missions`, `test_mode_selector_server`, `test_real_mode_selector`, `test_speed_limits_{agent,server}`, `test_watchdog_{mode_gate,speed_clamp,speed_link}`) | 단위 시험 / 모의 서버 (격리 ROS 2) | **205/205 PASS** (`33+9+25+9+18+26+15+9+61`) | 최종 통합 소스 총 재실행 **235/235 PASS (0 FAIL)** |
 | **B. 최종 통합 Git 소스 재실행** | q10 LOCKED 배포 후보 SHA-256 동일성 대조 | 정적 해시 대조 | **181/181 EXACT MATCH** | Agent `41/41`, LIMO `91/91`, Server `49/49` 불일치 0건 |
 | **미실행 (`SKIP` / `BLOCKED`)** | 통합본 Gazebo 재시험, Manual UI playwright, 실차(LIMO Pro) 전 항목 | Gazebo / 실차 | **SKIP / BLOCKED** | 실차 전원 OFF 및 안전 차단 조건 10건 미해소 |
+
+### 2026-11-24 실차 LOCKED 정지 검증 및 USB Device Resolver 검증 (`01761cd4` 이후)
+
+| 구분 | 시험 항목 | 환경 / 수준 | 결과 | 비고 |
+|---|---|---|---|---|
+| **실차 (LIMO `pcu`, 바퀴 부양, 주행 없음)** | LOCKED 배포 후 1차 정지 검증 (`field_preflight --real`) | 실차 (`ROS_DOMAIN_ID=77`) + 격리 서버 `29810` | **25 PASS / 2 WARN / 5 FAIL** | `B1`(Gate `FAILSAFE_SENSOR_TIMEOUT`), `B3`/`F1~F3`(구 `robot_agent` 잔존으로 `SPEED_LIMIT_NOT_SYNCED`), `C4`/`F8` WARN. `/cmd_vel` 발행자·구독자 0, `/cmd_vel_locked` Gate 1·구독자 0, LiDAR `10.03 Hz`, `/odom_nav2` `10.02 Hz`, RGB `7.90 Hz`, Depth `23.41 Hz` |
+| **실차 (LIMO `pcu`, 바퀴 부양, 주행 없음)** | 2차 정지 검증 (`setsid` 단일 Agent + `camera_preview:=true`) | 실차 (`ROS_DOMAIN_ID=77`) + 격리 서버 `29810` | **29 PASS / 2 WARN / 1 FAIL** | **`B3`, `F1~F4`, `G1~G4` PASS 전환** (`enforced_by=WATCHDOG`, `server_verified=true`, `agent_boot_matches=true`). 잔여 `1 FAIL(B1)` + `2 WARN(C4, F8)`은 모두 USB 허브 `1a40:0101` 미열거로 인한 `limo_base` 미기동 원인 |
+| **실차 (읽기 전용 USB 재확인)** | 재부팅 후·최종 `lsusb`/`udevadm`/`usb_device_resolver.py --json` | 실차 (`pcu`, 파일 미저장) | **`BASE_HUB_NOT_ENUMERATED` (`exit=2`)** | `10c4:ea60` YDLIDAR(`usb 3-3`, `ttyUSB0`)만 인식, `1a40:0101` 부재. 오할당 0건 |
+| **합성 / Mock / 단위 시험 (실차 아님)** | USB Device Resolver 단위 시험 (`test_usb_device_resolver.py`) | 합성 sysfs fixture | **14/14 PASS** | 스왑, 포트 변경, 동일 VID/PID/Serial 거부, 3번째 CP2102, 중복 허브, 잘못된/충돌 링크, 허브 미열거, 지연 재시도, 권한 오류, 실행 직전 변경 |
+| **격리 ROS 2 Launch + Mock 드라이버 (실차 아님)** | `test_real_launch_usb_resolver_ros2.py` (`LaunchService` + Mock `limo_base`/`ydlidar`) | 격리 ROS 2 Humble (`ROS_DOMAIN_ID=179`) | **5/5 PASS** | `SetParameter`가 `ydlidar.yaml`에 가려지던 결함을 `RewrittenYaml`로 수정 후 통과; 미인식·모호 시 드라이버 0개 기동; `use_usb_resolver:=false` 우회 동작 확인 |
+| **전체 관련 회귀 (실차 아님)** | `test_real_launch_driver_isolation_20261123` (5) + `test_agent_motor_path_driver_topic_20261123` (14) + `test_usb_device_resolver` (14) + `test_real_launch_usb_resolver_ros2` (5) + `test_preflight` (18) | 단위 + Mock + 격리 ROS 2 | **56/56 PASS (0 FAIL)** | q12 후보 94/94 파일 SHA-256 소스 일치 및 `limo_package_deploy_20261122.sh stage` 검증 통과 (**`replace`/`build`/`verify`/`rollback` 리허설 미실행**, `artifact` allowlist 정책 미충족으로 배포 보류) |

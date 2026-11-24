@@ -696,3 +696,19 @@ A–E 기준선과 캠페인 수정분은 별도 해시로 보존한다. 이전 
    - ④ 패키지별 백업·설치·검증(`limo_package_deploy_20261122.sh`, `18190` 무접촉) 후 ②~③ 재확인.
    - ⑤ **물리 안전 확인(사람이 실측 기록)**: 구동 전원 분리/바퀴 부양, 물리 E-Stop 동작·복구, STM32 타임아웃, 제동거리(0.05~0.10 m/s), 실제 조이스틱 해제 패턴.
 4. **남은 실차 차단 조건 (`REAL_MOTION_READY: BLOCKED`)**: `CURRENT_STATUS.md` (47)의 10개 UNVERIFIED/BLOCKED 항목 전부 해소 및 사용자 현장 승인 전까지 실차 구동·운동 Mission 금지.
+
+## 2026-11-24 (48) 실차 LOCKED 정지 검증 결과, USB Device Resolver 및 내일 현장 절차
+1. **오늘 완료 및 미해결 요약**:
+   - 실차 `pcu`에 q10 `limo_robot_agent` + `limo_capstone` 배포·빌드 완료(백업 `/home/pcu/Capstone1_limo/deploy_backups_20261124/` 보존).
+   - Watchdog·Agent 동기화(`enforced_by=WATCHDOG`, `server_verified=true`) 실차 확인으로 `field_preflight --real` **25/32 → 29/32 PASS** 달성.
+   - **미해결**: LIMO 베이스 보드용 USB2.0 허브(`1a40:0101`, 과거 `usb 3-7` → `usb 3-7.4` `/dev/ttylimo`)가 재부팅 후에도 커널에 미열거 상태라는 관측 사실이 확인되었으며(**물리적 근본 원인은 미확정**), 이로 인해 `B1` FAIL 및 `C4`/`F8` WARN이 잔존합니다.
+   - **신규 `limo_capstone` 후보 `q12` (로컬 보관, 미설치, `deployment_approved: false`, 배포 보류)**:
+     - 경로: `local_data/raw_results/real_limo_integ_claude_20261122/field_ready_01/q12_limo_capstone_usb_resolver_20261124/`
+     - tar: `limo_capstone_candidate_integ20261124_usb.tar.gz` (94파일, `cap1`=`cap2` SHA-256 `eea91d050725e33aff8bb4935a6d5f21637bb076581a9f102f6f4836e00150e8`, 최종 Git 소스 94/94 일치).
+     - Agent·Fleet Server는 기존 q10 후보(`4327ff37…d1be`, `c3d4cf06…b32f`)를 그대로 유지합니다.
+     - **배포 정책 적합성 및 보류 사유**: `limo_package_deploy_20261122.sh artifact` allowlist(확장자·파일명 규칙)에 q12 내용물의 **32개 파일이 해당하지 않는다**(관측: `.gitignore`, 무확장자 `2026_10_15`, `config/navigate_to_pose_ackermann*.xml`, `maps/*`, `models/*`, `rviz/*.rviz`, `urdf/*.urdf`, `worlds/*.sdf` 등; 자격증명 유사 이름 없음; 도구는 첫 거부에서 중단하므로 이전 기록의 '두 파일'은 부정확). `.gitignore`만 tar에서 제외하고 나머지 93개를 포함한 94개 파일로, 이전 `limo_capstone` 후보(q9/q10)와 같은 수동 manifest 선례에 따라 `tar --sort=name --mtime='UTC 1970-01-01'` 규격으로 수동 생성했으며(`ARTIFACT.manifest.json` 키도 `q10`과 상이), `stage` 검증(94파일)만 통과하고 **`replace`/`build`/`verify`/`rollback` 리허설은 미실행** 상태입니다. 따라서 정책 적합성·리허설 완료 전까지 **`q12`는 배포 보류**로 기록합니다.
+     - `use_usb_resolver=false`는 장치 식별 안전 검사를 우회하므로 정상 운용에서는 `true`를 유지합니다.
+2. **내일 현장 작업 순서 (바퀴 부양·물리 차단 유지, `REAL_MOTION_READY: BLOCKED`)**:
+   - ① **물리 USB 허브 복구 확인**: 하부 베이스 전원/내부 USB(`usb 3-7`, `1a40:0101`) 연결 점검 후 `lsusb | grep 1a40:0101` 및 `ls -l /dev/ttylimo` 확인 (원인 기록 포함).
+   - ② **현재 설치된 q10 정지 검증 또는 q12 배포 전 사전 요건**: 우선 현재 설치된 q10(`af18d9bd…93b9`) 그대로 LOCKED 정지 검증(`limo_base` `/limo_driver/cmd_vel` 구독·`/odom`·`/imu`·`/limo_status`·`B1 Gate NORMAL` → `32/32 PASS`)을 1회 확인하거나, `q12` 배포 시에는 먼저 `artifact` allowlist 적합화 또는 정책 예외 승인(allowlist 밖 32개 파일 처리 결정) 및 노트북 `replace`/`build`/`verify`/`rollback` 리허설을 마친 뒤, **현재 실차에 설치된 q10을 별도 스탬프(`20261125_pre_q12`)로 백업**하고 승인 하에 설치합니다.
+   - ③ **주행 전 물리 안전 확인 (별도 승인 필수)**: 물리 E-Stop 동작·복구, STM32 명령 타임아웃, 제동거리(0.05~0.10 m/s), 실제 조이스틱 해제 패턴 실측 전까지 `allow_motor_drive:=true` 금지.

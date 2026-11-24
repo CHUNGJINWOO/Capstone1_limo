@@ -185,3 +185,8 @@ Perception·Localization·Safety·Bringup의 기존 launch와 패키지 배치�
 - **건식 임무**는 별도 `POST /dry-run-missions`로 접수되며 `dry_run: true`, `real_motion_authorized: false`, `missions_enabled: false`를 유지합니다. 명령 체인은 Nav2 → Watchdog → Gate로 동일하되, Gate 출력이 `/cmd_vel_locked`에 격리되고 `locked_motor_proof`(소프트웨어 그래프 관측)가 참일 때만 허용됩니다.
 - **실제 운동 허가 (`REAL_MOTION_READY`)**: **BLOCKED (미구현/미승인)**. 비인증 Gate 자기 보고(`GATE_SELF_REPORT_UNAUTHENTICATED`)와 소프트웨어 그래프 관측은 물리 모터 차단을 증명하지 못합니다.
 - **제안·미검증 구분**: 실차 `limo_base` 토픽 리매핑, 물리 E-Stop, STM32 타임아웃, 실차 Nav2 O6 거동, 비례 AUTO Clamp(제안만 존재, 현재 축별 Clamp 유지)는 모두 **실차 미검증**입니다.
+
+### 3. 실차 USB 시리얼 포트 식별 경계 (`usb_device_resolver`, 2026-11-24 추가)
+- `limo_integrated_auto_mapping_real.launch.py`는 `OpaqueFunction(resolve_serial_drivers)`를 통해 `/dev/ttylimo`·`/dev/ydlidar` 고정 링크를 우선 검사하되, 링크가 없거나 포트가 바뀐 경우 `/sys/class/tty`·`/sys/bus/usb/devices` 토폴로지(`10c4:ea60` + 부모 허브 `1a40:0101` 유무)로 **LIMO Base**(`port_name`)와 **YDLIDAR**(`RewrittenYaml` `params_file` `port`)를 fail-closed로 식별합니다.
+- **물리 허브 미열거 구분**: `1a40:0101` 허브 자체가 커널에 열거되지 않는 물리 장애(`BASE_HUB_NOT_ENUMERATED`)는 소프트웨어로 복구할 수 없으며, 식별 실패·중복·권한 오류 시 드라이버를 임의 포트로 실행하지 않습니다. 장치 분리·재연결 시에도 자동 드라이버 재시작이나 자동 운동 재개를 수행하지 않습니다.
+- `use_usb_resolver:=false`는 안전 검사를 우회하여 기존 고정 기본값(`ttylimo`, `/dev/ydlidar`)으로 실행하므로 정상 운용에서는 `true`를 유지합니다.
