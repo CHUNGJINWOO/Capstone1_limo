@@ -261,6 +261,8 @@
     $('layerTrail').onchange = (e) => mapView.setLayer('trail', e.target.checked);
     if ($('layerCostmap')) $('layerCostmap').onchange = (e) => mapView.setLayer('costmap', e.target.checked);
     if ($('layerPlan')) $('layerPlan').onchange = (e) => mapView.setLayer('plan', e.target.checked);
+    if ($('mapClearTrail')) $('mapClearTrail').onclick = () => mapView && mapView.clearTrail();
+    if ($('spatialRoute')) $('spatialRoute').onclick = () => mapView && mapView.fitRoute();
     document.querySelectorAll('input[name="mapMode"]').forEach((radio) => {
       radio.onchange = () => {
         mapMode = radio.value;
@@ -928,6 +930,7 @@
     const sg = s.safety_gate || {};
     const mp = H.classifyMotorPath(r);
     const am = H.classifyAllowMissions(r);
+    const gev = H.classifyGateEvidence(r);
     const items = [
       { label: 'Agent 온라인 연결', ok: r.online === true, val: r.online ? `ONLINE (${H.fmtAge(r.last_seen_age_s)})` : 'OFFLINE' },
       { label: 'Safety Gate 상태', ok: r.online && sg.status === 'NORMAL' && sg.fault_latched === false, val: H.classifySafetyGate(r).label },
@@ -937,6 +940,10 @@
       { label: 'Depth 카메라 상태', ok: r.online && (s.depth_camera || {}).status === 'OK', val: `${(s.depth_camera || {}).status || 'NO_DATA'}` },
       { label: '위치추정 (Localization)', ok: s.localization_status === 'CONFIRMED', val: `${s.localization_status || 'UNKNOWN'}` },
       { label: 'Nav2 Action Server', ok: (s.nav2 || {}).action_server_ready === true, val: `${(s.nav2 || {}).status || 'UNAVAILABLE'}` },
+      { label: '운영 모드 / Watchdog 확인', ok: H.classifyModeMotion(r).status !== 'UNVERIFIED', val: H.classifyModeMotion(r).label },
+      { label: '임무 종류', ok: true, val: H.classifyDryRun(r).label },
+      { label: 'Gate 생성 증거 (비인증)', ok: gev.faultLatched === false, val: `boot ${gev.bootId ? String(gev.bootId).slice(0, 8) : '-'} · epoch ${gev.faultEpoch === null ? '-' : gev.faultEpoch} · latched ${gev.faultLatched === null ? '-' : gev.faultLatched} (자기 보고, 운동 허가 아님)` },
+      { label: 'Gate reset 가능 여부', ok: gev.resetReady === true || !gev.resetEnforced, val: gev.resetEnforced ? (gev.resetReady ? '가능' : '차단: ' + (gev.resetBlockers.join(', ') || '-')) : '게이팅 꺼짐' },
       { label: 'Reconciliation 차단 여부', ok: !r.reconciliation_required && r.reconciled === true, val: r.reconciliation_required ? 'RECONCILIATION_REQUIRED' : (r.reconciled ? '정상' : '미동기화') },
     ];
     $('preflightChecklist').innerHTML = items
@@ -983,7 +990,8 @@
     const canCtl = me && (me.role === 'operator' || me.role === 'admin');
     const isAdmin = me && me.role === 'admin';
     const src = H.classifyMissionSource(m);
-    const srcBadge = src === 'RMF' ? '<span class="badge rmf">RMF</span>' : '<span class="badge">WEB/API</span>';
+    const srcBadge = (src === 'RMF' ? '<span class="badge rmf">RMF</span>' : '<span class="badge">WEB/API</span>')
+      + (m.dry_run === true ? ' <span class="badge warn" title="건식 임무: 실제 주행 허가가 아닙니다">건식 · 실제 주행 아님</span>' : '');
     const prog = m.progress && m.progress.distance_remaining_m != null ? `남은거리 ${H.fmt(m.progress.distance_remaining_m)} m` : '';
     const cmdsTxt = includeCmds && Array.isArray(m.commands) && m.commands.length
       ? '<div class="muted small">' + m.commands.map((c) => `${H.esc(c.command_id)}(${H.esc(c.type)}:${H.esc(c.status)}, try=${c.attempts})`).join(' · ') + '</div>'
@@ -1356,6 +1364,7 @@
 
   // Localhost mock-only locked path: the Agent's selector independently checks
   // the graph, Gate, watchdog, lease and both Nav2 status streams.
+  const manualSpeedCap = { maxLinear: 0.10, maxAngular: 0.30 };
   const manualHost = document.createElement('section');
   manualHost.className = 'card';
   $('leaseCard').after(manualHost);
@@ -1363,6 +1372,7 @@
     request: api,
     refreshEvidence: () => fetchDashboard(),
     isActive: () => activeTab === 'control' && !showAllPanels,
+    getSpeedLimits: () => ({ ...manualSpeedCap }),
     getContext: () => {
       const robot = data?.robots?.find(r => r.robot_id === selectedRobotId);
       const agent = robot?.agent || {}, state = robot?.state || {};
@@ -1382,6 +1392,59 @@
         serverBootId:data?.server?.boot_id};
     }
   });
+  const speedHost = $('speedControlHost');
+  const speedPanel = (speedHost && window.SpeedControlPanel) ? window.SpeedControlPanel.mount(speedHost, {
+    request: api,
+    getContext: () => {
+      const robot = data?.robots?.find(r => r.robot_id === (selectedRobotId || $('mrobot')?.value)) || data?.robots?.[0] || null;
+      const agent = robot?.agent || {}, st = robot?.state || {}, sg = st.safety_gate || {};
+      const wd = st.motion_watchdog || {};
+      const sensRec = mapView && robot ? mapView.sensors[robot.robot_id] : null;
+      const sens = sensRec && sensRec.data && sensRec.data.available ? sensRec.data : null;
+      const obsVel = H.extractObservedVelocity(robot, sens);
+      const reqVel = typeof manualPanel.getRequestedVelocity === 'function' ? manualPanel.getRequestedVelocity() : { linear_mps: 0, angular_rps: 0 };
+      const mp = H.classifyMotorPath(robot);
+      const gate = H.classifySafetyGate(robot);
+      return {
+        robotId: robot?.robot_id || '',
+        serverBootId: data?.server?.boot_id || '',
+        online: robot?.online === true,
+        stateAgeS: typeof robot?.state_age_s === 'number' ? robot.state_age_s : Infinity,
+        canControl: !!me && ['operator', 'admin'].includes(me.role),
+        reconciliationRequired: robot?.reconciliation_required === true,
+        protocolVersion: agent.protocol_version,
+        safetyContractVersion: agent.safety_contract_version,
+        agentBootId: agent.boot_id || '',
+        leaseOwned: !!me && robot?.lease?.owner === me.name,
+        leaseEpoch: robot?.lease?.epoch,
+        operationMode: (robot?.operating_mode && robot.operating_mode.mode) || st.operation_mode || 'UNKNOWN',
+        speedLimitsState: st.speed_limits || null,
+        motorLocked: mp.status === 'LOCKED' || (st.standby_status && st.standby_status.motor_locked === true),
+        gateBlocked: sg.cmd_blocked === true || sg.movement_permitted === false,
+        gateFault: gate.category === 'FAULT' || sg.fault_latched === true,
+        gateReason: (Array.isArray(sg.movement_block_reasons) && sg.movement_block_reasons[0]) || sg.status || '',
+        watchdogAuthorized: wd.state ? wd.state === 'MOTION_AUTHORIZED' : undefined,
+        watchdogState: wd.state || '',
+        safetySlowdown: sg.depth_slowdown === true || sg.slowdown_active === true,
+        slowdownReason: sg.slowdown_reason || '',
+        observedVelocity: obsVel,
+        requestedLinearMps: reqVel.linear_mps,
+        requestedAngularRps: reqVel.angular_rps,
+      };
+    },
+    onManualCapChange: (cap) => {
+      manualSpeedCap.maxLinear = cap.maxLinear;
+      manualSpeedCap.maxAngular = cap.maxAngular;
+      if ($('gpMaxLinear')) $('gpMaxLinear').value = cap.maxLinear.toFixed(2);
+      if ($('gpMaxTurn')) $('gpMaxTurn').value = cap.maxAngular.toFixed(2);
+    },
+  }) : null;
+  let lastSpeedSyncAt = 0;
+  setInterval(() => {
+    if (!token || !speedPanel || Date.now() - lastSpeedSyncAt < 2500) return;
+    lastSpeedSyncAt = Date.now();
+    speedPanel.syncFromServer();
+  }, 3000);
   // Evidence refresh while a manual session is active (see ManualControlPanel.active): every 300 ms instead of the 1 s poll,
   // so the panel's 1000 ms evidence bound is not crossed by the poll period alone. Only /dashboard (runs even while the 1 s tick
   // is refreshing the mapping panels).
@@ -1470,17 +1533,17 @@
     const robotObj = data && (data.robots || []).find((x) => x.robot_id === rid);
     const body = {
       robot_id: rid,
-      type: 'navigate_to_pose',
+      ...(H.isDryRunAgent(robotObj) ? {} : { type: 'navigate_to_pose' }),            // the dry-run endpoint takes no type: it can only make dry-run missions
       goal: { frame_id: 'map', x: +$('mx').value, y: +$('my').value, yaw_rad: +$('myaw').value },
       note: $('mnote').value.trim(),
       lease_epoch: robotObj && robotObj.lease ? robotObj.lease.epoch : null,
       idempotency_key: 'ui-' + uuid(),
     };
     try {
-      const r = await api('/missions', { method: 'POST', body: JSON.stringify(body) });
+      const r = await api(H.missionEndpoint(robotObj), { method: 'POST', body: JSON.stringify(body) });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
-        $('merr').textContent = (j.error && j.error.message) || `오류 ${r.status}`;
+        $('merr').textContent = H.explainApiError(j.error && j.error.code, (j.error && j.error.message) || `오류 ${r.status}`);
       } else {
         if (mapView) mapView.setPreviewGoal(null, null);
         closeGoalDrawer();
@@ -1690,9 +1753,18 @@
   function renderConsole(r, missions, disconnected) {
     const s = r?.state || {}, sg = s.safety_gate || {}, active = s.execution?.active;
     $('overviewSource').textContent = r?.agent?.simulated === true ? 'SIMULATED' : r ? (r.agent?.mode || 'UNKNOWN') : 'UNKNOWN';
-    const pose = s.pose || {};
-    const poseValid = r?.online === true && r.state_age_s != null && r.state_age_s <= 2 && pose.status === 'OK' && pose.frame_id === 'map' && s.localization_status === 'CONFIRMED' && s.map_verified === true && s.map_version_id && s.localization_map_version_id === s.map_version_id;
-    $('spatialSummary').textContent = `${r?.robot_id || '로봇 미선택'} · 실제 건물/층 UNKNOWN · ${registryState.preview ? '로봇 라이브 보고(미리보기 지도에 표시 안 함)' : '라이브 보고'} · 위치 ${poseValid ? `x ${H.fmt(pose.x)}, y ${H.fmt(pose.y)} m (${pose.frame_id})` : '미확정'} · Localization ${s.localization_status || 'UNKNOWN'} · 계획 경로 UNAVAILABLE · 궤적 현재 세션`;
+    const sensRec = mapView && r ? mapView.sensors[r.robot_id] : null;
+    const sens = sensRec && sensRec.data && sensRec.data.available ? sensRec.data : null;
+    const poseState = H.classifyPoseState(r, sens);
+    const planInfo = H.extractPlanPoints(r, sens, missions);
+    const obsVel = H.extractObservedVelocity(r, sens);
+    const trailStats = mapView ? mapView.getTrailStats(r?.robot_id) : { count: 0, max: 600 };
+    const planSummary = planInfo.status === 'OK' ? `OK (${planInfo.points.length}pts)` : planInfo.status;
+    if ($('spatialRoute')) {
+      $('spatialRoute').disabled = planInfo.status !== 'OK';
+      $('spatialRoute').textContent = planInfo.status === 'OK' ? `Fit to Route (${planInfo.points.length}pts)` : 'Fit to Route · 미제공';
+    }
+    $('spatialSummary').textContent = `${r?.robot_id || '로봇 미선택'} · 실제 건물/층 UNKNOWN · ${registryState.preview ? '로봇 라이브 보고(미리보기 지도에 표시 안 함)' : '라이브 보고'} · 위치 ${poseState.status === 'OK' && poseState.pose ? `x ${H.fmt(poseState.pose.x)}, y ${H.fmt(poseState.pose.y)} m, yaw ${H.fmt(poseState.pose.yaw_rad * 180 / Math.PI, 1)}° (${poseState.pose.frame_id})` : poseState.status} · Localization ${s.localization_status || 'UNKNOWN'} · 계획 경로 ${planSummary} · 궤적 ${trailStats.count}/${trailStats.max}`;
     const mission = missions.find(m => m.robot_id === r?.robot_id && !m.terminal && m.mission_id === active?.mission_id)
       || missions.find(m => m.robot_id === r?.robot_id && !m.terminal);
     const fresh = r?.online === true && Number.isFinite(r.state_age_s) && r.state_age_s >= 0 && r.state_age_s <= 2 && !disconnected;
@@ -1714,12 +1786,15 @@
     $('statusMission').title = mission?.mission_id || '';
     const metric = (title, val, unit) => `<div class="metric"><small>${H.esc(title)}</small><strong>${H.esc(val)}</strong><span>${H.esc(unit)}</span></div>`;
     const bat = s.battery || {};
-    $('robotTelemetry').innerHTML = `<div class="telemetry-grid">${metric('배터리', fresh && Number.isFinite(bat.voltage_v) ? H.fmt(bat.voltage_v, 1) + ' V' : '미수신', '백분율 미제공')}${metric('주행 속도', '미수신', '속도 API 미제공')}</div><div class="sensor-health">${[
+    const velVal = obsVel.status === 'OK' ? `${H.fmt(obsVel.linear_x, 2)} m/s` : obsVel.status;
+    const velUnit = obsVel.status === 'OK' ? `각속도 ${H.fmt(obsVel.angular_z, 2)} rad/s (/odom 추정)` : (obsVel.status === 'STALE' ? '/odom 지연 (추정)' : '/odom 미수신');
+    $('robotTelemetry').innerHTML = `<div class="telemetry-grid">${metric('배터리', fresh && Number.isFinite(bat.voltage_v) ? H.fmt(bat.voltage_v, 1) + ' V' : '미수신', '백분율 미제공')}${metric('추정 속도 (/odom)', velVal, velUnit)}</div><div class="sensor-health">${[
       ['CPU / 메모리', 'UNAVAILABLE'], ['온도', 'UNAVAILABLE'],
       ['LiDAR', fresh ? s.lidar?.status || 'UNKNOWN' : 'UNKNOWN'],
       ['Depth', fresh ? s.depth_camera?.status || 'UNKNOWN' : 'UNKNOWN'],
       ['IMU', 'UNAVAILABLE'], ['Odometry', fresh && sg.wheel_odom_stale === true ? 'STALE' : 'UNKNOWN'],
     ].map(([k,v]) => `<div><span>${H.esc(k)}</span><strong class="${H.toneForStatus(v)}">${v === 'OK' ? '✓ ' : '· '}${H.esc(v)}</strong></div>`).join('')}</div>`;
+    if (speedPanel) speedPanel.refresh();
     const standby = fresh && s.standby_status?.mode === 'STANDBY' && s.standby_status.drive_ready === false
       ? s.standby_status : null;
     if (standby) {

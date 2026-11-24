@@ -14,6 +14,7 @@ from .mapping import MappingMixin
 from .bag_operation import BagOperationMixin
 from .map_save import MapSaveMixin
 from .operating_mode import OperatingModeMixin
+from .speed_limits import SpeedLimitMixin
 from .navigation import NavigationMixin
 from .gate_reset import GateResetMixin
 from .readiness import ReadinessMixin
@@ -38,7 +39,7 @@ def _j(s):
     return json.loads(s) if s else None
 
 
-class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, OperatingModeMixin, MapSaveMixin, MappingMixin, BagOperationMixin, SafetyMixin, RecoveryMixin, OwnershipMixin):
+class Fleet(SpeedLimitMixin, GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, OperatingModeMixin, MapSaveMixin, MappingMixin, BagOperationMixin, SafetyMixin, RecoveryMixin, OwnershipMixin):
     def __init__(self, db, cfg):
         self.db, self.cfg, self.lock = db, cfg, threading.RLock()
         self.boot_id = uuid.uuid4().hex[:12]
@@ -330,6 +331,8 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
             res['lease'] = self.lease_view(robot_id)
             res['operating_mode'] = self.agent_mode_view(robot_id)
             res['navigation_request'] = self.navigation_for_agent(robot_id)
+            res['speed_limit_request'] = self.speed_limit_for_agent(robot_id)
+            self.speed_limit_ingest(robot_id, state)                     # the Agent's report of the last speed-limit result
             self.gate_reset_ingest(robot_id, state)                      # result for the DELIVERED request only
             res['gate_reset_request'] = self.gate_reset_for_agent(robot_id)   # delivered once, to the Agent boot it was issued for
             res['recovered_commands'] = self.recovered_command_ids(robot_id)         # operator-recovered commands: the agent may clear them from its own journal after re-checking Nav2
@@ -552,7 +555,7 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
             self.db.event('recording_command', f'{actor}: {typ} {session_id}', robot_id)
             return {'command_id': cid, 'status': 'PENDING', 'duplicate': False}
 
-    def create_mission(self, robot_id, mtype, goal, idempotency_key=None, note='', created_by='', lease_epoch=None):
+    def create_mission(self, robot_id, mtype, goal, idempotency_key=None, note='', created_by='', lease_epoch=None, dry_run=False):
         if mtype != 'navigate_to_pose': raise ApiError(400, 'bad_type', "only 'navigate_to_pose' is supported in stage 1")
         if not isinstance(goal, dict) or goal.get('frame_id') != 'map': raise ApiError(400, 'bad_goal', "goal.frame_id must be 'map'")
         try: x, y, yaw = float(goal['x']), float(goal['y']), float(goal.get('yaw_rad', 0.0))
@@ -567,6 +570,11 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
                     if ex['created_by'] != created_by or _j(ex['goal_json']) != {'frame_id':'map','x':x,'y':y,'yaw_rad':yaw}:
                         raise ApiError(409, 'idempotency_conflict', 'key already belongs to a different request or principal')
                     return self._mission_view(ex), False
+            # 2026-11-26 real_nav_dry_run: a dry-run Agent takes dry-run missions ONLY (separate endpoint and record); a real-mission Agent never takes a dry-run one.
+            # The dry-run result is never an input of any real-motion admission (safety_context / require_mode read nothing of it).
+            agent_dry = (self.robots[robot_id].get('agent') or {}).get('real_nav_dry_run') is True
+            if dry_run and not agent_dry: raise ApiError(409, 'not_dry_run_agent', 'this robot is not running in real_nav_dry_run: dry-run missions are refused')
+            if not dry_run and agent_dry: raise ApiError(409, 'dry_run_agent', 'this robot runs in real_nav_dry_run: only dry-run missions (POST /dry-run-missions) are accepted; none moves the robot')
             manual = self.manual_benches.get(robot_id)
             if manual and manual['until'] > time.monotonic():
                 raise ApiError(409, 'manual_active', 'stop manual input before starting an AUTO mission')
@@ -589,6 +597,7 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
             self.db.x('INSERT INTO missions(mission_id,robot_id,type,goal_json,idempotency_key,status,detail,created_by,note,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
                       (mid, robot_id, mtype, json.dumps({'frame_id': 'map', 'x': x, 'y': y, 'yaw_rad': yaw}), idempotency_key, 'QUEUED', 'created', created_by, note, now, now))
             self.db.x('INSERT INTO meta(k,v) VALUES(?,?)', ('admission:'+mid, json.dumps({'context':context,'lease_epoch':lease_epoch})))
+            if dry_run: self.db.x('INSERT INTO meta(k,v) VALUES(?,?)', ('mission_dry_run:'+mid, '1'))
             self.db.event('mission_created', f'mission {mid} -> ({x:.2f}, {y:.2f}, yaw {yaw:.2f}) by {created_by}', robot_id, mid)
             self.dispatch_next(robot_id)
             return self._mission_view(self.db.one('SELECT * FROM missions WHERE mission_id=?', (mid,))), True
@@ -637,7 +646,7 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
                       'localization_epoch': admission['context']['localization_epoch'], 'localization_status': 'CONFIRMED',
                       'lease_epoch': admission['lease_epoch'], 'lease_owner': lease['owner'], 'issued_at': now, 'expires_at': expires}
             self.db.x('INSERT INTO commands(command_id,robot_id,mission_id,type,payload_json,status,seq,created_at,expires_at) VALUES(?,?,?,?,?,?,?,?,?)',
-                      (cid, robot_id, m['mission_id'], 'navigate_to_pose', json.dumps({'goal': _j(m['goal_json']), 'safety_context': safety}), 'PENDING', self.db.next_seq('cmd_seq'), now, expires))
+                      (cid, robot_id, m['mission_id'], 'navigate_to_pose', json.dumps(dict({'goal': _j(m['goal_json']), 'safety_context': safety}, **({'dry_run': True} if self.db.one('SELECT 1 FROM meta WHERE k=?', ('mission_dry_run:'+m['mission_id'],)) else {}))), 'PENDING', self.db.next_seq('cmd_seq'), now, expires))
             self.db.event('command_created', f'command {cid} created for mission {m["mission_id"]}', robot_id, m['mission_id'])
 
     def _set_mission(self, mid, status, detail='', progress=None, only_if=None, only_not_terminal=False):
@@ -699,7 +708,9 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
         cmds = self.db.q('SELECT command_id,type,status,attempts,seq,created_at,sent_at,acked_at,owner_boot_id FROM commands WHERE mission_id=? ORDER BY seq', (m['mission_id'],))
         return {'mission_id': m['mission_id'], 'robot_id': m['robot_id'], 'type': m['type'], 'goal': _j(m['goal_json']), 'status': m['status'], 'detail': m['detail'], 'progress': _j(m.get('progress_json')),
                 'idempotency_key': m['idempotency_key'], 'created_by': m['created_by'], 'note': m['note'], 'created_at': m['created_at'], 'updated_at': m['updated_at'],
-                'cancel_requested': bool(m['cancel_requested']), 'terminal': m['status'] in MISSION_TERMINAL, 'commands': cmds}
+                'cancel_requested': bool(m['cancel_requested']), 'terminal': m['status'] in MISSION_TERMINAL, 'commands': cmds,
+                'dry_run': bool(self.db.one('SELECT 1 FROM meta WHERE k=?', ('mission_dry_run:'+m['mission_id'],))),
+                'real_motion_authorized': False if self.db.one('SELECT 1 FROM meta WHERE k=?', ('mission_dry_run:'+m['mission_id'],)) else None}
 
     def missions(self, robot_id=None, status=None, limit=50):
         sql, a = 'SELECT * FROM missions', []
@@ -722,6 +733,7 @@ class Fleet(GuideMixin, ReadinessMixin, GateResetMixin, NavigationMixin, Operati
                 'map_version': r['map_version'], 'map_meta': r['map_meta'], 'reconciled': bool(r.get('reconciled')),
                 'lease': self.lease_view(r['robot_id']), 'control_mode': self.control_mode(r['robot_id']),
                 'operating_mode': self.mode_view(r['robot_id'], advance=False),
+                'mode_motion': self.mode_motion_status(r['robot_id']),
                 'safety_context_reason': (getattr(self, 'safety_context_reasons', {}) or {}).get(r['robot_id']),   # diagnostics: first failing admission check
                 'gate_boot_reconciliation': bool(self.db.one('SELECT 1 FROM meta WHERE k=?', ('gate_boot_reconciliation:' + r['robot_id'],))),
                 'readiness': (lambda rd: {'level': rd['level'], 'reasons': rd['reasons'][:8]})(self.readiness(r['robot_id'])),

@@ -114,9 +114,12 @@ class OwnershipMixin:
         agent = r.get('agent') or {}
         state = r.get('state') or {}
         gate = state.get('safety_gate') or {}
-        if not (agent.get('mode') == 'mock' and agent.get('simulated') is True and agent.get('locked_velocity_arbiter') is True):
+        # 2026-11-27: a real_nav_dry_run Agent (Watchdog selector, no Arbiter) uses the same rule through `locked_motor_proof` = software evidence of a locked motion path, NOT a physical
+        # motor lock; every other check below (terminal evidence per delivered command, idle, Gate NORMAL, Watchdog authorized, zero output) is unchanged.
+        dry = agent.get('real_nav_dry_run') is True and agent.get('velocity_selector') == 'WATCHDOG_SELECTOR'
+        if not (dry or (agent.get('mode') == 'mock' and agent.get('simulated') is True and agent.get('locked_velocity_arbiter') is True)):
             return None
-        ev = {'LOCKED_MOCK': True, 'state_age_s': round(age, 2), 'observed_at': r['state_ts'], 'agent_boot': agent.get('boot_id')}
+        ev = {'LOCKED_MOCK': not dry, 'LOCKED_MOTOR_DRY_RUN': dry, 'state_age_s': round(age, 2), 'observed_at': r['state_ts'], 'agent_boot': agent.get('boot_id')}
         checks = {
             'motor_path_locked': isinstance(gate.get('motor_path'), dict) and gate['motor_path'].get('status') == 'LOCKED',
             'gate_normal': gate.get('status') == 'NORMAL' and gate.get('cmd_blocked') is False,

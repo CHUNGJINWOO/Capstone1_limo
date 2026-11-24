@@ -107,7 +107,7 @@ def _ensure_ros_stubs():
             self.timers = []
             self.params = {'use_sim_time': False}
             self.topic_publishers = {
-                '/cmd_vel': [],
+                '/cmd_vel': [], '/limo_driver/cmd_vel': [],
                 '/cmd_vel_locked': ['stall_detector'],
             }
             self.status_publishers = 1

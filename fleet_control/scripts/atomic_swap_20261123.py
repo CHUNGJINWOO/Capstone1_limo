@@ -58,14 +58,16 @@ def tree_hashes(root):
 
 
 def listed_hashes(files_sha, pkg):
-    """FILES.sha256 lines are 'HASH  PKG/relative/path' (R3 artifact) or 'HASH  relative/path'."""
+    """FILES.sha256 lines are 'HASH  PKG/relative/path' (R3 artifact), 'HASH  ./relative/path' (R3 backup) or 'HASH  relative/path'."""
     out = {}
     for line in open(files_sha):
         if not line.strip():
             continue
         h, name = line.split(None, 1)
         name = name.strip()
-        if name.startswith(pkg + os.sep):
+        if name.startswith('./'):
+            name = name[2:]                 # R3 backup list: already relative to the package directory (do NOT strip a 'PKG/' that is a real sub-directory)
+        elif name.startswith(pkg + os.sep):
             name = name[len(pkg) + 1:]
         out[name] = h
     return out

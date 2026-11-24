@@ -61,6 +61,34 @@ def evaluate(robot, real=False):
         add('PASS' if status in ('OK', 'UPDATING', 'STATIC', 'READY', 'VOLTAGE_ONLY') else 'WARN', label, status)
     add('PASS', 'D1 Lease', json.dumps(robot.get('lease'))[:120] if robot.get('lease') else 'none (acquire it in the console)')
     add('PASS', 'D2 operating mode', json.dumps((robot.get('operating_mode') or {}).get('mode')))
+    # F. speed limits and the direct-writer latch (read-only; G2 2026-11-23). These do not move anything; they show whether a speed limit WOULD be enforced.
+    sl = st.get('speed_limits') if isinstance(st.get('speed_limits'), dict) else {}
+    ev = sl.get('watchdog_evidence') if isinstance(sl.get('watchdog_evidence'), dict) else {}
+    enforced = sl.get('enforced_by')
+    add('PASS' if enforced in ('WATCHDOG', 'ARBITER') else ('FAIL' if real else 'WARN'), 'F1 a speed-limit enforcement point is reported (WATCHDOG on a real robot)', enforced)
+    if real:
+        add('PASS' if enforced == 'WATCHDOG' else 'FAIL', 'F2 real robot: enforced by the Motion Watchdog clamp (a real Agent has no Arbiter)', enforced)
+        age = ev.get('evidence_age_s')
+        add('PASS' if ev.get('server_verified') is True and ev.get('agent_verified') is True and isinstance(age, (int, float)) and 0 <= age <= 2.0 else 'FAIL',
+            'F3 Watchdog evidence verified by the SERVER and the Agent, fresh (<= 2 s)',
+            json.dumps({k: ev.get(k) for k in ('server_verified', 'agent_verified', 'evidence_age_s', 'synced', 'publisher_ok', 'fault')}))
+        add('PASS' if all(ev.get(k) for k in ('watchdog_boot_id', 'agent_boot_id', 'output_gid')) else 'FAIL', 'F4 Watchdog boot id, Agent boot id and writer GID are present (GID = graph identifier, not authentication)',
+            json.dumps({k: (str(ev.get(k))[:12] if ev.get(k) else None) for k in ('watchdog_boot_id', 'agent_boot_id', 'output_gid')}))
+    add('PASS' if sl.get('stale') is False or not sl.get('applied') or all(v is None for v in (sl.get('applied') or {}).values()) else 'WARN', 'F5 no stale speed-limit setting (a stale setting still clamps but needs a new request)', sl.get('stale_reason'))
+    add('PASS' if mp.get('foreign_writer_latched') is not True else 'FAIL', 'F6 no non-Gate writer was ever seen on /cmd_vel or the driver input (latched until Agent restart; detection only)', json.dumps(mp.get('foreign_writers_seen')))
+    add('PASS' if not (mp.get('cmd_vel_publishers') or []) or mp.get('status') != 'LOCKED' else 'FAIL', 'F7 LOCKED means no writer on /cmd_vel or /limo_driver/cmd_vel', json.dumps(mp.get('cmd_vel_publishers')))
+    # G: real-Agent mode selector (no Arbiter): the evidence the server needs to confirm an operating mode (read-only)
+    arb = st.get('velocity_arbiter') if isinstance(st.get('velocity_arbiter'), dict) else {}
+    aev = arb.get('evidence') if isinstance(arb.get('evidence'), dict) else {}
+    if real:
+        add('PASS' if agent.get('velocity_selector') == 'WATCHDOG_SELECTOR' and arb.get('kind') == 'WATCHDOG_SELECTOR' and agent.get('locked_velocity_arbiter') is False else 'FAIL',
+            'G1 the Agent declares and reports the Watchdog mode selector (no Arbiter on a real robot)', json.dumps({k: agent.get(k) for k in ('velocity_selector', 'locked_velocity_arbiter')}))
+        add('PASS' if aev.get('nav_input_ok') is True and aev.get('manual_input_ok') is True else 'FAIL', 'G2 both Watchdog input channels are exclusive (nav and manual)', json.dumps({k: aev.get(k) for k in ('nav_input_ok', 'manual_input_ok', 'watchdog_nav_publishers', 'watchdog_manual_publishers')}))
+        conflict = aev.get('source_conflict_age_s')
+        add('PASS' if not isinstance(conflict, (int, float)) or conflict >= 10 else 'FAIL', 'G3 no motion-source conflict was seen by the Watchdog recently', conflict)
+        add('PASS' if arb.get('motor_output') is False and arb.get('selected_linear') in (0, 0.0) and arb.get('selected_turn') in (0, 0.0) else 'FAIL', 'G4 selector output is zero while the robot is idle (it publishes nothing; this is the Watchdog\'s last output)', json.dumps({k: arb.get(k) for k in ('selected_linear', 'selected_turn', 'motor_output')}))
+    vel = st.get('velocity') if isinstance(st.get('velocity'), dict) else {}
+    add('PASS' if vel.get('status') in ('OK', 'STALE') else 'WARN', 'F8 /odom velocity telemetry present (estimate from wheel odometry, not independent, not proof of motor stop)', vel.get('status'))
     if real:
         add('PASS' if agent.get('mode') == 'real' and agent.get('simulated') is False else 'FAIL', 'E1 real configuration', f"{agent.get('mode')} simulated={agent.get('simulated')}")
         add('PASS' if agent.get('missions_enabled') is False else 'FAIL', 'E2 missions disabled', agent.get('missions_enabled'))

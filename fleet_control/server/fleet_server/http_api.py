@@ -375,6 +375,8 @@ def make_handler(fleet, auth, video_origins=(), map_registry=None):
                 if sub == '/visitor-links':
                     if p.role != 'admin': raise ApiError(403, 'forbidden', 'admin only')
                     return self._send(200, {'links': fleet.visitor_links()})
+                m = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/speed-limits', sub)
+                if m: return self._send(200, fleet.speed_limits_view(m.group(1)))
                 m = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/mode', sub)
                 if m:
                     if m.group(1) not in fleet.robots: raise ApiError(404, 'unknown_robot', 'no such robot')
@@ -448,6 +450,8 @@ def make_handler(fleet, auth, video_origins=(), map_registry=None):
                 raise ApiError(404, 'not_found', 'unknown endpoint')
             # ---------------- control endpoints
             if method == 'POST':
+                m = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/speed-limits', sub)
+                if m: return self._send(202, fleet.request_speed_limits(m.group(1), p, self._body()))
                 m = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/gate-reset', sub)
                 if m:
                     # 2026-11-21: role is checked (and every refusal audited) inside request_gate_reset, for every caller role.
@@ -493,6 +497,9 @@ def make_handler(fleet, auth, video_origins=(), map_registry=None):
                 m = re.fullmatch(r'/robots/([A-Za-z0-9_.-]{1,64})/recording/(start|stop)', sub)
                 if m:
                     b = self._body(); return self._send(202, fleet.recording_command(m.group(1), m.group(2), b.get('session_id'), p.name))
+                if sub == '/dry-run-missions':
+                    b = self._body(); view, created = fleet.create_mission(str(b.get('robot_id', '')), 'navigate_to_pose', b.get('goal'), b.get('idempotency_key'), str(b.get('note', ''))[:200], p.name, b.get('lease_epoch'), dry_run=True)
+                    return self._send(201 if created else 200, dict(view, created=created))
                 if sub == '/missions':
                     b = self._body(); view, created = fleet.create_mission(str(b.get('robot_id', '')), str(b.get('type', 'navigate_to_pose')), b.get('goal'), b.get('idempotency_key'), str(b.get('note', ''))[:200], p.name, b.get('lease_epoch'))
                     return self._send(201 if created else 200, dict(view, created=created))

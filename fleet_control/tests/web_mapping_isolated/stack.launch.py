@@ -44,6 +44,10 @@ def generate_launch_description():
             if os.environ.get(e): gate_params[k] = float(os.environ[e])
     if os.environ.get('GATE_RESET_PEER'):          # r12+: the input writer must share the DDS participant of this topic's writer
         gate_params['reset_input_peer_topic'] = os.environ['GATE_RESET_PEER']
+    if os.environ.get('GATE_EPOCH_FILE'):          # 2026-11-27: G2 Gate generation evidence (persisted fault_epoch)
+        gate_params['epoch_state_file'] = os.environ['GATE_EPOCH_FILE']
+    if os.environ.get('GATE_RESET_GATING') == '1':   # 2026-11-27: gated operator reset (single identified writer, fresh zero, quiet)
+        gate_params['reset_gating'] = True
     if os.environ.get('GATE_WRITER_STATUS'):       # r13 candidate: bind/keep the input writer only as its own status reports it
         gate_params['input_writer_status_topic'] = os.environ['GATE_WRITER_STATUS']
     if script:

@@ -32,4 +32,4 @@ rclpy.init(); n=rclpy.create_node("fleet_agent_warmup"); t=time.time()
 while time.time()-t<30: rclpy.spin_once(n,timeout_sec=0.5)' >/dev/null 2>&1 &
 sleep 4
 exec ros2 run limo_robot_agent robot_agent --ros-args -p server_url:="$SERVER_URL" -p token_file:="$TOKEN_FILE" -p robot_id:=pcu -p mode:=real \
-  -p simulated:=false -p allow_missions:=false -p state_dir:="$STATE_DIR" "$@" >> "$LOG" 2>&1 < /dev/null
+  -p simulated:=false -p allow_missions:=false -p state_dir:="$STATE_DIR" -p require_motion_watchdog:=true -p watchdog_mode_selector:=true "$@" >> "$LOG" 2>&1 < /dev/null

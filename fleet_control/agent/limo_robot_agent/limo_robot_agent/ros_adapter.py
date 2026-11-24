@@ -99,7 +99,7 @@ class RosRobot(Node):
         self._safety_seq = 0
         self.t = {}                                                    # topic key -> arrival monotonic time
         self.scan_times = collections.deque(maxlen=40); self.scan_beams = collections.deque(maxlen=60); self.scan_frame = None
-        self.gate = None; self.depth = None; self.limo = None; self.odom = None
+        self.gate = None; self.depth = None; self.limo = None; self.odom = None; self.odom_twist = None
         self.gate_tracker = GateObservationTracker()
         self.map_a = None; self.map_meta = None; self.map_png = None; self.map_version = 0; self.map_hash = None; self.map_changed_t = None; self.map_first_t = None
         self.tfb = Buffer(); self.tfl = TransformListener(self.tfb, self)
@@ -296,6 +296,7 @@ class RosRobot(Node):
     def _on_odom(self, m):
         with self.lock:
             self._stamp('odom'); self.odom = (m.header.frame_id, m.pose.pose.position.x, m.pose.pose.position.y, yaw_of(m.pose.pose.orientation))
+            tw = m.twist.twist; self.odom_twist = (tw.linear.x, tw.angular.z)         # G2: observed velocity telemetry (wheel odometry as reported by the driver)
 
     def _on_limo(self, m):
         with self.lock:
@@ -338,6 +339,10 @@ class RosRobot(Node):
                 g['r7_invalid'] = True
                 g['source_fresh'] = False
                 g['contract_met'] = False
+        elif getattr(self, 'real_nav_dry_run', False) is True and self.gate_tracker.r7_invalid:
+            # 2026-11-27: the dry-run Agent accepts the Gate's self-reported generation evidence only from ONE stable status publisher endpoint (graph observation, not authentication):
+            # a second publisher, a missing one or a changed endpoint latches until the Agent reconciles (a Gate restart is a new endpoint and a new boot_id).
+            g['single_publisher_graph'] = False; g['r7_invalid'] = True; g['source_fresh'] = False; g['contract_met'] = False
         return g
 
     def _on_r8_challenge(self, msg):
@@ -470,8 +475,7 @@ class RosRobot(Node):
         )
         # Gate attestation exists only for SIM. The isolated mock + locked-arbiter graph has no motor at all (Gate output
         # /cmd_vel_locked, /cmd_vel without endpoints = motor path LOCKED), so Nav2 goals there cannot move hardware.
-        locked_mock = (self.mode == 'mock' and self.simulated is True and getattr(self, 'locked_arbiter', False) is True
-                       and mp == 'LOCKED')
+        locked_mock = self._locked_motion_proof(mp)
         if not (self.mode == 'sim' and self.simulated is True) and not locked_mock:
             movement_permitted = False
             block_reasons.append('GATE_ATTESTATION_UNAVAILABLE')
@@ -504,6 +508,7 @@ class RosRobot(Node):
             'schema_version': 1,
             'standby_status': standby[1] if standby and time.monotonic() - standby[0] <= 3 else None,
             'pose': pose,
+            'velocity': self._velocity_telemetry(),
             'map': m,
             'nav2': nav2,
             'battery': bat,
@@ -530,9 +535,37 @@ class RosRobot(Node):
         except Exception:
             return False
 
+    VELOCITY_STALE_S = 1.0
+
+    def _velocity_telemetry(self):
+        """Observed velocity for the web UI. Source: the twist field of /odom (wheel odometry reported by the vendor driver); it is NOT an
+        independent measurement, says nothing about the motor command or physical motion, and reads 0 with a locked motor path. status:
+        OK (fresh, finite), STALE (older than VELOCITY_STALE_S), UNAVAILABLE (never received or not finite)."""
+        with self.lock:
+            tw, age = self.odom_twist, self._age('odom')
+        base = {'source': 'odom.twist (wheel odometry from the driver; not independent)', 'linear_x_mps': None, 'angular_z_rps': None, 'age_s': None}
+        if tw is None or age is None or not all(isinstance(v, (int, float)) and math.isfinite(v) for v in tw):
+            return {**base, 'status': 'UNAVAILABLE'}
+        return {**base, 'status': 'OK' if age <= self.VELOCITY_STALE_S else 'STALE',
+                'linear_x_mps': round(tw[0], 4), 'angular_z_rps': round(tw[1], 4), 'age_s': round(age, 2)}
+
+    GATE_WRITER = ('/', 'stall_detector_node')
+
+    def _locked_motion_proof(self, motor_path_status):
+        """Software evidence that goals cannot move hardware, in the two profiles that have no Gate attestation: (1) the isolated mock + locked-Arbiter graph; (2) 2026-11-26
+        real_nav_dry_run (`locked_motor_proof`): a Watchdog-selector Agent whose motor path is observed LOCKED (no endpoint on /cmd_vel or the driver topic). (2) is a graph
+        observation by this Agent, NOT a proof that the motors are physically disabled; it never applies to an Agent without real_nav_dry_run."""
+        locked_mock = (self.mode == 'mock' and self.simulated is True and getattr(self, 'locked_arbiter', False) is True and motor_path_status == 'LOCKED')
+        locked_motor = (getattr(self, 'real_nav_dry_run', False) is True and bool(getattr(self, 'require_motion_watchdog', False)) and motor_path_status == 'LOCKED')
+        return locked_mock or locked_motor
+
     def _motor_path_status(self):
+        """LOCKED / SIM_GATED / ARMED / UNKNOWN. Writers on /cmd_vel or on the driver input /limo_driver/cmd_vel count.
+        A writer other than the Safety Gate is LATCHED (G2 2026-11-23): the status stays ARMED after it disappears until the Agent restarts or
+        clear_motor_path_latch() is called, because a command written directly to the driver input may already have been executed and
+        the graph cannot show that. This is detection only: nothing here stops such a writer or its commands."""
         try:
-            raw_pubs = self.get_publishers_info_by_topic('/cmd_vel')
+            raw_pubs = list(self.get_publishers_info_by_topic('/cmd_vel')) + list(self.get_publishers_info_by_topic('/limo_driver/cmd_vel'))
             pubs = sorted({i.node_name for i in raw_pubs})
             lpubs = sorted({i.node_name for i in self.get_publishers_info_by_topic('/cmd_vel_locked')})
         except Exception:
@@ -540,13 +573,32 @@ class RosRobot(Node):
         mp = 'UNKNOWN' if pubs is None else ('ARMED' if pubs else ('LOCKED' if lpubs else 'UNKNOWN'))
         if mp == 'ARMED' and raw_pubs is not None and self._motor_path_allowed(raw_pubs):
             mp = 'SIM_GATED'
+        foreign = sorted({i.node_name for i in (raw_pubs or []) if (getattr(i, 'node_namespace', '/') or '/', i.node_name) != self.GATE_WRITER})
+        latch = getattr(self, '_motor_path_latch', None)
+        if foreign and mp != 'UNKNOWN' and not (mp == 'SIM_GATED'):
+            if latch is None:
+                latch = self._motor_path_latch = {'first_seen_age_s0': time.monotonic(), 'names': foreign}
+            else:
+                latch['names'] = sorted(set(latch['names']) | set(foreign))
+        if latch is not None and mp in ('LOCKED', 'SIM_GATED'):
+            mp = 'ARMED'                                   # the foreign writer is gone, the status is not
         info = {
             'status': mp,
             'cmd_vel_publishers': pubs,
             'cmd_vel_locked_publishers': lpubs,
-            'meaning': 'ARMED = something publishes /cmd_vel (motors can move); LOCKED = no /cmd_vel publisher and the gate publishes /cmd_vel_locked',
+            'foreign_writer_latched': latch is not None,
+            'foreign_writers_seen': None if latch is None else latch['names'],
+            'foreign_writer_first_seen_age_s': None if latch is None else round(time.monotonic() - latch['first_seen_age_s0'], 1),
+            'detection_only': True,
+            'meaning': 'ARMED = something publishes /cmd_vel or the driver input /limo_driver/cmd_vel (motors can move), or a non-Gate writer was seen and the latch is not cleared; LOCKED = no writer and the gate publishes /cmd_vel_locked. Detection only: nothing here blocks a direct writer',
         }
         return mp, info
+
+    def clear_motor_path_latch(self):
+        """Operator action (Agent restart does the same). Returns True if a latch existed."""
+        had = getattr(self, '_motor_path_latch', None) is not None
+        self._motor_path_latch = None
+        return had
 
     def _server_operation_context(self):
         """Operation producer: the Fleet server's operating mode (None for legacy robots without a mode)."""
@@ -832,8 +884,7 @@ class RosRobot(Node):
         )
         if result[0] and self.require_motion_watchdog and not self.watchdog_ok():
             return False, 'REJECTED', 'MOTION_WATCHDOG_NOT_OK: independent motion watchdog missing, stale or tripped', None
-        locked_mock = (self.mode == 'mock' and self.simulated is True and getattr(self, 'locked_arbiter', False) is True
-                       and mp == 'LOCKED')
+        locked_mock = self._locked_motion_proof(mp)
         if result[0] and not (self.mode == 'sim' and self.simulated is True) and not locked_mock:
             return False, 'REJECTED', 'GATE_ATTESTATION_UNAVAILABLE: real movement remains blocked', None
         if result[0] and not self.fleet_goal_allowed():

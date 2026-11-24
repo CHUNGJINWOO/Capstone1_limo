@@ -144,7 +144,7 @@ class NavigationMixin:
             lease = self.lease_view(robot_id)
             if not lease or lease['owner'] != actor or type(body.get('epoch')) is not int or lease['epoch'] != body['epoch']:
                 raise ApiError(409, 'lease_required', 'current owner and epoch required')
-            self.require_mode(robot_id, 'NAVIGATION', 'mode_not_navigation')
+            self.require_mode(robot_id, 'NAVIGATION', 'mode_not_navigation', motion=False)      # LOAD / INITIAL_POSE / UNLOAD move nothing: the mode record is enough
             if (self.robots[robot_id].get('agent') or {}).get('navigation_localization') is not True:
                 raise ApiError(409, 'localization_unavailable', 'agent has no saved-map localization worker')
             action = body.get('action')

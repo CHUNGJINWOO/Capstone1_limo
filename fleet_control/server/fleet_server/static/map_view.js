@@ -1,12 +1,13 @@
 'use strict';
 (function (root) {
-  const H = root.FleetHelpers;
+  const H = root.FleetHelpers || (typeof require === 'function' ? require('./state_helpers.js') : null);
 
   class FleetMapView {
     constructor(canvas, opts) {
       this.cv = canvas;
       this.ctx = canvas.getContext('2d');
       this.opts = opts || {};
+      this.maxTrailPoints = Math.max(10, Number(this.opts.maxTrailPoints) || 600);
       this.cache = {};       // robot_id -> { version, img }
       this.trails = {};      // robot_id -> [[x, y], ...]
       this.sensors = {};     // robot_id -> { data, costmapImg }
@@ -34,8 +35,10 @@
       this._pending = false;
       this.autoFit = true;
       this._bindEvents();
-      this.resizeObserver = new ResizeObserver(() => this.resize());
-      this.resizeObserver.observe(canvas.parentElement);
+      if (typeof ResizeObserver === 'function' && canvas && canvas.parentElement) {
+        this.resizeObserver = new ResizeObserver(() => this.resize());
+        this.resizeObserver.observe(canvas.parentElement);
+      }
       this.resize();
     }
 
@@ -96,7 +99,7 @@
       if (!parent) return;
       const rect = parent.getBoundingClientRect();
       if (!rect.width || !rect.height) return; // Hidden detail tabs must not reset the view.
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
       const w = Math.max(1, Math.round(parent.clientWidth || 640));
       const h = Math.max(1, Math.round(parent.clientHeight || 460));
       if (this.view.width === w && this.view.height === h && this.cv.width === Math.round(w * dpr) && this.cv.height === Math.round(h * dpr)) return;
@@ -144,10 +147,83 @@
     }
 
     fitRobot() {
-      const r = this.robot, p = r?.state?.pose;
-      const st = r?.state || {};
-      if (this.registryPreview || !r?.online || r.state_age_s == null || r.state_age_s > 2 || st.localization_status !== 'CONFIRMED' || st.map_verified !== true || !st.map_version_id || st.localization_map_version_id !== st.map_version_id || p?.status !== 'OK' || p.frame_id !== 'map' || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return;
-      this.autoFit = false; this.view.x = p.x; this.view.y = p.y; this.view.panX = 0; this.view.panY = 0; this.view.zoom = Math.max(this.view.zoom, 60); this.request();
+      if (this.registryPreview || !this.robot) return;
+      const sensRec = this.sensors[this.robot.robot_id];
+      const sens = sensRec && sensRec.data && sensRec.data.available ? sensRec.data : null;
+      const ps = H.classifyPoseState(this.robot, sens);
+      if (ps.status !== 'OK' || !ps.pose) return;
+      this.autoFit = false;
+      this.view.x = ps.pose.x;
+      this.view.y = ps.pose.y;
+      this.view.panX = 0;
+      this.view.panY = 0;
+      this.view.zoom = Math.max(this.view.zoom, 60);
+      this.request();
+    }
+
+    fitRoute() {
+      if (this.registryPreview || !this.robot) return false;
+      const sensRec = this.sensors[this.robot.robot_id];
+      const sens = sensRec && sensRec.data && sensRec.data.available ? sensRec.data : null;
+      const plan = H.extractPlanPoints(this.robot, sens, this.missions);
+      const pts = plan.points.slice();
+      const wps = H.extractWaypoints(this.robot, this.missions);
+      wps.forEach((wp) => pts.push([wp.x, wp.y]));
+      const ps = H.classifyPoseState(this.robot, sens);
+      if (ps.status === 'OK' && ps.pose) pts.push([ps.pose.x, ps.pose.y]);
+      if (pts.length < 2) return false;
+      const xs = pts.map((p) => p[0]);
+      const ys = pts.map((p) => p[1]);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+      this.autoFit = false;
+      this.view.x = (minX + maxX) / 2;
+      this.view.y = (minY + maxY) / 2;
+      this.view.panX = 0;
+      this.view.panY = 0;
+      const spanX = Math.max(0.5, maxX - minX);
+      const spanY = Math.max(0.5, maxY - minY);
+      this.view.zoom = Math.max(5, Math.min(1200, Math.min((this.view.width - 80) / spanX, (this.view.height - 80) / spanY)));
+      this.request();
+      return true;
+    }
+
+    clearTrail(robotId) {
+      const rid = robotId || (this.robot && this.robot.robot_id);
+      if (rid) {
+        this.trails[rid] = [];
+      } else {
+        this.trails = {};
+      }
+      this.request();
+    }
+
+    getTrailStats(robotId) {
+      const rid = robotId || (this.robot && this.robot.robot_id);
+      const list = (rid && this.trails[rid]) ? this.trails[rid] : [];
+      return { count: list.length, max: this.maxTrailPoints };
+    }
+
+    getVisualState() {
+      const r = this.robot;
+      const sensRec = r ? this.sensors[r.robot_id] : null;
+      const sens = sensRec && sensRec.data && sensRec.data.available ? sensRec.data : null;
+      const poseState = H.classifyPoseState(r, sens);
+      const plan = H.extractPlanPoints(r, sens, this.missions);
+      const waypoints = H.extractWaypoints(r, this.missions);
+      const velocity = H.extractObservedVelocity(r, sens);
+      const origin = H.classifyFleetOrigin(r, this.missions);
+      const st = (r && r.state) || {};
+      return {
+        poseState,
+        plan,
+        waypoints,
+        velocity,
+        trail: this.getTrailStats(),
+        localizationStatus: st.localization_status || 'UNKNOWN',
+        operationMode: st.operation_mode || 'UNKNOWN',
+        controlOwner: origin.label,
+      };
     }
 
     fit() {
@@ -212,18 +288,23 @@
     update(robot, missions) {
       this.robot = robot || null;
       this.missions = missions || [];
-      if (robot && robot.state && robot.state.pose) {
-        const p = robot.state.pose;
-        const st=robot.state;
-        const trailVersion=st.map_version_id || null;
-        this.trailVersions=this.trailVersions || {};
-        if(this.trailVersions[robot.robot_id]!==trailVersion){this.trails[robot.robot_id]=[];this.trailVersions[robot.robot_id]=trailVersion;}
-        if (robot.online && robot.state_age_s!=null && robot.state_age_s<=2 && st.map_verified===true && st.localization_status==='CONFIRMED' && trailVersion && st.localization_map_version_id===trailVersion && p.frame_id === 'map' && p.status === 'OK' && Number.isFinite(p.x) && Number.isFinite(p.y)) {
+      if (robot) {
+        const st = robot.state || {};
+        const trailVersion = st.map_version_id || null;
+        this.trailVersions = this.trailVersions || {};
+        if (this.trailVersions[robot.robot_id] !== trailVersion) {
+          this.trails[robot.robot_id] = [];
+          this.trailVersions[robot.robot_id] = trailVersion;
+        }
+        const sensRec = this.sensors[robot.robot_id];
+        const sens = sensRec && sensRec.data && sensRec.data.available ? sensRec.data : null;
+        const ps = H.classifyPoseState(robot, sens);
+        if (ps.status === 'OK' && ps.pose) {
           const list = this.trails[robot.robot_id] || (this.trails[robot.robot_id] = []);
           const last = list[list.length - 1];
-          if (!last || Math.hypot(p.x - last[0], p.y - last[1]) > 0.04) {
-            list.push([p.x, p.y]);
-            if (list.length > 600) list.shift();
+          if (!last || Math.hypot(ps.pose.x - last[0], ps.pose.y - last[1]) > 0.04) {
+            list.push([ps.pose.x, ps.pose.y]);
+            while (list.length > this.maxTrailPoints) list.shift();
           }
         }
       }
@@ -247,6 +328,10 @@
 
     request() {
       if (this._pending) return;
+      if (typeof requestAnimationFrame !== 'function') {
+        this.draw();
+        return;
+      }
       this._pending = true;
       requestAnimationFrame(() => {
         this._pending = false;
@@ -256,10 +341,12 @@
 
     draw() {
       const c = this.ctx;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
       const v = this.view;
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const palette = getComputedStyle(document.documentElement);
+      const palette = (typeof getComputedStyle === 'function' && typeof document !== 'undefined' && document.documentElement)
+        ? getComputedStyle(document.documentElement)
+        : { getPropertyValue: () => '' };
       c.fillStyle = palette.getPropertyValue('--map-canvas').trim() || '#090d12';
       c.fillRect(0, 0, v.width, v.height);
 
@@ -278,6 +365,12 @@
       const cached = (!prev && r) ? this.cache[r.robot_id] : null;
       const meta = prev ? prev.meta : (r ? r.map_meta : null);
       const gridImg = prev ? prev.img : (cached ? cached.img : null);
+      const sensRec = (!prev && r) ? this.sensors[r.robot_id] : null;
+      const sens = sensRec && sensRec.data && sensRec.data.available ? sensRec.data : null;
+      const poseState = !prev ? H.classifyPoseState(r, sens) : { status: 'UNAVAILABLE', source: 'NONE', pose: null, reason: '미리보기' };
+      const planInfo = !prev ? H.extractPlanPoints(r, sens, this.missions) : { status: 'UNAVAILABLE', points: [], age_s: null };
+      const waypoints = !prev ? H.extractWaypoints(r, this.missions) : [];
+      const velocityInfo = !prev ? H.extractObservedVelocity(r, sens) : { status: 'UNAVAILABLE', linear_x: null, angular_z: null };
 
       c.save();
       c.translate(v.width / 2 + v.panX, v.height / 2 + v.panY);
@@ -307,9 +400,6 @@
       }
 
       if (!prev) {
-        const sensRec = r ? this.sensors[r.robot_id] : null;
-        const sens = sensRec && sensRec.data && sensRec.data.available ? sensRec.data : null;
-
         // Live Costmap overlay
         if (this.layers.costmap && sens && sensRec.costmapImg && sens.costmap_meta) {
           const cm = sens.costmap_meta;
@@ -325,7 +415,7 @@
           c.restore();
         }
 
-        // Observed pose trail
+        // Observed pose trail (bounded history)
         if (this.layers.trail && r && this.trails[r.robot_id] && this.trails[r.robot_id].length > 1) {
           const pts = this.trails[r.robot_id];
           c.save();
@@ -339,8 +429,8 @@
         }
 
         // Live Frontier candidates, Nav2 Global Plan, and LiDAR scan points
-        if (this.layers.plan && sens) {
-          if (Array.isArray(sens.frontiers) && sens.frontiers.length) {
+        if (this.layers.plan) {
+          if (sens && Array.isArray(sens.frontiers) && sens.frontiers.length) {
             c.save();
             c.fillStyle = '#facc15';
             const rad = 3.2 / v.zoom;
@@ -351,16 +441,20 @@
             }
             c.restore();
           }
-          if (Array.isArray(sens.global_plan) && sens.global_plan.length > 1) {
+          if (planInfo.status === 'OK' && planInfo.points.length > 1) {
             c.save();
             c.strokeStyle = '#22d3ee';
             c.lineWidth = 2.6 / v.zoom;
             c.beginPath();
-            sens.global_plan.forEach((pt, i) => (i === 0 ? c.moveTo(pt[0], pt[1]) : c.lineTo(pt[0], pt[1])));
+            planInfo.points.forEach((pt, i) => (i === 0 ? c.moveTo(pt[0], pt[1]) : c.lineTo(pt[0], pt[1])));
             c.stroke();
+            // Highlight start and end of planned path
+            const endPt = planInfo.points[planInfo.points.length - 1];
+            c.fillStyle = '#22d3ee';
+            c.beginPath(); c.arc(endPt[0], endPt[1], 4 / v.zoom, 0, Math.PI * 2); c.fill();
             c.restore();
           }
-          if (Array.isArray(sens.lidar_points) && sens.lidar_points.length) {
+          if (sens && Array.isArray(sens.lidar_points) && sens.lidar_points.length) {
             c.save();
             c.fillStyle = '#f43f5e';
             const s = 3.0 / v.zoom;
@@ -371,20 +465,49 @@
           }
         }
 
-        // Active (non-terminal) mission goals for selected robot
+        // Active (non-terminal) mission waypoints and destination goals
         if (this.layers.goals && r) {
+          if (waypoints.length > 0) {
+            c.save();
+            if (waypoints.length > 1) {
+              c.strokeStyle = 'rgba(167, 139, 250, 0.75)';
+              c.lineWidth = 1.8 / v.zoom;
+              c.setLineDash([5 / v.zoom, 4 / v.zoom]);
+              c.beginPath();
+              waypoints.forEach((wp, i) => (i === 0 ? c.moveTo(wp.x, wp.y) : c.lineTo(wp.x, wp.y)));
+              c.stroke();
+              c.setLineDash([]);
+            }
+            for (const wp of waypoints) {
+              c.save();
+              c.translate(wp.x, wp.y);
+              c.fillStyle = '#a78bfa';
+              c.strokeStyle = '#ffffff';
+              c.lineWidth = 1.5 / v.zoom;
+              c.beginPath();
+              c.arc(0, 0, 6 / v.zoom, 0, Math.PI * 2);
+              c.fill();
+              c.stroke();
+              if (Number.isFinite(wp.yaw_rad)) {
+                c.rotate(wp.yaw_rad);
+                c.beginPath(); c.moveTo(0, 0); c.lineTo(11 / v.zoom, 0); c.stroke();
+              }
+              c.restore();
+            }
+            c.restore();
+          }
           for (const m of this.missions) {
             if (m.robot_id === r.robot_id && !m.terminal && m.goal && m.goal.frame_id === 'map') {
               c.save();
               c.translate(m.goal.x, m.goal.y);
               c.strokeStyle = '#34c759';
-              c.lineWidth = 2.2 / v.zoom;
+              c.lineWidth = 2.4 / v.zoom;
               c.beginPath();
               c.arc(0, 0, 9 / v.zoom, 0, Math.PI * 2);
               c.stroke();
               if (Number.isFinite(m.goal.yaw_rad)) {
                 c.rotate(m.goal.yaw_rad);
-                c.beginPath(); c.moveTo(0, 0); c.lineTo(14 / v.zoom, 0); c.stroke();
+                c.beginPath(); c.moveTo(0, 0); c.lineTo(15 / v.zoom, 0); c.stroke();
               }
               c.restore();
             }
@@ -404,18 +527,14 @@
           c.restore();
         }
 
-        // Robot current pose arrow (verified localization OR live SLAM sensor TF)
-        const pose = r && r.state && r.state.pose;
-        const st = r?.state || {};
-        const spatialPoseKnown = (r?.online && r.state_age_s != null && r.state_age_s <= 2 && st.localization_status === 'CONFIRMED' && st.map_verified === true && st.map_version_id && st.localization_map_version_id === st.map_version_id && pose?.status === 'OK');
-        const liveSlamPose = (this.layers.plan && !spatialPoseKnown && sens && sens.age_s <= 5 && sens.pose && Number.isFinite(sens.pose.x) && Number.isFinite(sens.pose.y)) ? sens.pose : null;
-        const drawPose = spatialPoseKnown ? pose : liveSlamPose;
-        if (drawPose && Number.isFinite(drawPose.x) && Number.isFinite(drawPose.y)) {
+        // Robot current pose arrow: drawn ONLY when poseState.status === 'OK' (never draw STALE/UNAVAILABLE as normal)
+        if (poseState.status === 'OK' && poseState.pose) {
+          const drawPose = poseState.pose;
           c.save();
           c.translate(drawPose.x, drawPose.y);
           c.rotate(drawPose.yaw_rad || 0);
           const fault = H.classifySafetyGate(r).category === 'FAULT';
-          const fill = !r.online ? '#8795a6' : fault ? '#ff4d4f' : (spatialPoseKnown ? '#459dff' : '#38bdf8');
+          const fill = fault ? '#ff4d4f' : (poseState.source === 'LOCALIZATION' ? '#459dff' : '#38bdf8');
           c.fillStyle = fill;
           c.strokeStyle = '#ffffff';
           c.lineWidth = 1.6 / v.zoom;
@@ -433,6 +552,18 @@
       }
 
       c.restore();
+
+      // Screen-space waypoint labels (upright text, never flipped by Y-inversion)
+      if (!prev && this.layers.goals && waypoints.length > 0) {
+        c.save();
+        c.font = 'bold 11px system-ui, sans-serif';
+        c.fillStyle = '#ddd6fe';
+        for (const wp of waypoints) {
+          const sp = H.worldToScreen(v, wp);
+          c.fillText(String(wp.label || ''), sp.x + 8, sp.y - 6);
+        }
+        c.restore();
+      }
 
       // Overlay warnings (screen space, wrapped to stay inside canvas width)
       c.font = '12px system-ui, sans-serif';
@@ -468,22 +599,26 @@
         );
         if (!r) {
           msgs.push({ text: '등록된 로봇이 없습니다.', color: '#8b98a5' });
-        } else if (!cached || !meta) {
-          msgs.push({ text: '지도 수신 대기 (NO_MAP) — 로봇 Agent가 지도를 업로드하면 표시됩니다.', color: '#ffcc00' });
         } else {
-          if (!r.online) msgs.push({ text: 'OFFLINE — 과거 수신 지도 스냅샷 (실시간 아님)', color: '#ff7b72' });
-          if (mStat === 'STALE') msgs.push({ text: 'STALE — 오래된 지도 스냅샷 (갱신 지연)', color: '#ffcc00' });
-          if (mapMismatch) {
-            msgs.push({
-              text: `지도 버전 불일치/미검증 (map=${st.map_version_id || 'NONE'} · loc=${st.localization_map_version_id || 'NONE'} · verified=${st.map_verified})`,
-              color: '#ff9b71',
-            });
+          if (!cached || !meta) {
+            msgs.push({ text: '지도 수신 대기 (NO_MAP) — 로봇 Agent가 지도를 업로드하면 표시됩니다.', color: '#ffcc00' });
+          } else {
+            if (!r.online) msgs.push({ text: 'OFFLINE — 과거 수신 지도 스냅샷 (실시간 아님)', color: '#ff7b72' });
+            if (mStat === 'STALE') msgs.push({ text: 'STALE — 오래된 지도 스냅샷 (갱신 지연)', color: '#ffcc00' });
+            if (mapMismatch) {
+              msgs.push({
+                text: `지도 버전 불일치/미검증 (map=${st.map_version_id || 'NONE'} · loc=${st.localization_map_version_id || 'NONE'} · verified=${st.map_verified})`,
+                color: '#ff9b71',
+              });
+            }
           }
-          const pose = r && r.state && r.state.pose;
-          if (pose && pose.frame_id && pose.frame_id !== 'map') {
-            msgs.push({ text: '위치 프레임 ' + pose.frame_id + ' (map 아님): 지도에 표시하지 않음', color: '#ffcc00' });
-          } else if (!pose || pose.status === 'NO_DATA') {
-            msgs.push({ text: '로봇 위치 NO_DATA — map->base_footprint TF 미수신', color: '#8b98a5' });
+          if (poseState.status === 'STALE') {
+            msgs.push({ text: `로봇 위치 STALE — ${poseState.reason} (마지막 위치 미표시)`, color: '#ffcc00' });
+          } else if (poseState.status === 'UNAVAILABLE') {
+            msgs.push({ text: `로봇 위치 UNAVAILABLE — ${poseState.reason}`, color: '#8b98a5' });
+          }
+          if (planInfo.status === 'STALE') {
+            msgs.push({ text: `Nav2 계획 경로 STALE (${planInfo.age_s !== null ? planInfo.age_s.toFixed(1) + 's' : '지연'}) — 표시 중단`, color: '#ffcc00' });
           }
         }
       }
@@ -510,11 +645,32 @@
         curY += boxH + 6;
       }
 
+      // Operational HUD strip (bottom-left): Localization, Mode, Control Owner, Pose, Velocity, Trail
+      if (!prev && r) {
+        const st = r.state || {};
+        const origin = H.classifyFleetOrigin(r, this.missions);
+        const tr = this.getTrailStats(r.robot_id);
+        const velTxt = velocityInfo.status === 'OK'
+          ? `v ${velocityInfo.linear_x.toFixed(2)} m/s · w ${velocityInfo.angular_z.toFixed(2)} rad/s`
+          : `속도 ${velocityInfo.status}`;
+        const hudText = `LOC ${st.localization_status || 'UNKNOWN'} · 모드 ${st.operation_mode || 'UNKNOWN'} · 주체 ${origin.label} · 위치 ${poseState.status} · ${velTxt} · 궤적 ${tr.count}/${tr.max}`;
+        c.font = '11px system-ui, sans-serif';
+        const hudW = Math.min(v.width - 20, c.measureText(hudText).width + 16);
+        const hudY = Math.max(curY + 4, v.height - 28);
+        c.fillStyle = 'rgba(9, 13, 18, 0.86)';
+        c.fillRect(10, hudY, hudW, 20);
+        c.fillStyle = poseState.status === 'OK' ? '#d8e6f5' : '#ffcc00';
+        c.fillText(hudText, 16, hudY + 14, Math.max(60, v.width - 32));
+      }
+
       if (this.opts.onScale) {
         this.opts.onScale((100 / v.zoom).toFixed(2) + ' m / 100 px');
       }
     }
   }
 
+  if (typeof module === 'object' && module.exports) {
+    module.exports = FleetMapView;
+  }
   root.FleetMapView = FleetMapView;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

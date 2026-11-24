@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "15bb5c59b806f58d95e19fb6308effd02c15f0de",
+  "notes": [
+    "Scope definitions derived from WORKTREES.md and current active worktrees (2026-11-24).",
+    "Paths not matching any registered scope are reported as UNREGISTERED rather than auto-assigned."
+  ],
+  "scopes": {
+    "real_agent_safety": {
+      "label": "Real Agent / Watchdog / Gate / Fleet Server",
+      "default_owner": "Claude Code",
+      "primary_worktree_hint": "Capstone1_limo_g2_20261123",
+      "path_prefixes": [
+        "fleet_control/agent/",
+        "fleet_control/server/fleet_server/",
+        "fleet_control/server/SAFETY_CONTRACT.md",
+        "capstone_ws/src/limo_fleet_bringup/",
+        "capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py",
+        "capstone_ws/src/limo_capstone/launch/limo_integrated_auto_mapping_real.launch.py"
+      ],
+      "exclude_prefixes": [
+        "fleet_control/server/fleet_server/static/"
+      ]
+    },
+    "web_ui": {
+      "label": "Web UI / Map Visualization / Speed Control Panel",
+      "default_owner": "Antigravity",
+      "primary_worktree_hint": "Capstone1_limo_web_ui_20261123",
+      "path_prefixes": [
+        "fleet_control/server/fleet_server/static/",
+        "fleet_control/docs/WEB_MAP_SPEED_INTEGRATION_PROPOSAL_20261123.md",
+        "fleet_control/tests/test_web_map_and_speed_ui_20261123.cjs",
+        "fleet_control/tests/test_web_map_speed_chrome_e2e_20261123.cjs"
+      ],
+      "exclude_prefixes": []
+    },
+    "navigation_patrol": {
+      "label": "Navigation / Nav2 Stabilization / Patrol E2E",
+      "default_owner": "Antigravity",
+      "primary_worktree_hint": "Capstone1_limo_nav_validation_20261124",
+      "path_prefixes": [
+        "capstone_ws/src/limo_capstone/config/integrated_nav2_lidar_only_slow_params.yaml",
+        "capstone_ws/src/limo_capstone/limo_capstone/lidar_scan_matcher_odom_node.py",
+        "fleet_control/tests/nav_e2e/",
+        "fleet_control/tests/gazebo_web/",
+        "fleet_control/tests/mode_e2e/",
+        "fleet_control/docs/NAV2_STABILIZATION_AND_PATROL_20261124.md"
+      ],
+      "exclude_prefixes": []
+    },
+    "agent_harness": {
+      "label": "Agent Development Harness (M0)",
+      "default_owner": "Antigravity",
+      "primary_worktree_hint": "Capstone1_limo_agent_harness_20261124",
+      "path_prefixes": [
+        "scripts/agent_harness/"
+      ],
+      "exclude_prefixes": []
+    }
+  },
+  "shared_common_docs": [
+    "START_HERE.md",
+    "AGENTS.md",
+    "WORKTREES.md",
+    "ARCHITECTURE.md",
+    "CODE_INDEX.md",
+    "VALIDATION.md",
+    "CURRENT_STATUS.md",
+    "HANDOFF.md",
+    "DECISIONS.md"
+  ],
+  "safety_contract_paths": [
+    "fleet_control/server/SAFETY_CONTRACT.md",
+    "fleet_control/server/fleet_server/safety.py",
+    "fleet_control/agent/limo_robot_agent/limo_robot_agent/safety_protocol.py",
+    "fleet_control/agent/limo_robot_agent/limo_robot_agent/motion_watchdog.py",
+    "capstone_ws/src/limo_capstone/limo_capstone/stall_detector_node.py"
+  ],
+  "protected_experiment_prefixes": [
+    "experiments/",
+    "local_data/"
+  ],
+  "protected_ports": {
+    "8080": "Production Reserve Fleet Server (FORBIDDEN)",
+    "18190": "Real LIMO Field Dashboard / Mission Manager (PROTECTED)",
+    "18191": "Real LIMO Field AI TCP Link (PROTECTED)",
+    "18192": "Real LIMO Field AI HTTP (PROTECTED)"
+  },
+  "reserved_test_ports": {
+    "18120": "Gazebo x RMF HTTP",
+    "18121": "Gazebo x RMF WS",
+    "18200": "Integrated Sim MM",
+    "18201": "Integrated Sim WS",
+    "18210": "Integrated Sim AI TCP",
+    "18211": "Integrated Sim AI HTTP",
+    "18212": "Integrated Sim Proxy",
+    "18310": "Dashboard Lab UI",
+    "18311": "Dashboard Lab Baseline",
+    "18313": "Dashboard Lab Native",
+    "18410": "RMF Web Storybook"
+  },
+  "reserved_ros_domains": {
+    "77": "Real LIMO onboard / Discovery Server",
+    "141": "Default Fleet unit/integration checks",
+    "151": "Mock RMF E2E (RMF)",
+    "152": "Mock RMF E2E (Robot)",
+    "162": "Gazebo x RMF / Office Gazebo",
+    "163": "Gazebo x RMF (Robot)",
+    "181": "Integrated Sim (Robot)",
+    "182": "Integrated Sim (RMF)"
+  },
+  "dangerous_actions": {
+    "real_limo_connect_or_motor": {
+      "label": "Real LIMO connection or motor control",
+      "description": "실제 LIMO 연결 및 모터 제어 (현장 입회 및 단계별 승인 필수)"
+    },
+    "prod_server_18190": {
+      "label": "Production / field server 18190 modification",
+      "description": "운영 서버 18190 변경 또는 중단"
+    },
+    "real_robot_deploy": {
+      "label": "Physical robot deployment",
+      "description": "실차 배포 (아티팩트 검증·백업·승인 필요)"
+    },
+    "worktree_delete_or_move": {
+      "label": "Worktree deletion or move",
+      "description": "기존 worktree 삭제·이동 (절대 경로 참조 훼손 위험)"
+    },
+    "git_write_or_pr": {
+      "label": "Git commit / push / PR",
+      "description": "Git commit / push / PR 수행 (명시적 승인 필요)"
+    },
+    "delete_experiment_originals": {
+      "label": "Delete experiment originals",
+      "description": "기존 실험 원본(experiments/, local_data/) 삭제"
+    },
+    "safety_contract_change": {
+      "label": "Safety contract modification",
+      "description": "공통 안전 계약(SAFETY_CONTRACT, Gate, Watchdog, safety_protocol) 변경"
+    },
+    "overwrite_other_agent_uncommitted": {
+      "label": "Overwrite another agent's uncommitted files",
+      "description": "다른 에이전트의 미커밋 파일 덮어쓰기"
+    }
+  }
+}

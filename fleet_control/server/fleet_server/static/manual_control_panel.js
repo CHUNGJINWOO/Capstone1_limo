@@ -83,9 +83,16 @@
     const handlers = [];
     const on = (target, type, fn, options) => { target.addEventListener(type, fn, options); handlers.push(() => target.removeEventListener(type, fn, options)); };
     const say = value => { status.textContent = value; };
+    function speedCap() {
+      const raw = typeof opts.getSpeedLimits === 'function' ? (opts.getSpeedLimits() || {}) : {};
+      const maxLinear = Number.isFinite(raw.maxLinear) ? Math.max(0, Math.min(0.10, raw.maxLinear)) : 0.10;
+      const maxAngular = Number.isFinite(raw.maxAngular) ? Math.max(0, Math.min(0.30, raw.maxAngular)) : 0.30;
+      return { maxLinear, maxAngular };
+    }
     function view(values) {
       lastValues = values;
-      q('values').textContent = `선속도 요청 ${(Math.max(0, values.linear) * .10).toFixed(2)} m/s · 각속도 요청 ${(values.turn * .30).toFixed(2)} rad/s · Deadman ${values.deadman ? '유지' : '해제'} (모터 잠금)`;
+      const cap = speedCap();
+      q('values').textContent = `선속도 요청 ${(Math.max(0, values.linear) * cap.maxLinear).toFixed(2)} m/s · 각속도 요청 ${(values.turn * cap.maxAngular).toFixed(2)} rad/s · Deadman ${values.deadman ? '유지' : '해제'} (모터 잠금)`;
       knob.style.transform = `translate(${(-values.turn * 38).toFixed(1)}px, ${(-values.linear * 38).toFixed(1)}px)`;
     }
     function renderContext(c, reason) {
@@ -176,7 +183,13 @@
       view(sample);
       if (s.busy) return;
       s.busy = true;
-      try { await post(s.path, { action:'sample', epoch:s.epoch, session_id:s.id, input_format:'normalized_axes_v1', seq:++s.seq, ...sample }); }
+      const cap = speedCap();
+      const scaled = {
+        linear: sample.deadman ? Math.max(-1, Math.min(1, sample.linear * (cap.maxLinear / 0.10))) : 0,
+        turn: sample.deadman ? Math.max(-1, Math.min(1, sample.turn * (cap.maxAngular / 0.30))) : 0,
+        deadman: sample.deadman,
+      };
+      try { await post(s.path, { action:'sample', epoch:s.epoch, session_id:s.id, input_format:'normalized_axes_v1', seq:++s.seq, ...scaled }); }
       catch (e) { if (session === s) stop(`입력 만료 / 연결 오류: ${e.message}`); }
       finally { s.busy = false; }
     }
@@ -223,7 +236,19 @@
     // active(): a session is starting or running. The host refreshes the safety evidence faster meanwhile (2026-11-21: with the
     // 1 s dashboard poll the evidence age routinely exceeded EVIDENCE_MAX_AGE_MS just before each poll and tick() stopped the
     // session - the intermittent "pointer does nothing" in Gazebo; the 1000 ms bound itself is unchanged).
-    return { stop, refresh:tick, active:() => !!session || starting, destroy() { if (destroyed) return; stop('패널 종료'); destroyed = true; clearInterval(timer); handlers.forEach(off => off()); } };
+    return {
+      stop,
+      refresh: tick,
+      active: () => !!session || starting,
+      getRequestedVelocity: () => {
+        const cap = speedCap();
+        return {
+          linear_mps: lastValues.deadman ? Math.max(0, lastValues.linear) * cap.maxLinear : 0,
+          angular_rps: lastValues.deadman ? lastValues.turn * cap.maxAngular : 0,
+        };
+      },
+      destroy() { if (destroyed) return; stop('패널 종료'); destroyed = true; clearInterval(timer); handlers.forEach(off => off()); },
+    };
   }
   return { mount, admissibility, blockerText, keyboardAxes, pointerAxes, gamepadAxes, editable, PERIOD_MS, REQUEST_TIMEOUT_MS };
 });

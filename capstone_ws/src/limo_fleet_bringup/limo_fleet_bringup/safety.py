@@ -17,10 +17,15 @@ def locked_gate(clock, depth):
                 }], remappings=[('/cmd_vel', '/cmd_vel_locked')])
 
 
-def motion_watchdog(clock):
+def motion_watchdog(clock, speed_clamp_state=None, mode_gate=False):
     """G2 2026-11-23 (R2): the independent motion watchdog is the only writer of the Gate input /cmd_vel_raw.
 
     It forwards /fleet/nav_cmd_vel only while the Agent heartbeat, the Gate status and the Nav2 goal evidence authorize motion,
     publishes zero otherwise and never republishes a non-zero command after shutdown (R2 tests). Defaults are the v5 values."""
+    extra = {}
+    if speed_clamp_state:
+        # G2 2026-11-23: the same Watchdog speed clamp the real launch enables (the Agent has no Arbiter in this profile: velocity:=false).
+        extra = {'speed_clamp': True, 'speed_limit_state_path': speed_clamp_state,
+                 'input_publisher_nodes': ['fleet_robot_agent', 'velocity_smoother', 'manual_mapping_teleop'], 'mode_gate': bool(mode_gate)}
     return Node(package='limo_robot_agent', executable='motion_watchdog', name='fleet_motion_watchdog',
-                parameters=[clock], output='screen')
+                parameters=[clock, extra], output='screen')

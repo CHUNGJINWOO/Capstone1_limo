@@ -247,6 +247,31 @@
     };
   }
 
+  function worldToGrid(meta, x, y) {
+    const o = gridOrigin(meta);
+    const c = Math.cos(o.yaw);
+    const s = Math.sin(o.yaw);
+    const res = Number(meta.resolution || 0.05);
+    const dx = (Number(x) - o.x) / res;
+    const dy = (Number(y) - o.y) / res;
+    return {
+      u: c * dx + s * dy,
+      v: -s * dx + c * dy,
+    };
+  }
+
+  // ROS OccupancyGrid cell (u, v: Y-up from map origin) <-> PNG image pixel (px, py: Y-down from top-left)
+  function worldToImagePx(meta, x, y) {
+    const g = worldToGrid(meta, x, y);
+    const h = Number(meta.height || 0);
+    return { px: g.u, py: h - g.v };
+  }
+
+  function imagePxToWorld(meta, px, py) {
+    const h = Number(meta.height || 0);
+    return gridToWorld(meta, Number(px), h - Number(py));
+  }
+
   function worldToScreen(view, p) {
     const c = Math.cos(view.rotation || 0);
     const s = Math.sin(view.rotation || 0);
@@ -269,7 +294,221 @@
     };
   }
 
+  function classifyPoseState(robot, sensorData) {
+    if (!robot) {
+      return { status: 'UNAVAILABLE', source: 'NONE', pose: null, reason: '로봇 미선택' };
+    }
+    const st = robot.state || {};
+    const pose = st.pose || null;
+    const age = typeof robot.state_age_s === 'number' && Number.isFinite(robot.state_age_s) ? robot.state_age_s : null;
+    const online = robot.online === true;
+    const locConfirmed = st.localization_status === 'CONFIRMED' &&
+      st.map_verified === true &&
+      Boolean(st.map_version_id) &&
+      st.localization_map_version_id === st.map_version_id;
+    const poseFinite = Boolean(pose && Number.isFinite(Number(pose.x)) && Number.isFinite(Number(pose.y)));
+    const poseInMap = Boolean(pose && pose.frame_id === 'map');
+
+    if (online && age !== null && age <= 2 && locConfirmed && poseFinite && poseInMap && pose.status === 'OK') {
+      return {
+        status: 'OK',
+        source: 'LOCALIZATION',
+        pose: { x: Number(pose.x), y: Number(pose.y), yaw_rad: Number(pose.yaw_rad) || 0, frame_id: 'map' },
+        reason: 'LOCALIZATION_CONFIRMED',
+      };
+    }
+
+    // Live SLAM TF fallback from /sensors when available and fresh
+    const sens = sensorData && sensorData.available ? sensorData : null;
+    const sensAge = sens && typeof sens.age_s === 'number' && Number.isFinite(sens.age_s) ? sens.age_s : null;
+    const sensPose = sens && sens.pose && Number.isFinite(Number(sens.pose.x)) && Number.isFinite(Number(sens.pose.y)) ? sens.pose : null;
+    const sensFrameOk = !sensPose || !sensPose.frame_id || sensPose.frame_id === 'map';
+    if (online && sensPose && sensFrameOk && sensAge !== null && sensAge <= 5) {
+      return {
+        status: 'OK',
+        source: 'SLAM_LIVE',
+        pose: { x: Number(sensPose.x), y: Number(sensPose.y), yaw_rad: Number(sensPose.yaw_rad) || 0, frame_id: 'map' },
+        reason: 'SLAM_LIVE_TF',
+      };
+    }
+
+    if (pose && pose.frame_id && pose.frame_id !== 'map') {
+      return { status: 'UNAVAILABLE', source: 'NONE', pose: null, reason: `프레임 불일치 (${pose.frame_id})` };
+    }
+    if (!online || (age !== null && age > 2) || (pose && pose.status === 'STALE') || (sensPose && sensAge !== null && sensAge > 5)) {
+      return {
+        status: 'STALE',
+        source: 'NONE',
+        pose: null,
+        reason: !online ? '로봇 OFFLINE (마지막 위치 미표시)' : `위치 데이터 지연 (${age !== null ? age.toFixed(1) + 's' : 'STALE'})`,
+      };
+    }
+    if (!pose || pose.status === 'NO_DATA' || !poseFinite) {
+      return { status: 'UNAVAILABLE', source: 'NONE', pose: null, reason: 'map->base_footprint TF 미수신' };
+    }
+    return {
+      status: 'UNAVAILABLE',
+      source: 'NONE',
+      pose: null,
+      reason: `위치추정 미확정 (${st.localization_status || 'UNKNOWN'})`,
+    };
+  }
+
+  function _normalizePointList(raw) {
+    if (!Array.isArray(raw)) return [];
+    const pts = [];
+    for (const pt of raw) {
+      if (Array.isArray(pt) && pt.length >= 2 && Number.isFinite(Number(pt[0])) && Number.isFinite(Number(pt[1]))) {
+        pts.push([Number(pt[0]), Number(pt[1])]);
+      } else if (pt && typeof pt === 'object' && Number.isFinite(Number(pt.x)) && Number.isFinite(Number(pt.y))) {
+        pts.push([Number(pt.x), Number(pt.y)]);
+      }
+    }
+    return pts;
+  }
+
+  function extractPlanPoints(robot, sensorData, missions) {
+    if (!robot) return { status: 'UNAVAILABLE', points: [], age_s: null };
+    const activeMission = (missions || []).find(function (m) {
+      return m && m.robot_id === robot.robot_id && !m.terminal;
+    });
+    const sens = sensorData && sensorData.available ? sensorData : null;
+    const sensAge = sens && typeof sens.age_s === 'number' && Number.isFinite(sens.age_s) ? sens.age_s : null;
+    const sensPts = sens ? _normalizePointList(sens.global_plan) : [];
+    if (sensPts.length > 1) {
+      if (!robot.online || (sensAge !== null && sensAge > 5)) {
+        return { status: 'STALE', points: [], age_s: sensAge };
+      }
+      return { status: 'OK', points: sensPts, age_s: sensAge };
+    }
+    const st = robot.state || {};
+    const statePts = _normalizePointList(st.global_plan || (activeMission && activeMission.plan));
+    if (statePts.length > 1) {
+      const age = typeof robot.state_age_s === 'number' && Number.isFinite(robot.state_age_s) ? robot.state_age_s : null;
+      if (!robot.online || age === null || age > 2) {
+        return { status: 'STALE', points: [], age_s: age };
+      }
+      return { status: 'OK', points: statePts, age_s: age };
+    }
+    return { status: 'UNAVAILABLE', points: [], age_s: sensAge };
+  }
+
+  function extractWaypoints(robot, missions) {
+    if (!robot) return [];
+    const out = [];
+    for (const m of (missions || [])) {
+      if (!m || m.robot_id !== robot.robot_id || m.terminal) continue;
+      const wps = Array.isArray(m.waypoints) ? m.waypoints : (Array.isArray(m.route_waypoints) ? m.route_waypoints : []);
+      wps.forEach(function (wp, idx) {
+        if (!wp || (wp.frame_id && wp.frame_id !== 'map')) return;
+        const x = Number(wp.x), y = Number(wp.y);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        out.push({
+          x,
+          y,
+          yaw_rad: Number.isFinite(Number(wp.yaw_rad)) ? Number(wp.yaw_rad) : null,
+          label: wp.label || ('W' + (idx + 1)),
+          mission_id: m.mission_id || '',
+        });
+      });
+    }
+    const stWps = robot.state && Array.isArray(robot.state.waypoints) ? robot.state.waypoints : [];
+    if (out.length === 0 && stWps.length > 0) {
+      stWps.forEach(function (wp, idx) {
+        if (!wp || (wp.frame_id && wp.frame_id !== 'map')) return;
+        const x = Number(wp.x), y = Number(wp.y);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        out.push({
+          x,
+          y,
+          yaw_rad: Number.isFinite(Number(wp.yaw_rad)) ? Number(wp.yaw_rad) : null,
+          label: wp.label || ('W' + (idx + 1)),
+          mission_id: '',
+        });
+      });
+    }
+    return out;
+  }
+
+  function extractObservedVelocity(robot, sensorData) {
+    if (!robot) return { status: 'UNAVAILABLE', linear_x: null, angular_z: null, source: 'NONE' };
+    const st = robot.state || {};
+    const vel = st.velocity || st.odom_twist || (sensorData && sensorData.available && sensorData.velocity) || null;
+    if (!vel || typeof vel !== 'object' || vel.status === 'UNAVAILABLE' || vel.status === 'NO_DATA') {
+      return { status: 'UNAVAILABLE', linear_x: null, angular_z: null, source: (vel && vel.source) || 'NONE' };
+    }
+    const rawLin = vel.linear_x_mps !== undefined ? vel.linear_x_mps : (vel.linear_x !== undefined ? vel.linear_x : vel.v);
+    const rawAng = vel.angular_z_rps !== undefined ? vel.angular_z_rps : (vel.angular_z !== undefined ? vel.angular_z : vel.w);
+    if (rawLin === null || rawLin === undefined || rawLin === '' || typeof rawLin === 'boolean' ||
+        rawAng === null || rawAng === undefined || rawAng === '' || typeof rawAng === 'boolean') {
+      return { status: 'UNAVAILABLE', linear_x: null, angular_z: null, source: vel.source || 'NONE' };
+    }
+    const lin = Number(rawLin);
+    const ang = Number(rawAng);
+    if (!Number.isFinite(lin) || !Number.isFinite(ang)) {
+      return { status: 'UNAVAILABLE', linear_x: null, angular_z: null, source: vel.source || 'NONE' };
+    }
+    const stale = staleInfo(robot).stale || vel.status === 'STALE';
+    return {
+      status: stale ? 'STALE' : 'OK',
+      linear_x: lin,
+      angular_z: ang,
+      source: vel.source || '/odom',
+    };
+  }
+
+  // ---- 2026-11-28 integration: operating-mode permission, dry-run missions, Gate generation evidence. None of these may turn a self-report into "motor ready".
+  const API_ERRORS = {
+    mode_unverified: '서버 모드는 켜져 있지만 Watchdog이 지금 그 모드를 확인하지 않습니다. 새 운동·임무는 거부됩니다. 모드를 다시 요청하세요(이전 모드는 자동으로 복구되지 않습니다).',
+    dry_run_agent: '이 로봇은 건식(real_nav_dry_run) 모드입니다. 일반 임무는 받지 않으며 건식 임무는 실제로 로봇을 움직이지 않습니다.',
+    not_dry_run_agent: '이 로봇은 건식 모드가 아닙니다. 건식 임무는 거부되었습니다.',
+  };
+  function explainApiError(code, fallback) {
+    return Object.prototype.hasOwnProperty.call(API_ERRORS, code) ? API_ERRORS[code] : (fallback || (code ? String(code) : '오류'));
+  }
+  function isDryRunAgent(robot) { return !!(robot && robot.agent && robot.agent.real_nav_dry_run === true); }
+  function missionEndpoint(robot) { return isDryRunAgent(robot) ? '/dry-run-missions' : '/missions'; }
+  function classifyModeMotion(robot) {
+    const mm = robot && robot.mode_motion;
+    const mode = (robot && robot.operating_mode && robot.operating_mode.mode) || (mm && mm.mode) || 'UNKNOWN';
+    if (!mm || typeof mm !== 'object' || mm.verified === null || mm.verified === undefined) {
+      return { status: 'NOT_APPLICABLE', mode, label: '서버 모드 ' + mode + ' (Watchdog 확인 대상 아님)', tone: 'muted', blocker: null, motionPermitted: false };
+    }
+    if (mm.verified === true) {
+      return { status: 'VERIFIED', mode, label: '서버 모드 ' + mode + ' · Watchdog 확인됨(운동 허가 입력 중 하나일 뿐)', tone: 'ok', blocker: null, motionPermitted: false };
+    }
+    return { status: 'UNVERIFIED', mode, label: '서버 모드 ' + mode + ' · Watchdog 미확인: 신규 운동·임무 차단', tone: 'bad', blocker: mm.blocker || 'UNKNOWN', motionPermitted: false };
+  }
+  function classifyDryRun(robot) {
+    const dry = isDryRunAgent(robot);
+    return { dryRun: dry, label: dry ? '건식 임무 전용 (실제 주행 아님)' : '일반', realMotionAuthorized: false };
+  }
+  function classifyGateEvidence(robot) {
+    const sg = (robot && robot.state && robot.state.safety_gate) || {};
+    const raw = (robot && robot.state && robot.state.safety_gate_raw) || null;
+    const rr = (sg.reset_view && sg.reset_view.reset_readiness) || (raw && raw.reset_readiness) || null;
+    const view = sg.reset_view || {};
+    const resetReady = rr && typeof rr === 'object' ? rr : null;
+    return {
+      bootId: view.boot_id || sg.boot_id || null,
+      faultEpoch: Number.isInteger(sg.fault_epoch) ? sg.fault_epoch : null,
+      faultLatched: typeof sg.fault_latched === 'boolean' ? sg.fault_latched : null,
+      authenticated: false,
+      label: 'Gate 자기 보고(비인증): 운동 허가가 아닙니다',
+      resetEnforced: !!(resetReady && resetReady.enforced),
+      resetReady: resetReady ? resetReady.ready : null,
+      resetBlockers: resetReady && Array.isArray(resetReady.blockers) ? resetReady.blockers.slice(0, 8) : [],
+      lastReset: view.last_reset || null,
+    };
+  }
+
   return {
+    explainApiError,
+    isDryRunAgent,
+    missionEndpoint,
+    classifyModeMotion,
+    classifyDryRun,
+    classifyGateEvidence,
     GATE_FAULT_STATES,
     esc,
     fmt,
@@ -287,7 +526,14 @@
     filterMissions,
     gridOrigin,
     gridToWorld,
+    worldToGrid,
+    worldToImagePx,
+    imagePxToWorld,
     worldToScreen,
     screenToWorld,
+    classifyPoseState,
+    extractPlanPoints,
+    extractWaypoints,
+    extractObservedVelocity,
   };
 });

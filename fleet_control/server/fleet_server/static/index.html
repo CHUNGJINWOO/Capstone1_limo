@@ -74,6 +74,7 @@
 <label class="inline-label"><input checked="" id="layerTrail" type="checkbox"/> 궤적</label>
 <label class="inline-label"><input checked="" id="layerCostmap" type="checkbox"/> Costmap</label>
 <label class="inline-label"><input checked="" id="layerPlan" type="checkbox"/> 경로·LiDAR</label>
+<button class="small" id="mapClearTrail" title="현재 로봇의 누적 주행 궤적 초기화" type="button">궤적 초기화</button>
 </div><div class="toolbar-row mode-bar map-mode-row">
 <span class="muted small">지도 클릭 모드:</span>
 <label class="inline-label"><input checked="" name="mapMode" type="radio" value="goal"/> 목표 위치 지정 (NavigateToPose)</label>
@@ -232,7 +233,7 @@
 <button class="small danger hidden" id="leaseForceRelease" type="button">강제 해제 (admin)</button>
 </div>
 <div class="bad small" id="leaseErr"></div>
-</div><section class="card" id="operationCancelSlot"><h2>현재 Goal 제어</h2><p id="operationCancelTarget" class="muted small">활성 대상 없음</p><button disabled="" id="quickCancel" type="button">목표 취소</button></section></aside></div></div></div><div class="tab-panel hidden registry-layout" data-panel="maps"><div id="mapsMapSlot"></div><details class="reg-panel" id="regUploadPanel">
+</div><section class="card" id="operationCancelSlot"><h2>현재 Goal 제어</h2><p id="operationCancelTarget" class="muted small">활성 대상 없음</p><button disabled="" id="quickCancel" type="button">목표 취소</button></section><div id="speedControlHost"></div></aside></div></div></div><div class="tab-panel hidden registry-layout" data-panel="maps"><div id="mapsMapSlot"></div><details class="reg-panel" id="regUploadPanel">
 <summary>지도 등록 · 검증 이력 (Map Registry — 로봇에 적재되지 않음)</summary>
 <div class="alert-banner info-banner">지도 선택(미리보기)과 로봇 지도 전환은 다릅니다. 여기서 업로드한 지도는 항상 <b>UNVERIFIED</b>로 저장만 되며, 로봇에 적재·전환되거나 이동에 사용되지 않습니다.</div>
 <div class="warn small" id="regUpRole"></div>
@@ -494,6 +495,7 @@
 <script src="mapping_panel.js"></script><script src="map_save_panel.js"></script>
 <script src="goal_check.js"></script>
 <script src="manual_control_panel.js"></script>
+<script src="speed_control_panel.js"></script>
 <script src="operating_mode_panel.js"></script>
 <script src="navigation_panel.js"></script>
 <script src="gate_reset_panel.js"></script>

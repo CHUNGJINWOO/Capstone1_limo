@@ -47,6 +47,7 @@ class AgentCore:
     def __init__(self, robot_id, base_url, token, snapshot_fn, handler, agent_info, state_dir, map_fn=None, period_s=1.0, log=print, require_safety_context=False):
         self.robot_id, self.http, self.snapshot_fn, self.handler, self.agent_info, self.map_fn, self.period, self.log = robot_id, Http(base_url, token), snapshot_fn, handler, agent_info, map_fn, period_s, log
         self.require_safety_context = bool(require_safety_context)
+        self.real_nav_dry_run = False          # set by agent_node (2026-11-26): a dry-run Agent executes dry_run-marked commands only, every other Agent refuses them
         self.agent_info = dict(agent_info, protocol_version=2, safety_contract_version=SAFETY_CONTRACT_VERSION,
                                boot_id=agent_info.get('boot_id') or uuid.uuid4().hex)
         self.boot_id = self.agent_info['boot_id']
@@ -68,7 +69,7 @@ class AgentCore:
         except Exception:
             self.seen = {}; self.journal_ok = False  # Fail closed; never overwrite the corrupt evidence.
         self.lock = threading.RLock(); self.pending_acks = []; self.seq = 0; self.running = False; self.connected = False; self.server_boot = None
-        self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None; self.server_safety_contract_version = None; self.last_state_ok_mono = None
+        self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None; self.speed_limit_request = None; self.server_safety_contract_version = None; self.last_state_ok_mono = None
         self.server_protocol_version = None; self.server_protocol_boot = None     # hello protocol_version, bound to the server boot that sent it
         self.contract_generation = 0; self._contract_was_valid = False            # R1.4.3: +1 on every valid->invalid transition; commands/goals are stamped with it
         # R1.4.4: shared serialization boundary between "the authority may change" (this run loop) and "the final local check + start of
@@ -142,6 +143,7 @@ class AgentCore:
                 'operating_mode': dict(self.operating_mode) if isinstance(getattr(self, 'operating_mode', None), dict) else None,
                 'navigation_request': dict(self.navigation_request) if isinstance(getattr(self, 'navigation_request', None), dict) else None,
                 'gate_reset_request': dict(self.gate_reset_request) if isinstance(getattr(self, 'gate_reset_request', None), dict) else None,
+                'speed_limit_request': dict(self.speed_limit_request) if isinstance(getattr(self, 'speed_limit_request', None), dict) else None,
                 'safety_contract_version': self.server_safety_contract_version,
                 'contract_generation': self.contract_generation,
                 # Valid only for the server boot that sent it; any reconnect/boot change clears it (fail-closed: None).
@@ -253,6 +255,8 @@ class AgentCore:
                 sc_status, sc_detail = 'REJECTED', 'CLOCK_SKEW: safety_context issued_at is in the future'
             elif float(sc['expires_at']) <= now:
                 sc_status, sc_detail = 'EXPIRED', 'EXPIRED: safety_context expired on receipt'
+        if cmd.get('type') == 'navigate_to_pose' and sc_status == 'OK' and (payload.get('dry_run') is True) != bool(self.real_nav_dry_run):
+            sc_status, sc_detail = 'REJECTED', 'DRY_RUN_MISMATCH: a dry-run command reached a real-mission Agent or a real command reached a dry-run Agent'
         if cmd.get('type') == 'navigate_to_pose':
             # R1.4.3: the approval is fixed at RECEIPT. A motion command that arrives while the contract is invalid is refused for good
             # (terminal REJECTED, journaled, never replayed), and an accepted one carries the generation it was admitted under. The run
@@ -332,7 +336,7 @@ class AgentCore:
     def _hello(self):
         with self.contract_fence, self.lock:
             self.connected = False
-            self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None
+            self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None; self.speed_limit_request = None
             self.server_safety_contract_version = None
             self.server_protocol_version = None; self.server_protocol_boot = None
             self._contract_note_locked()
@@ -405,7 +409,7 @@ class AgentCore:
                 if resp.get('server_boot_id') != self.server_boot or resp.get('needs_reconcile'):
                     with self.contract_fence, self.lock:
                         self.connected = False
-                        self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None
+                        self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None; self.speed_limit_request = None
                         self.server_safety_contract_version = None
                         self.server_protocol_version = None; self.server_protocol_boot = None
                         self._contract_note_locked()
@@ -423,6 +427,7 @@ class AgentCore:
                     self.operating_mode = resp.get('operating_mode') if isinstance(resp.get('operating_mode'), dict) else None
                     self.navigation_request = resp.get('navigation_request') if isinstance(resp.get('navigation_request'), dict) else None
                     self.gate_reset_request = resp.get('gate_reset_request') if isinstance(resp.get('gate_reset_request'), dict) else None
+                    self.speed_limit_request = resp.get('speed_limit_request') if isinstance(resp.get('speed_limit_request'), dict) else None
                     # R1.4.2: the server sends safety_contract_version in EVERY state reply, so it is taken from every reply; a missing key
                     # becomes None (invalid) and never keeps the previous good value. The movement check and the active-goal monitor then fail
                     # closed on their next evaluation (the monitor timers run every 0.1 s; cancel/STOP/read paths do not use the contract).
@@ -440,7 +445,7 @@ class AgentCore:
                 self.stats['failures'] += 1
                 with self.contract_fence, self.lock:      # R1.4.5: same serialization and generation rule as every other withdrawal
                     self.connected = False
-                    self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None
+                    self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None; self.speed_limit_request = None
                     self._contract_note_locked()
                     self.last_state_ok_mono = None
                 self.retry_delay = min(backoff, 10); backoff = min(backoff * 2, 10)
@@ -449,7 +454,7 @@ class AgentCore:
                 self.stats['failures'] += 1
                 with self.contract_fence, self.lock:      # R1.4.5: same serialization and generation rule as every other withdrawal
                     self.connected = False
-                    self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None
+                    self.lease = None; self.operating_mode = None; self.navigation_request = None; self.gate_reset_request = None; self.speed_limit_request = None
                     self._contract_note_locked()
                     self.last_state_ok_mono = None
                 self.retry_delay = min(backoff, 10); backoff = min(backoff * 2, 10)

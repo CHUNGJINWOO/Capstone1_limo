@@ -40,7 +40,7 @@ python3 -m fleet_server serve --data-dir "$run_dir/fleet" --bind 127.0.0.1 --por
 pids+=("$!")
 python3 "$fleet_dir/tests/isolated_sensor_fixture.py" > "$run_dir/sensors.log" 2>&1 &
 pids+=("$!")
-setsid ros2 launch limo_fleet_bringup isolated_locked.launch.py     token_file:="$run_dir/secrets/agent-locked_bench.token" state_dir:="$run_dir/agent"     server_url:="http://127.0.0.1:$port" mapping:=true bag:=true manual:=true velocity:=true camera:=true     > "$run_dir/bringup.log" 2>&1 &
+setsid ros2 launch limo_fleet_bringup isolated_locked.launch.py     token_file:="$run_dir/secrets/agent-locked_bench.token" state_dir:="$run_dir/agent"     server_url:="http://127.0.0.1:$port" mapping:=true bag:=${FLEET_BAG:-true} ${FLEET_FLAGS:-manual:=true velocity:=true} camera:=true     > "$run_dir/bringup.log" 2>&1 &
 bringup_pid=$!
 pids+=("$bringup_pid")
 # Second card uses a separate DDS domain so it cannot observe or command the test stack.

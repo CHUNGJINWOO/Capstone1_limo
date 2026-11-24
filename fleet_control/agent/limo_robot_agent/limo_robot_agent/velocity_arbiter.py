@@ -17,6 +17,7 @@ from geometry_msgs.msg import Twist
 from rclpy.clock import Clock, ClockType
 
 from . import topics
+from .speed_limits import SpeedLimiter
 
 NAV_INPUT = topics.NAV_SMOOTHED
 NAV_INPUT_MAX_AGE_S = .25
@@ -67,10 +68,13 @@ def select_nav(*, allowed, sample, now):
 class VelocityArbiter:
     OUTPUT = topics.NAV_CMD_VEL
 
-    def __init__(self, robot, agent, bench):
+    def __init__(self, robot, agent, bench, limiter=None):
         if robot.mode != 'mock' or robot.simulated is not True:
             raise ValueError('locked arbiter is restricted to simulated mock agents')
         self.robot, self.agent, self.bench = robot, agent, bench
+        # Final speed clamp (web-requested lower bound, see speed_limits.py). Applied after the source is selected and before the Watchdog.
+        self.limiter = limiter if limiter is not None else SpeedLimiter()
+        self.limiter.enforced_by = 'ARBITER'
         self.output = (0., 0.)
         self.ready = False
         self.reason = 'STARTUP'
@@ -217,6 +221,12 @@ class VelocityArbiter:
         else:
             v, w = 0., 0.
         self.source = source
+        try:
+            self.limiter.process(self.agent.session_snapshot())
+            if source in ('MANUAL', 'NAV2'):
+                v, w = self.limiter.clamp('manual' if source == 'MANUAL' else 'auto', v, w)
+        except Exception:
+            v, w = 0., 0.                      # a failing limiter never lets an unclamped command through
         msg = Twist(); msg.linear.x = v; msg.angular.z = w
         self.output = v, w
         self.pub.publish(msg)
@@ -242,7 +252,7 @@ class VelocityArbiter:
                 'source': active, 'selected_source': self.source, 'deadman': manual.get('deadman') is True,
                 'nav_input_age_s': nav_age, 'generation': self.gen_n,
                 'nav_producer_age_s': None if self.nav_raw_t is None else round(time.monotonic() - self.nav_raw_t, 3), 'selected_linear': self.output[0], 'selected_turn': self.output[1],
-                'motor_output': False}
+                'speed_limits': self.limiter.snapshot(), 'motor_output': False}
 
     def close(self):
         self.timer.cancel()

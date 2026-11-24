@@ -1,0 +1,11 @@
+--- a/fleet_control/server/fleet_server/static/speed_control_panel.js
++++ b/fleet_control/server/fleet_server/static/speed_control_panel.js
+@@ -19,7 +19,7 @@
+   const MIN_ANGULAR_RPS = 0.02;
+   const STATE_MAX_AGE_S = 2.0;
+   const DEFAULT_POLL_INTERVAL_MS = 1000;
+-  const DEFAULT_POLL_TIMEOUT_MS = 20000;
++  const DEFAULT_POLL_TIMEOUT_MS = 25000;   // integration copy: server EXPIRED after 20 s, Agent->Watchdog confirmation 10 s
+
+   const ERROR_MESSAGES = Object.freeze({
+     not_lease_owner: 'Lease를 먼저 획득하세요 (현재 Lease 소유자가 아님).',

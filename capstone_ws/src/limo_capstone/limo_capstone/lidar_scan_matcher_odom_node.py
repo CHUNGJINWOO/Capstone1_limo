@@ -58,10 +58,16 @@ class LidarScanMatcherOdomNode(Node):
             self.declare_parameter('max_icp_iterations', 18)
         if not self.has_parameter('max_correspondence_dist'):
             self.declare_parameter('max_correspondence_dist', 0.30)
+        if not self.has_parameter('keyframe_threshold'):
+            self.declare_parameter('keyframe_threshold', 0.12)
+        if not self.has_parameter('trim_percentile'):
+            self.declare_parameter('trim_percentile', 85.0)
 
         self.laser_x_offset = float(self.get_parameter('laser_x_offset').value)
         self.max_iter = int(self.get_parameter('max_icp_iterations').value)
         self.max_dist = float(self.get_parameter('max_correspondence_dist').value)
+        self.kf_thresh = float(self.get_parameter('keyframe_threshold').value)
+        self.trim_pct = float(self.get_parameter('trim_percentile').value)
 
         self.keyframe_pts = None
         self.T_odom_keyframe = np.eye(3, dtype=np.float64)
@@ -115,10 +121,13 @@ class LidarScanMatcherOdomNode(Node):
                 break
 
             inlier_indices = np.where(inliers)[0]
-            inlier_d2 = min_d2[inlier_indices]
-            cutoff = np.percentile(inlier_d2, 85.0)
-            keep = inlier_indices[inlier_d2 <= cutoff]
-            if len(keep) < 10:
+            if self.trim_pct < 99.9:
+                inlier_d2 = min_d2[inlier_indices]
+                cutoff = np.percentile(inlier_d2, self.trim_pct)
+                keep = inlier_indices[inlier_d2 <= cutoff]
+                if len(keep) < 10:
+                    keep = inlier_indices
+            else:
                 keep = inlier_indices
 
             p = transformed[keep]
@@ -168,7 +177,7 @@ class LidarScanMatcherOdomNode(Node):
         self.T_odom_curr = self.T_odom_keyframe @ self.T_keyframe_curr
 
         dx_kf, dy_kf, dyaw_kf = mat_to_se2(self.T_keyframe_curr)
-        if math.hypot(dx_kf, dy_kf) >= 0.12 or abs(dyaw_kf) >= 0.12:
+        if math.hypot(dx_kf, dy_kf) >= self.kf_thresh or abs(dyaw_kf) >= self.kf_thresh:
             self.keyframe_pts = pts
             self.T_odom_keyframe = self.T_odom_curr.copy()
             self.T_keyframe_curr = np.eye(3, dtype=np.float64)

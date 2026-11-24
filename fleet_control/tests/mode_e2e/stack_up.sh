@@ -5,14 +5,19 @@
 #   | Motion Watchdog | Agent (mock, locked arbiter + web bench + web mapping worker + missions, map/loc FIXTURE wrapper)
 # Individual processes can be restarted with: stack_proc.sh RUN_DIR start|kill NAME
 set -e
+[ "${REAL_SHAPE:-0}" = 1 ] && exec "$(dirname "$0")/stack_up_real_shape.sh" "$@"     # G2 2026-11-26: the real-Agent-shape variant (no Arbiter)
 RUN=$1; PORT=$2; DOM=$3; HERE=$(cd "$(dirname "$0")" && pwd); FC=$(cd "$HERE/../.." && pwd); REPO=$(cd "$FC/.." && pwd)
 test -n "$OVERLAY" -a -f "$OVERLAY/setup.bash" || { echo "set OVERLAY to the explore_lite overlay install dir" >&2; exit 2; }
 case " 8080 18190 18191 18192 " in *" $PORT "*) echo "protected port" >&2; exit 2;; esac
 mkdir "$RUN"; : > $RUN/pgids
+CAP_SETUP="$REPO/capstone_ws/install/setup.bash"
+[ ! -f "$CAP_SETUP" ] && [ -f "/home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/install/limo_msgs/share/limo_msgs/local_setup.bash" ] && CAP_SETUP="/home/cjinw/school/2026-2/Capstone1_limo/capstone_ws/install/limo_msgs/share/limo_msgs/local_setup.bash"
+DEFAULT_GATE="$REPO/experiments/safety_chain_fix_20261113/candidate_gate_r12/nodes/stall_detector_node.py"
+[ -f "/home/cjinw/school/2026-2/Capstone1_limo/local_data/raw_results/gate_r13_integ_claude_20261122/candidate_r13/stall_detector_node.py" ] && DEFAULT_GATE="/home/cjinw/school/2026-2/Capstone1_limo/local_data/raw_results/gate_r13_integ_claude_20261122/candidate_r13/stall_detector_node.py"
 cat > $RUN/env.sh <<EOF
-source /opt/ros/humble/setup.bash; source $REPO/capstone_ws/install/setup.bash; source $OVERLAY/setup.bash
-export ROS_LOCALHOST_ONLY=1 ROS_DOMAIN_ID=$DOM ROS2CLI_NO_DAEMON=1 ROS_LOG_DIR=$RUN/roslog ARBITER=1 WATCHDOG=1 LIFECYCLE_DELAY_S=5 GATE_SCRIPT=${GATE_SCRIPT:-$REPO/experiments/safety_chain_fix_20261113/candidate_gate_r10/nodes/stall_detector_node.py}
-export GATE_RESET_PEER=${GATE_RESET_PEER:-} GATE_INPUT_EXCL=${GATE_INPUT_EXCL:-} GATE_INPUT_MAX_VX=${GATE_INPUT_MAX_VX:-} GATE_INPUT_MAX_WZ=${GATE_INPUT_MAX_WZ:-}
+source /opt/ros/humble/setup.bash; [ -f "$CAP_SETUP" ] && source "$CAP_SETUP"; source $OVERLAY/setup.bash
+export ROS_LOCALHOST_ONLY=1 ROS_DOMAIN_ID=$DOM ROS2CLI_NO_DAEMON=1 ROS_LOG_DIR=$RUN/roslog ARBITER=1 WATCHDOG=1 LIFECYCLE_DELAY_S=5 GATE_SCRIPT=${GATE_SCRIPT:-$DEFAULT_GATE}
+export GATE_RESET_PEER=${GATE_RESET_PEER:-} GATE_INPUT_EXCL=${GATE_INPUT_EXCL:-fleet_motion_watchdog} GATE_INPUT_MAX_VX=${GATE_INPUT_MAX_VX:-0.20} GATE_INPUT_MAX_WZ=${GATE_INPUT_MAX_WZ:-0.60} GATE_WRITER_STATUS=${GATE_WRITER_STATUS:-/fleet/motion_watchdog/status}
 unset ROS_DISCOVERY_SERVER
 export PYTHONPATH=$FC/agent/limo_robot_agent:$FC/server:\$PYTHONPATH
 EOF
@@ -25,7 +30,10 @@ if [ $GZ = 1 ]; then
 fi
 source $RUN/env.sh
 (cd $FC/server && python3 -m fleet_server init --data-dir $RUN/fleet --secrets-dir $RUN/secrets --robots iso_bench > $RUN/init.log)
-python3 $FC/scripts/register_c103_map.py --data-dir $RUN/fleet > $RUN/register.log 2>&1 || echo "C103 artifacts unavailable; registry left empty" >> $RUN/register.log
+python3 $FC/scripts/register_c103_map.py --data-dir $RUN/fleet > $RUN/register.log 2>&1 || {
+  echo "C103 artifacts unavailable; seeding synthetic facility/floor/area only" >> $RUN/register.log
+  python3 -c "import sys; sys.path.insert(0, '$FC/server'); from fleet_server.map_registry import MapRegistry; r=MapRegistry('$RUN/fleet/map_registry.db', '$RUN/fleet/map_store'); r.create_facility('paichai_univ', 'Test University'); r.create_building('paichai_c', 'paichai_univ', 'Hall C'); r.create_floor('paichai_c_1f', 'paichai_c', '1F'); r.create_area('paichai_c_1f_c103_lounge', 'paichai_c_1f', 'Test lounge')" >> $RUN/register.log 2>&1 || true
+}
 # NAV_LOCALIZATION=1 (Phase 3): unmodified agent_node with the saved-map Localization Worker (no map/loc fixture).
 if [ "${NAV_LOCALIZATION:-0}" = "1" ]; then AGENT_ENTRY="-m limo_robot_agent.agent_node"; NAV_ARGS="-p navigation_localization:=true";
 else AGENT_ENTRY="$HERE/agent_nav_fixture.py"; NAV_ARGS=""; fi

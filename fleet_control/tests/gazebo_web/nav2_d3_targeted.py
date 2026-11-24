@@ -19,8 +19,12 @@ import argparse, json, math, os, re, signal, subprocess, sys, threading, time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent; FC = HERE.parents[1]; REPO = FC.parent
-WORLD_SRC = REPO / 'experiments/office_limo_sim_20261113/office_limo.world'
-GATE_R13 = REPO / 'local_data/raw_results/gate_r13_integ_claude_20261122/candidate_r13/stall_detector_node.py'
+MAIN_REPO = REPO.parent / 'Capstone1_limo'
+def _repo_asset(rel):
+    p = REPO / rel
+    return p if p.exists() else (MAIN_REPO / rel)
+WORLD_SRC = _repo_asset('experiments/office_limo_sim_20261113/office_limo.world')
+GATE_R13 = _repo_asset('local_data/raw_results/gate_r13_integ_claude_20261122/candidate_r13/stall_detector_node.py')
 SPAWN = (10.09, -6.98)                      # Office patrol_A1; every pose below is in this SPAWN frame (yaw 0), converted to world
 FOOT_X, FOOT_Y = 0.145, 0.115               # limo_eval_diff body + wheels half extents (model.sdf)
 LASER_X = 0.103
@@ -68,7 +72,7 @@ def main():
     assert 200 <= int(a.domain) <= 209, 'domains 200-209 are reserved for this harness (side-session note)'
     out = Path(a.out); out.mkdir()                     # never an existing directory
     world = out / 'office_limo_d3.world'; world_with_corridor(world)
-    fixture = REPO / 'local_data/raw_results/nav2_d3_claude_20261122/overlays/d3_targeted_truth_localization.yaml'
+    fixture = _repo_asset('local_data/raw_results/nav2_d3_claude_20261122/overlays/d3_targeted_truth_localization.yaml')
     import yaml
     merged = yaml.safe_load(fixture.read_text())
     if a.overlay:

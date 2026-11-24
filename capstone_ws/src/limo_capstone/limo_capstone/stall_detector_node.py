@@ -25,7 +25,10 @@ Key Pre-Deployment Safety Rules:
 """
 import json
 import math
+import os
+import threading
 import time
+import uuid
 import struct
 from collections import deque
 import numpy as np
@@ -72,6 +75,11 @@ class StallDetectorNode(Node):
         self.declare_parameter('input_max_abs_linear_x', 0.0)           # 0 = no bound
         self.declare_parameter('input_max_abs_angular_z', 0.0)
         self.declare_parameter('input_invalid_hold_sec', 0.5)
+        # 2026-11-27 (G2, selective port from the r13 candidate; isolated-ROS verification only): generation evidence and gated operator reset. Defaults keep the previous behaviour.
+        self.declare_parameter('epoch_state_file', '')                  # persistent monotonic fault_epoch (publish-after-persist); '' = in-memory epoch
+        self.declare_parameter('reset_gating', False)                   # True: the operator reset is refused unless reset_readiness() is ready (status field reset_readiness)
+        self.declare_parameter('reset_live_sec', 1.0)                   # the single identified writer must have delivered a message (a zero counts) within this window
+        self.declare_parameter('reset_quiet_sec', 1.0)                  # no received motion within this window
         self.declare_parameter('exclusive_cmd_vel_topic', '')           # e.g. '/cmd_vel' (robot) or '/cmd_vel_locked' (isolated): any other publisher there is a fault
         self.declare_parameter('cmd_vel_threshold', 0.075)
         self.declare_parameter('wheel_vel_threshold', 0.060)
@@ -187,6 +195,31 @@ class StallDetectorNode(Node):
         self.recovery_event_count = 0
         self.operator_unlatch_count = 0
         self.cmd_blocked = False
+        # ---- generation evidence (selective r13 port). NOT authentication: any process can publish this JSON; the Agent additionally requires one stable publisher endpoint.
+        self.boot_id = uuid.uuid4().hex                                  # a new Gate boot is a new generation: every earlier evidence of another boot is invalid
+        self.fault_epoch, self._prev_fault_state = 0, False
+        self.epoch_file = str(self.get_parameter('epoch_state_file').value).strip(); self.epoch_file_error = None; self.epoch_state = 'DISABLED'
+        if self.epoch_file:
+            prev = None
+            if not os.path.exists(self.epoch_file): prev = 0; self.epoch_state = 'CREATED'
+            else:
+                try:
+                    d = json.load(open(self.epoch_file))
+                    if not isinstance(d, dict) or type(d.get('epoch')) is not int or d['epoch'] < 0 or not isinstance(d.get('boot_id'), str): self.epoch_file_error = 'CORRUPT:fields'
+                    else: prev = d['epoch']; self.epoch_state = 'LOADED'
+                except (PermissionError, IsADirectoryError) as exc: self.epoch_file_error = f'READ_FAILED:{type(exc).__name__}'
+                except Exception as exc: self.epoch_file_error = f'CORRUPT:{type(exc).__name__}'
+            if prev is not None:
+                self.fault_epoch = prev + 1; self._persist_epoch(self.fault_epoch)      # a Gate boot is an episode boundary (+1), persisted synchronously before anything is published
+            if self.epoch_file_error: self.epoch_state = self.epoch_file_error.split(':')[0]
+        self._epoch_cv = threading.Condition(); self._epoch_want = None
+        self.epoch_persisted = self.fault_epoch if (self.epoch_file and not self.epoch_file_error) else None
+        self.epoch_published = self.epoch_persisted
+        if self.epoch_file:
+            self._epoch_writer = threading.Thread(target=self._epoch_writer_loop, name='epoch_writer', daemon=True); self._epoch_writer.start()
+        self.reset_gating = bool(self.get_parameter('reset_gating').value)
+        self.reset_live, self.reset_quiet = float(self.get_parameter('reset_live_sec').value), float(self.get_parameter('reset_quiet_sec').value)
+        self.raw_rx_t = self.raw_motion_t = None; self.last_reset = None; self.reset_refusals = 0
 
         # Subscriptions
         self.sub_cmd_raw = self.create_subscription(Twist, '/cmd_vel_raw', self.cb_cmd_raw, 10)
@@ -312,6 +345,10 @@ class StallDetectorNode(Node):
                 'last_drop': self.in_last_drop, 'rejected_motion_age_s': None if self.in_drop_motion_t is None else round(time.monotonic() - self.in_drop_motion_t, 2), 'limits': {'linear_x': self.in_max_vx, 'angular_z': self.in_max_wz}}
 
     def cb_cmd_raw(self, msg: Twist):
+        self.raw_rx_t = time.monotonic()                  # input liveness for the reset decision (any message, accepted or not)
+        if (not all(math.isfinite(v) for v in (msg.linear.x, msg.linear.y, msg.linear.z, msg.angular.x, msg.angular.y, msg.angular.z))
+                or abs(msg.linear.x) > 0.02 or abs(msg.angular.z) > 0.05):
+            self.raw_motion_t = time.monotonic()
         if self.in_allowed:
             vals = (msg.linear.x, msg.linear.y, msg.linear.z, msg.angular.x, msg.angular.y, msg.angular.z)
             if not all(math.isfinite(v) for v in vals) or abs(msg.linear.x) > 0.02 or abs(msg.angular.z) > 0.05:
@@ -390,7 +427,76 @@ class StallDetectorNode(Node):
         self.last_depth_sim_t = self.get_clock().now().nanoseconds * 1e-9
         self.depth_msg_count += 1
 
+    # ---- generation evidence helpers (ported from r13)
+    def _write_epoch(self):
+        if not self.epoch_file or self.epoch_state in ('CORRUPT', 'READ_FAILED', 'MISSING'): return   # never overwrite a file this boot could not load
+        with self._epoch_cv: self._epoch_want = self.fault_epoch; self._epoch_cv.notify()
+
+    def _epoch_writer_loop(self):
+        while True:
+            with self._epoch_cv:
+                while self._epoch_want is None: self._epoch_cv.wait()
+                e, self._epoch_want = self._epoch_want, None
+            self._persist_epoch(e)
+
+    def _persist_epoch(self, epoch):
+        try:
+            tmp = self.epoch_file + '.tmp'
+            with open(tmp, 'w') as fh:
+                json.dump({'epoch': epoch, 'boot_id': self.boot_id, 'written': time.time()}, fh); fh.flush(); os.fsync(fh.fileno())
+            os.replace(tmp, self.epoch_file)
+            self.epoch_persisted = epoch
+            if getattr(self, 'epoch_published', None) is None or epoch > self.epoch_published: self.epoch_published = epoch      # only after fsync + replace
+        except Exception as exc:
+            self.epoch_file_error = f'WRITE_FAILED:{type(exc).__name__}'
+
+    def published_epoch(self):
+        """The epoch other components may see: with an epoch file only a persisted value (None when load/write failed -> the Agent treats the epoch as invalid, fail-closed)."""
+        return self.epoch_published if self.epoch_file else self.fault_epoch
+
+    def flush_epoch(self, timeout=2.0):
+        t_end = time.monotonic() + timeout
+        while time.monotonic() < t_end:
+            if self.epoch_file_error or not self.epoch_file or self.epoch_persisted == self.fault_epoch: return bool(not self.epoch_file or self.epoch_persisted == self.fault_epoch)
+            time.sleep(0.005)
+        return False
+
+    def reset_readiness(self):
+        """The Gate's own decision whether an operator reset may clear the latch now (selective r12/r13 port). Conditions: a fault or sticky input fault to clear, the Gate past INITIALIZING,
+        exactly one identified allowed writer on /cmd_vel_raw, that writer delivered a message (an explicit zero counts) within reset_live_sec, no received motion within reset_quiet_sec."""
+        if not self.reset_gating: return {'enforced': False, 'ready': None, 'blockers': []}
+        b, now = [], time.monotonic()
+        latched = self.state in (STATE_FAILSAFE_SENSOR_TIMEOUT, STATE_FAILSAFE_ICP_DEGRADED, STATE_STALL_LATCHED) or bool(self.in_sticky)
+        if self.state == STATE_INITIALIZING: b.append('GATE_INITIALIZING')
+        elif not latched: b.append('NOTHING_TO_RESET')
+        if self.in_allowed:
+            try:
+                pubs = self.get_publishers_info_by_topic('/cmd_vel_raw'); gids = []
+                for x in pubs:
+                    try: g = bytes(x.endpoint_gid).hex()
+                    except Exception: g = None
+                    gids.append(g if g and any(bytes.fromhex(g)) else None)
+                if len(pubs) == 0: b.append('INPUT_NO_WRITER')
+                elif len(pubs) > 1: b.append(f'INPUT_WRITERS:{len(pubs)}')
+                elif gids[0] is None: b.append('INPUT_GID_UNKNOWN')
+                elif not (pubs[0].node_name in self.in_allowed or f'{pubs[0].node_namespace.rstrip("/")}/{pubs[0].node_name}' in self.in_allowed): b.append('INPUT_WRITER_NOT_ALLOWED')
+            except Exception as exc:
+                b.append(f'INPUT_LOOKUP_ERROR:{type(exc).__name__}')
+            if self.raw_rx_t is None or now - self.raw_rx_t > self.reset_live: b.append('INPUT_SILENT')
+        q = self.reset_quiet
+        if self.raw_motion_t is not None and now - self.raw_motion_t < q: b.append('MOTION_COMMANDED')
+        if self.in_drop_motion_t is not None and now - self.in_drop_motion_t < q: b.append('REJECTED_MOTION_RECENT')
+        return {'enforced': True, 'ready': not b, 'blockers': b}
+
     def cb_reset_latch(self, req: Trigger.Request, resp: Trigger.Response):
+        rr = self.reset_readiness()
+        if rr['enforced'] and not rr['ready']:
+            self.reset_refusals += 1
+            resp.success = False
+            resp.message = 'REFUSED: ' + ','.join(rr['blockers'])
+            self.last_reset = {'result': 'REFUSED', 'blockers': rr['blockers']}
+            self.get_logger().warn(f'[OPERATOR RESET REFUSED] {resp.message}')
+            return resp
         if self.state == STATE_INITIALIZING:
             resp.success = False
             resp.message = "Still INITIALIZING (sensors not yet healthy); reset refused."
@@ -405,6 +511,8 @@ class StallDetectorNode(Node):
         self.zero_cmd_start_sim_t = None
         self.operator_unlatch_count += 1
         self.input_on_reset()
+        self.latest_cmd = Twist()          # a command received before the reset is never used after it (no automatic resume of earlier motion)
+        self.last_reset = {'result': 'ACCEPTED', 'from_state': prev_state_name}
         resp.success = True
         resp.message = f"Latch cleared by operator ({prev_state_name} -> INITIALIZING; re-arms when sensors are healthy)."
         self.get_logger().info(f"[OPERATOR RESET] {resp.message}")
@@ -623,6 +731,13 @@ class StallDetectorNode(Node):
                     elif cmd_vx > 0.04 and backed_dist < 0.03:
                         self.state = STATE_STALL_LATCHED
 
+        # 2026-11-27: a fault episode (entering a fault state from a non-fault state) is a new fault_epoch; the epoch is published only after it is persisted
+        fault_now = self.state in (STATE_FAILSAFE_SENSOR_TIMEOUT, STATE_FAILSAFE_ICP_DEGRADED, STATE_STALL_LATCHED)
+        if fault_now and not self._prev_fault_state:
+            self.fault_epoch += 1; self._write_epoch()
+            self.get_logger().error(f'[SAFETY FAULT #{self.fault_epoch}] state={STATE_NAMES.get(self.state)}')
+        self._prev_fault_state = fault_now
+
         # 3. Compute gated /cmd_vel output
         out = Twist()
         self.cmd_blocked = False
@@ -672,6 +787,11 @@ class StallDetectorNode(Node):
                 'state': STATE_NAMES.get(self.state, 'UNKNOWN'),
                 'state_code': self.state,
                 'cmd_blocked': bool(self.cmd_blocked),
+                'boot_id': self.boot_id, 'fault_epoch': self.published_epoch(),
+                'fault_epoch_pending': (self.fault_epoch - self.published_epoch()) if self.published_epoch() is not None else None,
+                'fault_latched': bool(self.state in (STATE_FAILSAFE_SENSOR_TIMEOUT, STATE_FAILSAFE_ICP_DEGRADED, STATE_STALL_LATCHED)),
+                'epoch_state': self.epoch_state, 'evidence_kind': 'GATE_SELF_REPORT_UNAUTHENTICATED',
+                'reset_readiness': self.reset_readiness(), 'last_reset': self.last_reset, 'reset_refusals': self.reset_refusals,
                 'enable_auto_reverse': bool(self.enable_auto_reverse),
                 'require_operator_unlatch': bool(self.require_operator_unlatch),
                 'cmd_vx_in': round(float(cmd_vx), 3),

@@ -58,6 +58,8 @@ def main(args=None):
     tmp.declare_parameter('manual_mapping_enabled', False)
     tmp.declare_parameter('manual_web_bench', False)
     tmp.declare_parameter('manual_locked_arbiter', False)
+    tmp.declare_parameter('real_nav_dry_run', False)
+    tmp.declare_parameter('watchdog_mode_selector', False)   # real-Agent mode selector (no Arbiter): evidence from the Watchdog's mode gate
     tmp.declare_parameter('navigation_localization', False)   # saved-map map_server + AMCL worker (isolated mock/sim only)
     tmp.declare_parameter('auto_mapping_enabled', False)
     tmp.declare_parameter('sim_r8_supervisor', False)
@@ -91,10 +93,19 @@ def main(args=None):
     manual_enabled = bool(g('manual_mapping_enabled'))
     web_bench_enabled = bool(g('manual_web_bench'))
     locked_arbiter = bool(g('manual_locked_arbiter'))
+    mode_selector_enabled = bool(g('watchdog_mode_selector'))
     nav_loc_enabled = bool(g('navigation_localization'))
-    if nav_loc_enabled and (mode not in ('sim', 'mock') or not sim or os.environ.get('ROS_LOCALHOST_ONLY') != '1'
+    # 2026-11-26 real_nav_dry_run: DRY-RUN Fleet missions on a real-shaped Agent. It is NOT allow_missions and never means real motor commands are permitted: the Agent
+    # executes only commands marked dry_run (the server's separate /dry-run-missions endpoint), every one still passes the Safety Context and the existing
+    # motor_path_ok interlock (the output must end at a locked path: no subscriber on /cmd_vel or the driver topic). It requires the Watchdog selector shape and
+    # excludes allow_missions, the Arbiter, the web bench and every manual/auto mapping control. The motor-path evidence is a SOFTWARE graph observation, not a physical lock.
+    dry_run = bool(g('real_nav_dry_run'))
+    if nav_loc_enabled and ((mode not in ('sim', 'mock') or not sim) and not dry_run or os.environ.get('ROS_LOCALHOST_ONLY') != '1'
                             or os.environ.get('ROS_DOMAIN_ID') in (None, '', '0', '77')):
         sys.exit('navigation_localization requires SIM/mock simulated mode on an isolated localhost ROS domain')
+    if dry_run:
+        if allow or locked_arbiter or web_bench_enabled or manual_enabled or not (mode_selector_enabled and bool(g('require_motion_watchdog'))):
+            sys.exit('real_nav_dry_run requires watchdog_mode_selector + require_motion_watchdog and excludes allow_missions, the Arbiter, the web bench and manual mapping')
     auto_enabled = bool(g('auto_mapping_enabled'))
     if auto_enabled and (manual_enabled or not slam_sim_enabled or mode != 'sim' or not sim or allow or os.environ.get('ROS_LOCALHOST_ONLY') != '1' or os.environ.get('CAPSTONE_GAZEBO_SIM') != '1' or os.environ.get('ROS_DOMAIN_ID') in (None, '', '0')):
         sys.exit('auto_mapping_enabled requires isolated SIM_ONLY SLAM, disabled missions and no manual input')
@@ -106,6 +117,8 @@ def main(args=None):
         sys.exit('manual_mapping_enabled currently requires isolated SIM_ONLY SLAM control')
     real_locked_requested = bool(g('real_locked_requested'))
     g_require_watchdog = bool(g('require_motion_watchdog'))
+    if mode_selector_enabled and (locked_arbiter or not g_require_watchdog):
+        sys.exit('watchdog_mode_selector excludes the Arbiter and requires the independent Motion Watchdog (require_motion_watchdog)')
     g_gate_reset = bool(g('web_gate_reset'))
     if g_gate_reset and (mode not in ('sim', 'mock') or not sim or os.environ.get('ROS_LOCALHOST_ONLY') != '1'
                          or os.environ.get('ROS_DOMAIN_ID') in (None, '', '0', '77')):
@@ -154,7 +167,7 @@ def main(args=None):
     token = open(token_file).read().strip()
     boot_id = uuid.uuid4().hex[:12]
     robot = RosRobot(
-        allow_missions=allow,
+        allow_missions=allow or dry_run,        # dry_run: the mission pipeline runs, but only for dry_run-marked commands (core.py) and only over a LOCKED motor path (safety_protocol)
         mode=mode,
         simulated=sim,
         allow_sim_safety_gate=bool(g_sim_gate),
@@ -194,16 +207,16 @@ def main(args=None):
     ex = MultiThreadedExecutor(num_threads=4); ex.add_node(robot)
     spin_thread = threading.Thread(target=ex.spin, daemon=True)
     spin_thread.start()
-    info = {'agent_version': '0.1.0', 'boot_id': boot_id, 'host': socket.gethostname(), 'mode': mode, 'simulated': sim, 'missions_enabled': allow, 'recording_enabled': recording_enabled,
+    info = {'agent_version': '0.1.0', 'boot_id': boot_id, 'host': socket.gethostname(), 'mode': mode, 'simulated': sim, 'missions_enabled': allow, 'real_nav_dry_run': dry_run, 'recording_enabled': recording_enabled,
             'interlocks': ['missions_enabled', 'safety_context_v1', 'safety_gate_contract', 'server_lease', 'nav2_action_server_ready', 'no_publisher_on_/cmd_vel'], 'ros_domain_id': os.environ.get('ROS_DOMAIN_ID')}
     bagw = None
     agent = core.AgentCore(
         rid,
         server_url,
         token,
-        lambda: dict(robot.snapshot(), bag_worker=bagw.snapshot() if bagw else None, map_save=savew.snapshot() if savew else None, mapping_worker=mapping.snapshot() if mapping else {'enabled': False, 'status': 'UNAVAILABLE'}, manual_web_bench=bench.snapshot() if bench else None, gate_reset=gresetw.snapshot() if gresetw else {'enabled': False}, localization=locw.snapshot() if locw else {'enabled': False, 'status': 'UNAVAILABLE'}, velocity_arbiter=arbiter.snapshot() if arbiter else None, joystick=manual.snapshot() if manual else {'enabled': False, 'connected': False}, mapping_mode=(('MANUAL_MAPPING' if slam.snapshot().get('status') == 'RUNNING' else slam.snapshot().get('status')) if manual else 'IDLE'), recording=recording.snapshot() if recording else {'enabled': False, 'status': 'UNAVAILABLE'}, slam=slam.snapshot() if slam else {'enabled': False, 'status': 'UNAVAILABLE'}),
+        lambda: dict(robot.snapshot(), bag_worker=bagw.snapshot() if bagw else None, map_save=savew.snapshot() if savew else None, mapping_worker=mapping.snapshot() if mapping else {'enabled': False, 'status': 'UNAVAILABLE'}, manual_web_bench=bench.snapshot() if bench else None, gate_reset=gresetw.snapshot() if gresetw else {'enabled': False}, localization=locw.snapshot() if locw else {'enabled': False, 'status': 'UNAVAILABLE'}, velocity_arbiter=arbiter.snapshot() if arbiter else (selector.snapshot() if selector else None), speed_limits=limiter.snapshot(), joystick=manual.snapshot() if manual else {'enabled': False, 'connected': False}, mapping_mode=(('MANUAL_MAPPING' if slam.snapshot().get('status') == 'RUNNING' else slam.snapshot().get('status')) if manual else 'IDLE'), recording=recording.snapshot() if recording else {'enabled': False, 'status': 'UNAVAILABLE'}, slam=slam.snapshot() if slam else {'enabled': False, 'status': 'UNAVAILABLE'}),
         robot,
-        dict(info, camera_preview=camera_enabled, isolated_ros_bag=bag_enabled, recording_enabled=recording_enabled, gate_reset=g_gate_reset, navigation_localization=nav_loc_enabled, manual_web_bench=web_bench_enabled, locked_velocity_arbiter=locked_arbiter, mapping_worker=web_mapping_enabled, map_save=map_save_enabled),
+        dict(info, camera_preview=camera_enabled, isolated_ros_bag=bag_enabled, recording_enabled=recording_enabled, gate_reset=g_gate_reset, navigation_localization=nav_loc_enabled, manual_web_bench=web_bench_enabled, locked_velocity_arbiter=locked_arbiter, velocity_selector=('WATCHDOG_SELECTOR' if mode_selector_enabled else None), mapping_worker=web_mapping_enabled, map_save=map_save_enabled),
         sdir,
         map_fn=robot.map_for_upload,
         period_s=period,
@@ -213,6 +226,8 @@ def main(args=None):
     robot.execution_allowed = agent.is_execution_allowed
     robot.require_motion_watchdog = bool(g_require_watchdog)
     robot.locked_arbiter = bool(locked_arbiter)
+    agent.real_nav_dry_run = dry_run
+    robot.real_nav_dry_run = dry_run
     if web_mapping_enabled:
         from .mapping_worker import MappingWorker
         mapping = MappingWorker(robot, agent, sdir, slam_params=web_mapping_slam_params or None)
@@ -230,9 +245,19 @@ def main(args=None):
         from .manual_web_bench import ManualWebBench
         bench = ManualWebBench(robot, agent, isolated_arbiter=locked_arbiter)
     arbiter = None
+    from .speed_limits import SpeedLimiter
+    limiter = SpeedLimiter(os.path.join(sdir, 'speed_limits.json'))      # enforced_by stays None unless an Arbiter exists (real mode has none)
     if locked_arbiter:
         from .velocity_arbiter import VelocityArbiter
-        arbiter = VelocityArbiter(robot, agent, bench)
+        arbiter = VelocityArbiter(robot, agent, bench, limiter)
+    speed_link = None
+    selector = None
+    if mode_selector_enabled:
+        from .mode_selector import RealModeSelector
+        selector = RealModeSelector(robot, agent)
+    if arbiter is None:                                # real robot: the Motion Watchdog is the enforcement point (it must report that it can)
+        from .watchdog_speed_link import WatchdogSpeedLink
+        speed_link = WatchdogSpeedLink(robot, agent, limiter)
     if bag_enabled:
         from .bag_worker import BagWorker
         bagw = BagWorker(robot, agent, sdir)

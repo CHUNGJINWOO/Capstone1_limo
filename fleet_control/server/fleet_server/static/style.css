@@ -265,3 +265,15 @@ body{background:var(--shell);color:var(--ink)}.topbar,.tabbar{background:var(--h
 #robotVideo figure { margin: 0; }
 #robotVideo figcaption { margin-block: .4rem; }
 #robotVideo img { width: min(100%, 480px); height: auto; border-radius: .35rem; }
+
+/* Speed Control Panel (Phase 3 — 2026-11-23) */
+.speed-control .speed-telemetry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin: 10px 0; }
+.speed-control .speed-box { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(128, 150, 175, 0.25); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; }
+.speed-control .speed-box small { color: var(--muted, #8b98a5); font-size: 11px; }
+.speed-control .speed-section { border: 1px solid rgba(128, 150, 175, 0.2); border-radius: 8px; padding: 10px; margin-top: 8px; }
+.speed-control .speed-section.speed-active { border-color: rgba(69, 157, 255, 0.7); background: rgba(69, 157, 255, 0.06); }
+.speed-control .speed-result { margin-top: 8px; padding: 6px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.04); }
+.speed-control .speed-contract-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px; margin: 8px 0; padding: 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.025); border: 1px solid rgba(128, 150, 175, 0.18); }
+.speed-control .speed-contract-meta dt { color: var(--muted, #8b98a5); font-size: 11px; }
+.speed-control .speed-contract-meta dd { margin: 2px 0 0; font-family: monospace; font-size: 12px; }
+.speed-control .vel-stale { opacity: 0.55; color: var(--warn, #ffcc00); }

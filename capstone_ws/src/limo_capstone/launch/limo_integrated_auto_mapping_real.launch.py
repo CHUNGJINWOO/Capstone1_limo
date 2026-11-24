@@ -36,6 +36,9 @@ from launch_ros.parameter_descriptions import ParameterValue
 from nav2_common.launch import RewrittenYaml
 
 
+DRIVER_CMD_TOPIC = '/limo_driver/cmd_vel'   # vendor driver input; written only by the Safety Gate when unlocked
+
+
 def generate_launch_description():
     pkg_limo_capstone = get_package_share_directory('limo_capstone')
     pkg_limo_depth = get_package_share_directory('limo_depth_obstacles')
@@ -197,10 +200,17 @@ def generate_launch_description():
 
     # 1. Real Robot Hardware Drivers
     # A. LIMO Base Serial Driver (pub_odom_tf=false to avoid TF clash)
-    limo_base_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(pkg_limo_base, 'launch', 'limo_base.launch.py')),
-        launch_arguments={'pub_odom_tf': 'false'}.items()
-    )
+    # G2 Phase A: the vendor driver subscribes to every writer of its input topic, so it must not listen on /cmd_vel at all.
+    # Its input is remapped to a private topic that only the Safety Gate may write when (and only when) allow_motor_drive is exactly 'true'.
+    # /cmd_vel then has no endpoint in the locked configuration (the Agent's motor-path check and the Arbiter rely on that).
+    limo_base_launch = GroupAction(actions=[
+        SetRemap(src='cmd_vel', dst=DRIVER_CMD_TOPIC),
+        SetRemap(src='/cmd_vel', dst=DRIVER_CMD_TOPIC),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(pkg_limo_base, 'launch', 'limo_base.launch.py')),
+            launch_arguments={'pub_odom_tf': 'false'}.items()
+        ),
+    ])
 
     # B. YDLidar Driver
     ydlidar_launch = IncludeLaunchDescription(
@@ -391,11 +401,11 @@ def generate_launch_description():
     )
 
     # Command routing (fail-closed, no bypass):
-    # Every velocity command from Nav2 goes to /cmd_vel_raw. The stall gate is the only node
+    # G2: every Nav2 velocity command goes to /fleet/nav_cmd_vel (motion watchdog input); the watchdog alone writes /cmd_vel_raw. The stall gate is the only node
     # that publishes the final command: /cmd_vel (motor driver) when allow_motor_drive == 'true',
     # otherwise /cmd_vel_locked. enable_stall_detector is deprecated and has no effect.
-    #   controller_server -> cmd_vel_nav -> velocity_smoother -> cmd_vel_smoothed -> /cmd_vel_raw
-    #   behavior_server (spin/backup/drive_on_heading)       cmd_vel          -> /cmd_vel_raw
+    #   controller_server -> cmd_vel_nav -> velocity_smoother -> cmd_vel_smoothed -> /fleet/nav_cmd_vel
+    #   behavior_server (spin/backup/drive_on_heading)       cmd_vel          -> /fleet/nav_cmd_vel
     # Do NOT add a global SetRemap('cmd_vel'): it is applied before node-level remaps and would
     # make velocity_smoother consume its own output (self-input loop) and publish straight to /cmd_vel.
     ackermann_bt = os.path.join(pkg_limo_capstone, 'config', 'navigate_to_pose_ackermann_no_reverse.xml')
@@ -412,12 +422,17 @@ def generate_launch_description():
     )
 
     nav2_output = PythonExpression([
-        "'/nav2_cmd_vel_quarantined' if '", manual_probe, "' == 'true' else '/cmd_vel_raw'"
+        "'/nav2_cmd_vel_quarantined' if '", manual_probe, "' == 'true' else '/fleet/nav_cmd_vel'"
+    ])
+    # Behaviors (spin / backup) must enter the velocity smoother like the controller output; a second writer on the watchdog input
+    # would be VELOCITY_INPUT_NOT_EXCLUSIVE (the watchdog accepts exactly one publisher from its allow-list).
+    behavior_output = PythonExpression([
+        "'/nav2_cmd_vel_quarantined' if '", manual_probe, "' == 'true' else '/cmd_vel_nav'"
     ])
     nav2_launch = GroupAction(
         actions=[
             SetRemap(src='cmd_vel_smoothed', dst=nav2_output),
-            SetRemap(src='behavior_server:cmd_vel', dst=nav2_output),
+            SetRemap(src='behavior_server:cmd_vel', dst=behavior_output),
             SetRemap(src='odom', dst='/odom_nav2'),
             SetRemap(src='/odom', dst='/odom_nav2'),
             IncludeLaunchDescription(
@@ -445,7 +460,7 @@ def generate_launch_description():
                               'axis_linear.x': ParameterValue(joy_linear_axis, value_type=int),
                               'axis_angular.yaw': ParameterValue(joy_turn_axis, value_type=int),
                               'scale_linear.x': 0.10, 'scale_angular.yaw': 0.30}],
-                 remappings=[('joy', '/manual_mapping/joy'), ('cmd_vel', '/cmd_vel_raw')]),
+                 remappings=[('joy', '/manual_mapping/joy'), ('cmd_vel', '/fleet/manual_cmd_vel')]),
         ],
     )
 
@@ -470,7 +485,7 @@ def generate_launch_description():
     # Single stall gate: /cmd_vel_raw -> (/cmd_vel | /cmd_vel_locked). Exactly one instance always runs.
     # Output topic is fail-closed: only the exact string 'true' reaches the motor driver topic.
     gate_out_topic = PythonExpression([
-        "'/cmd_vel' if '", allow_motor_drive, "' == 'true' else '/cmd_vel_locked'"
+        "'/limo_driver/cmd_vel' if '", allow_motor_drive, "' == 'true' else '/cmd_vel_locked'"
     ])
     stall_gate = Node(
         package='limo_capstone',
@@ -487,9 +502,34 @@ def generate_launch_description():
             'sensor_timeout_sec': sensor_timeout_sec,
             'require_lidar_odom': effective_require_lidar,
             'estimator_odom_topic': '/odom_nav2',
-            'use_sim_time': use_sim_time
+            'use_sim_time': use_sim_time,
+            # G2 Phase A: only the motion watchdog may write /cmd_vel_raw (GID bound to the writer's own status); a second
+            # writer, another node name, a restart or a non-finite/out-of-range command is zero output until the operator resets the Gate.
+            'input_exclusive_publishers': ['fleet_motion_watchdog'],
+            'input_writer_status_topic': '/fleet/motion_watchdog/status',
+            'input_max_abs_linear_x': 0.20, 'input_max_abs_angular_z': 0.60,
+            'exclusive_cmd_vel_topic': gate_out_topic,
         }],
         remappings=[('/cmd_vel', gate_out_topic)]
+    )
+
+    # Independent motion watchdog: the only writer of /cmd_vel_raw. Without it (or without the Agent heartbeat) the Gate input
+    # is silent and the Gate outputs zero; without the Gate nothing writes the driver topic. Both absences fail closed.
+    motion_watchdog = Node(
+        package='limo_robot_agent', executable='motion_watchdog', name='fleet_motion_watchdog',
+        output='screen', condition=IfCondition(LaunchConfiguration('start_motion_watchdog')), parameters=[{
+            'use_sim_time': use_sim_time,
+            # Nav2's velocity_smoother is the only writer in autonomous modes; the onboard joystick teleop exists only with manual_mapping_probe
+            # (Nav2 output is then quarantined), so the allow-list never admits two writers at once.
+            'input_publisher_nodes': ['fleet_robot_agent', 'velocity_smoother', 'manual_mapping_teleop'],
+            # G2: the Watchdog is the speed-limit enforcement point on the real robot (static ceilings 0.10/0.30 manual, 0.15/-0.10/0.50 auto;
+            # approved limits can only be lower). It needs the Agent's /fleet/speed_limit sync, so an Agent that does not publish it keeps the robot at zero.
+            'speed_clamp': True,
+            # G2: the Watchdog forwards only the input channel the operating mode selects (nav for MAPPING/NAVIGATION, manual for MANUAL) and
+            # fails closed on a second publisher or on motion from the other channel. The Agent must run with watchdog_mode_selector:=true.
+            'mode_gate': True,
+            'speed_limit_state_path': '~/.config/limo_fleet/watchdog_speed_limits.json',
+        }]
     )
 
     log_deprecated_stall_arg = LogInfo(
@@ -512,6 +552,8 @@ def generate_launch_description():
         declare_depth_mode,
         declare_sensor_timeout,
         declare_allow_motor,
+        DeclareLaunchArgument('start_motion_watchdog', default_value='true', choices=['true', 'false'],
+                              description='false when a supervisor service runs the Watchdog (never two Watchdogs: the Gate refuses a second writer)'),
         DeclareLaunchArgument('manual_mapping_probe', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('manual_mapping_input', default_value='onboard', choices=['onboard', 'web']),
         DeclareLaunchArgument('manual_joy_device', default_value=''),
@@ -555,5 +597,6 @@ def generate_launch_description():
         nav2_launch,
         manual_joy,
         explore_node,
+        motion_watchdog,
         stall_gate
     ])

@@ -46,8 +46,15 @@ class SafetyMixin:
         age = gate.get('age_s')
         if not finite_number(age) or age < 0 or age + (time.time()-ts) > 2.0:
             return self._sc_fail(robot_id, 'GATE_REPORT_STALE')
+        # 2026-11-26/27 locked_motor_proof: SOFTWARE evidence that the motion path ends at a locked output (real_nav_dry_run Agent with a Watchdog selector, and the Agent's report of the motor
+        # path as LOCKED: nothing subscribes /cmd_vel or the driver topic). It is NOT a proof that the motors are physically disabled and is usable only by a dry-run Agent.
+        locked_motor_proof = (agent.get('real_nav_dry_run') is True and agent.get('velocity_selector') == 'WATCHDOG_SELECTOR'
+                              and isinstance(gate.get('motor_path'), dict) and gate['motor_path'].get('status') == 'LOCKED')
+        # the Gate's own safety_state exists only in the sim-only status contract; a dry-run Agent with a locked motion path may substitute the Gate's plain fields (not latched, not blocking)
+        safety_ok = (gate.get('safety_state') == 'NORMAL'
+                     or (locked_motor_proof and 'safety_state' not in gate and gate.get('fault_latched') is False and gate.get('cmd_blocked') is False))
         pending_continuation = (active_continuation and gate.get('status') == 'STALL_PENDING'
-                                and gate.get('safety_state') == 'NORMAL'
+                                and safety_ok
                                 and gate.get('movement_block_reasons') == ['GATE_NOT_NORMAL:STALL_PENDING'])
         if ((gate.get('status') != 'NORMAL' or gate.get('movement_permitted') is not True)
                 and not pending_continuation): return self._sc_fail(robot_id, 'GATE_NOT_NORMAL_OR_MOVEMENT_NOT_PERMITTED')
@@ -84,7 +91,7 @@ class SafetyMixin:
                              and isinstance(gate.get('motor_path'), dict) and gate['motor_path'].get('status') == 'LOCKED')
         if pending_continuation:
             active = execution.get('active')
-            if not (sim_proof or locked_mock_proof) or not isinstance(active, dict) or active.get('goal_handle_available') is not True: return self._sc_fail(robot_id, 'CONTINUATION_PROOF')
+            if not (sim_proof or locked_mock_proof or locked_motor_proof) or not isinstance(active, dict) or active.get('goal_handle_available') is not True: return self._sc_fail(robot_id, 'CONTINUATION_PROOF')
             cmd = self.db.one('SELECT * FROM commands WHERE robot_id=? AND command_id=? AND mission_id=?',
                               (robot_id, active.get('command_id'), active.get('mission_id')))
             observed = self.db.one('SELECT v FROM meta WHERE k=?', ('observed_goal_uuid:' + str(active.get('command_id')),))

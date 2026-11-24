@@ -29,10 +29,10 @@
       else if (!leaseOwned) why = 'Lease 미보유 — 먼저 제어권 획득';
       else if (t && PENDING.includes(t.state)) why = `전환 진행 중 (${t.from} → ${t.to})`;
       else if (rec && rec.mode === m && !(t && t.state === 'FAILED' && t.to === m) && m !== 'IDLE') why = '현재 모드';
-      else if (m === 'MANUAL' && agent.manual_web_bench !== true) why = 'Agent에 수동 입력 경로 없음';
+      else if (m === 'MANUAL' && agent.manual_web_bench !== true && agent.velocity_selector !== 'WATCHDOG_SELECTOR') why = 'Agent에 수동 입력 경로 없음';   // 2026-11-28: a real-shaped Agent's joystick path is the Watchdog selector (the server re-checks its evidence)
       else if (m === 'MAPPING' && agent.mapping_worker !== true) why = 'Agent에 Mapping Worker 없음';
       else if (m === 'MAPPING' && (agent.mode === 'real' || agent.simulated === false)) why = '실차 맵핑 차단 유지';
-      else if (m === 'NAVIGATION' && agent.missions_enabled !== true) why = 'Agent 임무 비활성';
+      else if (m === 'NAVIGATION' && agent.missions_enabled !== true && agent.real_nav_dry_run !== true) why = 'Agent 임무 비활성';   // 2026-11-28: a dry-run Agent enters NAVIGATION for dry-run missions only (missions_enabled stays false)
       out[m] = { enabled: !why, why };
     }
     return out;

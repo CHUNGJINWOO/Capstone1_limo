@@ -44,6 +44,18 @@ class AtomicSwap(unittest.TestCase):
         self.assertEqual(sw.tree_hashes(self.src), self.new_hashes)
         self.assertEqual(sw.tree_hashes(self.stage), self.old_hashes)            # nothing deleted
 
+    def test_rollback_with_an_r3_backup_hash_list_uses_dot_slash_paths(self):
+        """The R3 backup lists files as './relative/path' (found in the 2026-11-23 rehearsal: the rollback was refused)."""
+        dot = Path(self.t.name, 'backup.files.sha256')
+        dot.write_text('\n'.join(f'{h}  ./{r}' for r, h in sorted(self.old_hashes.items())) + '\n')
+        backup_tree = self.ws / '.backup_pkg'
+        make_tree(backup_tree, {'a.py': 'old\n', 'setup.py': 'S\n'})
+        make_tree(self.src, {'pkg/inner.py': 'x\n'}); make_tree(backup_tree, {'pkg/inner.py': 'x\n'})     # a sub-directory named like the package (limo_robot_agent/limo_robot_agent)
+        self.old_hashes = sw.tree_hashes(self.src)
+        dot.write_text('\n'.join(f'{h}  ./{r}' for r, h in sorted(self.old_hashes.items())) + '\n')
+        state, _ = sw.swap_in(str(self.src), str(backup_tree), str(dot), force_running=True)
+        self.assertEqual(state, 'SWAPPED'); self.assertEqual(sw.tree_hashes(self.src), self.old_hashes)
+
     def test_src_is_never_absent_during_the_swap(self):
         seen_missing = []
         stop = threading.Event()

@@ -30,6 +30,8 @@ MODES = ('IDLE', 'MANUAL', 'MAPPING', 'NAVIGATION')
 TRANSITION_TIMEOUT_S = 30.0
 VERIFY_HOLD_S = 1.0
 STATE_FRESH_S = 1.5
+ACTIVE_MISMATCH_GRACE_S = 3.0      # a fresh Agent report that contradicts an ACTIVE mode this long makes the mode FAULT (no automatic return to it)
+MOTION_MODES = ('MANUAL', 'MAPPING', 'NAVIGATION')
 MISSION_TERMINAL = {'SUCCEEDED', 'FAILED', 'CANCELED', 'REJECTED', 'EXPIRED'}
 MAPPING_BUSY = ('STARTING', 'PAUSING', 'SAVING', 'STOPPING', 'RECONCILING')
 
@@ -103,6 +105,19 @@ class OperatingModeMixin:
         elif (rec.get('transition') or {}).get('state') in ('STOPPING_PREVIOUS', 'VERIFYING_IDLE', 'CONFIRMING') and \
                 (r.get('agent') or {}).get('boot_id') != rec['transition'].get('agent_boot'):
             why = 'agent restarted during the transition (request voided, no automatic completion)'
+        elif rec['mode'] in MOTION_MODES and (rec.get('transition') or {}).get('state') not in ('STOPPING_PREVIOUS', 'VERIFYING_IDLE', 'CONFIRMING'):
+            blocker, hard = self._mode_active_blocker(robot_id, rec)
+            seen = getattr(self, '_mode_mismatch', None)
+            if seen is None:
+                seen = self._mode_mismatch = {}
+            if blocker and hard:
+                first = seen.setdefault(robot_id, (time.monotonic(), rec['revision']))
+                if first[1] != rec['revision']:
+                    first = seen[robot_id] = (time.monotonic(), rec['revision'])
+                if hard == 'LATCHED' or time.monotonic() - first[0] >= ACTIVE_MISMATCH_GRACE_S:
+                    why = f"the Agent's Watchdog no longer confirms {rec['mode']}: {blocker}"
+            else:
+                seen.pop(robot_id, None)
         if why is None:
             return False
         t = rec.get('transition')
@@ -114,6 +129,44 @@ class OperatingModeMixin:
         self.manual_benches.pop(robot_id, None)
         self.navigation_clear(robot_id, why)
         return True
+
+    def _mode_active_blocker(self, robot_id, rec):
+        """(blocker, hard) for an ACTIVE motion mode on a WATCHDOG_SELECTOR Agent, from the newest Agent report. None = the Watchdog confirms exactly this mode now.
+        hard=True: a fresh report contradicts the mode (Watchdog mode/revision/boot/channel/state/exclusivity). hard=False: no usable evidence (offline, stale)."""
+        r = self.robots.get(robot_id) or {}
+        agent = r.get('agent') or {}
+        if self._selector_kind(agent) != 'WATCHDOG_SELECTOR' or rec.get('mode') not in MOTION_MODES:
+            return None, False
+        if not r.get('online') or not r.get('reconciled') or r.get('reconciliation_required'):
+            return 'agent offline or not reconciled', False
+        if not 0 <= time.time() - (r.get('state_ts') or 0) <= STATE_FRESH_S:
+            return 'agent report stale', False
+        state = r.get('state') or {}
+        arb = state.get('velocity_arbiter')
+        if not isinstance(arb, dict) or arb.get('kind') != 'WATCHDOG_SELECTOR':
+            return 'velocity selector report missing', True
+        if arb.get('operating_mode') != rec['mode']:
+            return f"agent selector reports {arb.get('operating_mode')}, the server mode is {rec['mode']}", True
+        why = self._selector_evidence_blocker(state, arb, rec['mode'], rec.get('revision'))
+        if not why and rec.get('watchdog_boot') and (arb.get('evidence') or {}).get('watchdog_boot_id') != rec['watchdog_boot']:
+            why = 'the Watchdog restarted after the mode was confirmed (the old confirmation does not carry over)'
+        trips = (arb.get('evidence') or {}).get('watchdog_trips')
+        if not why and rec.get('watchdog_trips') is not None and (not isinstance(trips, int) or trips > rec['watchdog_trips']):
+            return 'the Watchdog tripped (FAILSAFE) after the mode was confirmed: a trip ends the mode, the mode is not restored when the Watchdog re-authorizes', 'LATCHED'
+        return (why, True) if why else (None, False)
+
+    def mode_motion_status(self, robot_id):
+        """Mode change is not motion permission: whether the Watchdog currently confirms the ACTIVE mode. verified None = not applicable (no mode, IDLE/FAULT, transition
+        in flight, or an Agent without a Watchdog selector); False = new motion commands and mission admissions are refused."""
+        with self.lock:
+            rec = self._mode_load(robot_id)
+            if rec is None or rec.get('mode') not in MOTION_MODES:
+                return {'verified': None, 'blocker': None, 'mode': None if rec is None else rec.get('mode')}
+            if (rec.get('transition') or {}).get('state') in ('STOPPING_PREVIOUS', 'VERIFYING_IDLE', 'CONFIRMING'):
+                return {'verified': None, 'blocker': 'transition in progress', 'mode': rec['mode']}
+            blocker, hard = self._mode_active_blocker(robot_id, rec)
+            applicable = self._selector_kind((self.robots.get(robot_id) or {}).get('agent') or {}) == 'WATCHDOG_SELECTOR'
+            return {'verified': (blocker is None) if applicable else None, 'blocker': blocker, 'hard': hard if blocker else False, 'mode': rec['mode'], 'revision': rec.get('revision')}
 
     def agent_mode_view(self, robot_id):
         """What the Agent's selector needs (None for legacy robots)."""
@@ -133,8 +186,8 @@ class OperatingModeMixin:
         return {'mode': rec['mode'], 'operation_mode': operation, 'revision': revision, 'epoch': rec.get('epoch'),
                 'transition_state': t.get('state'), 'server_boot': rec.get('server_boot')}
 
-    def require_mode(self, robot_id, needed, code):
-        """Admission guard for manual / mapping START-RESUME / mission creation. Legacy robots pass."""
+    def require_mode(self, robot_id, needed, code, motion=True):
+        """Admission guard for manual / mapping START-RESUME / mission creation. Legacy robots pass. motion=False (map LOAD / INITIAL_POSE / UNLOAD: nothing moves) only checks the mode record."""
         from .service import ApiError
         rec = self.mode_view(robot_id)
         if rec is None:
@@ -144,6 +197,10 @@ class OperatingModeMixin:
         t = rec.get('transition') or {}
         if t.get('state') in ('STOPPING_PREVIOUS', 'VERIFYING_IDLE', 'CONFIRMING'):
             raise ApiError(409, code, f"mode transition to {needed} is {t['state']}")
+        if needed in MOTION_MODES and motion:
+            ms = self.mode_motion_status(robot_id)
+            if ms['verified'] is False:
+                raise ApiError(409, 'mode_unverified', f"{needed} is the server mode but the Watchdog does not confirm it now ({ms['blocker']}); no new motion or mission is admitted")
 
     # ------------------------------------------------------------ requests
     def request_mode(self, robot_id, actor, body):
@@ -180,11 +237,11 @@ class OperatingModeMixin:
             if mapping_state in MAPPING_BUSY:
                 raise ApiError(409, 'mapping_busy', f'mapping command in progress ({mapping_state}); retry when it finishes')
             agent = (self.robots[robot_id].get('agent') or {})
-            if target == 'MANUAL' and agent.get('manual_web_bench') is not True:
+            if target == 'MANUAL' and agent.get('manual_web_bench') is not True and not self._selector_manual_path(self.robots[robot_id]):
                 raise ApiError(409, 'mode_unsupported', 'agent has no manual input path')
             if target == 'MAPPING':
                 self._mapping_worker_robot(robot_id)      # keeps mapping_real_blocked for real agents
-            if target == 'NAVIGATION' and agent.get('missions_enabled') is not True:
+            if target == 'NAVIGATION' and agent.get('missions_enabled') is not True and agent.get('real_nav_dry_run') is not True:
                 raise ApiError(409, 'mode_unsupported', 'agent has missions disabled')
             if rec['mode'] == target and target != 'IDLE' and rec.get('epoch') == lease['epoch']:
                 return {'duplicate': False, 'unchanged': True, 'mode': rec}
@@ -253,9 +310,12 @@ class OperatingModeMixin:
             # confirmation; a failure in between keeps waiting and ends in FAULT at the deadline (never ACTIVE).
             blocker = self._mode_idle_blocker(robot_id, t) if fresh else 'waiting for an Agent report after publication'
             if blocker is None:
-                blocker = self._mode_confirm_blocker(r, t['to'])
+                blocker = self._mode_confirm_blocker(r, t['to'], rec.get('revision'))
             t['blocker'] = blocker
             if blocker is None:
+                ev_boot = (((r.get('state') or {}).get('velocity_arbiter') or {}).get('evidence') or {}).get('watchdog_boot_id')
+                rec['watchdog_trips'] = (((r.get('state') or {}).get('velocity_arbiter') or {}).get('evidence') or {}).get('watchdog_trips')
+                rec['watchdog_boot'] = ev_boot if self._selector_kind(r.get('agent') or {}) == 'WATCHDOG_SELECTOR' and t['to'] != 'IDLE' else None
                 t.update(state='ACTIVE', updated_at=now)
                 self.db.event('operating_mode', f"{t['to']} confirmed by the Agent selector", robot_id)
                 return True
@@ -305,19 +365,77 @@ class OperatingModeMixin:
                 self.cancel_mission(m['mission_id'], requested_by=t['actor'] + ' (mode change)')
         return not pending, None
 
-    def _mode_confirm_blocker(self, r, target):
-        """The Agent selector must report the target mode AND be ready in it (capability contract)."""
+    # G2 2026-11-23: what the Watchdog selects per mode (the server's own copy: it does not take the Agent's word for the table)
+    SELECTOR_CHANNEL = {'MANUAL': 'manual', 'MAPPING': 'nav', 'NAVIGATION': 'nav'}
+    SELECTOR_NODES = {'nav': ('velocity_smoother',), 'manual': ('manual_mapping_teleop',)}
+
+    def _selector_manual_path(self, r):
+        """A real Agent has no web bench; its manual input is the on-board joystick on the Watchdog's manual channel. It counts as a manual input path only while the
+        Agent's own selector (a WATCHDOG_SELECTOR) reports, from the graph, exactly the allowed joystick publisher on that channel and an exclusive channel."""
         agent = r.get('agent') or {}
         arb = (r.get('state') or {}).get('velocity_arbiter')
-        if agent.get('locked_velocity_arbiter') is not True:
+        if agent.get('velocity_selector') != 'WATCHDOG_SELECTOR' or not isinstance(arb, dict) or arb.get('kind') != 'WATCHDOG_SELECTOR':
+            return False
+        graph = (arb.get('evidence') or {}).get('agent_graph')
+        return isinstance(graph, dict) and graph.get('manual_publishers') == list(self.SELECTOR_NODES['manual']) and (arb.get('evidence') or {}).get('manual_input_ok') is True
+
+    @staticmethod
+    def _selector_kind(agent):
+        if agent.get('locked_velocity_arbiter') is True:
+            return 'ARBITER'
+        return 'WATCHDOG_SELECTOR' if agent.get('velocity_selector') == 'WATCHDOG_SELECTOR' else None
+
+    def _mode_confirm_blocker(self, r, target, revision=None):
+        """The Agent selector must report the target mode AND be ready in it (capability contract).
+        A real Agent has no Arbiter; its selector (WATCHDOG_SELECTOR) is accepted only with Watchdog evidence the server re-checks here: the Watchdog itself
+        reports the same mode and revision, selects the channel this server table assigns to the mode, both input channels are exclusive with allowed
+        publishers, there is no source conflict, and it is the Watchdog whose evidence the server already verified for the speed clamp."""
+        agent = r.get('agent') or {}
+        state = r.get('state') or {}
+        arb = state.get('velocity_arbiter')
+        kind = self._selector_kind(agent)
+        if kind is None:
             return None if target == 'IDLE' else 'agent has no velocity selector to confirm ' + target
         if not isinstance(arb, dict):
             return 'velocity arbiter report missing'
+        if kind == 'WATCHDOG_SELECTOR' and arb.get('kind') != 'WATCHDOG_SELECTOR':
+            return 'velocity selector report is not a Watchdog selector report'
         if arb.get('operating_mode') != target:
             return f"agent selector still in {arb.get('operating_mode')}"
         expected = {'IDLE': 'MODE_IDLE', 'MANUAL': None, 'MAPPING': 'NO_OWNED_GOAL', 'NAVIGATION': 'NO_OWNED_GOAL'}[target]
         if arb.get('blocker') != expected:
             return f"agent selector not ready: {arb.get('blocker')}"
+        if kind == 'WATCHDOG_SELECTOR' and target != 'IDLE':
+            why = self._selector_evidence_blocker(state, arb, target, revision)
+            if why:
+                return why
+        return None
+
+    def _selector_evidence_blocker(self, state, arb, target, revision=None):
+        """The server-side re-check of the Watchdog evidence in a WATCHDOG_SELECTOR report for `target` (used at confirmation and again while the mode is ACTIVE)."""
+        ev = arb.get('evidence')
+        if not isinstance(ev, dict):
+            return 'selector evidence missing'
+        chan = self.SELECTOR_CHANNEL[target]
+        if ev.get('watchdog_state') != 'MOTION_AUTHORIZED' or ev.get('watchdog_mode') != target:
+            return f"the Watchdog does not confirm {target} (it reports {ev.get('watchdog_mode')})"
+        if revision is not None and ev.get('watchdog_revision') != revision:
+            return f"the Watchdog confirms mode revision {ev.get('watchdog_revision')}, not {revision}"
+        if ev.get('selected_channel') != chan:
+            return 'the Watchdog selects the wrong input channel for ' + target
+        if ev.get('nav_input_ok') is not True or ev.get('manual_input_ok') is not True:
+            return 'a motion input channel is not exclusive'
+        conflict = ev.get('source_conflict_age_s')
+        if isinstance(conflict, (int, float)) and conflict < 3.0:
+            return 'a motion source conflict was seen'
+        graph = ev.get('agent_graph') if isinstance(ev.get('agent_graph'), dict) else {}
+        for name, nodes in (('nav_publishers', self.SELECTOR_NODES['nav']), ('manual_publishers', self.SELECTOR_NODES['manual'])):
+            pubs = graph.get(name)
+            if not isinstance(pubs, list) or len(pubs) > 1 or any(p not in nodes for p in pubs):
+                return 'the Agent sees an unexpected publisher on the motion input (' + name + ')'
+        sl = (state.get('speed_limits') or {}).get('watchdog_evidence') or {}
+        if sl.get('server_verified') is not True or sl.get('watchdog_boot_id') != ev.get('watchdog_boot_id'):
+            return 'the Watchdog evidence is not verified or belongs to another Watchdog boot'
         return None
 
     def _mode_idle_blocker(self, robot_id, t):
@@ -350,7 +468,7 @@ class OperatingModeMixin:
         if idle.get('ok') is not True:
             return 'action idle evidence missing: ' + str(idle.get('reason') or 'not reported')
         agent = r.get('agent') or {}
-        locked = agent.get('locked_velocity_arbiter') is True
+        locked = self._selector_kind(agent) is not None
         wd = state.get('motion_watchdog')
         if not isinstance(wd, dict) or wd.get('required') is not True:
             if locked or t.get('to') != 'IDLE':

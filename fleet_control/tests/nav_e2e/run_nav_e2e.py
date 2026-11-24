@@ -475,12 +475,14 @@ def f04_nav2_goal_failure_planner_frozen():
     finally:
         os.kill(int(pid[0]), 18)
     time.sleep(6)                                      # let the stack settle before the next scenario's Gate guard
+    wait_until(lambda: ((state().get('execution') or {}).get('nav_idle') or {}).get('ok') is True, 20)
     record('f04_nav2_goal_failure_planner_frozen', final in ('FAILED', 'CANCELED', 'RECONCILIATION_REQUIRED') and final != 'SUCCEEDED',
            final=final, note='planner_server SIGSTOP: ComputePathToPose unanswered -> Nav2 aborts the goal')
 
 
 @scenario
 def f05_amcl_killed_during_goal():
+    wait_until(lambda: (robot().get('safety_context_reason') or {}).get('reason') is None, 15)
     (gx, gy), _ = find_goal([(-1.8, 1.6), (2.2, -1.6), (-1.8, -1.6)], True)
     mid = mission(gx, gy)['mission_id']
     wait_until(lambda: (state().get('velocity_arbiter') or {}).get('source') == 'NAV2', 30); time.sleep(1)
@@ -526,6 +528,7 @@ def f07_bypass_attempts():
     wd = (watch[0] or {}).get('last_fault'); arb = (state().get('velocity_arbiter') or {}).get('blocker')
     moved = [s for s in locked if s[0] > t0 + .6 and s[1] > 1e-6]
     rogue.destroy_publisher(rogue_out)
+    time.sleep(0.5)
     t1 = time.monotonic(); raw = rogue.create_publisher(Twist, '/cmd_vel_raw', 10)
     end = time.monotonic() + 3
     while time.monotonic() < end: raw.publish(m); time.sleep(.05)
@@ -535,6 +538,7 @@ def f07_bypass_attempts():
     raw_blocker = (state().get('velocity_arbiter') or {}).get('blocker')
     gate_now = state().get('safety_gate') or {}
     rogue.destroy_publisher(raw)
+    time.sleep(1.5)
     # 2026-11-20: Gate input-source validation is now asserted separately (f07 itself is unchanged).
     record('f07b_gate_input_rogue_raw', raw_rogue_vals == 0 and raw_late == 0,
            rogue_value_samples=raw_rogue_vals, nonzero_after_0_3s=raw_late, gate_status=gate_now.get('status'),
@@ -548,9 +552,10 @@ def f07_bypass_attempts():
 @scenario
 def f08_agent_kill_during_goal_then_recover():
     wait_until(lambda: (watch[0] or {}).get('state') == 'MOTION_AUTHORIZED'
-               and (state().get('velocity_arbiter') or {}).get('blocker') != 'VELOCITY_GRAPH_NOT_LOCKED', 40)   # after f07's rogue publishers
+               and (state().get('velocity_arbiter') or {}).get('blocker') not in ('VELOCITY_GRAPH_NOT_LOCKED', 'WATCHDOG_NOT_AUTHORIZED'), 45)   # after f07's rogue publishers
     rec = switch('NAVIGATION')
     if (loc().get('status') != 'CONFIRMED'): load_and_localize(MAP['id'], pose())
+    wait_until(lambda: (robot().get('safety_context_reason') or {}).get('reason') is None, 15)
     (gx, gy), _ = find_goal([(-1.8, 1.6), (2.2, -1.6)], True)
     mid = mission(gx, gy)['mission_id']
     wait_until(lambda: (state().get('velocity_arbiter') or {}).get('source') == 'NAV2', 30); time.sleep(1)
