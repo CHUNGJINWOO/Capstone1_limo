@@ -22,6 +22,18 @@ from pathlib import Path
 
 ROBOT_HOME = '/home/pcu'
 ITEMS = []          # (remote parent relative to ROBOT_HOME, name)  -> local DEST/<group>/<name>
+# 2026-11-24 LIMO cleanup: these were moved under ~/Capstone1_limo. The item KEY (and so the finished-item markers on the laptop) keeps the
+# old logical parent; only the remote location changes. limo_locked_stack and the Agent state dirs were NOT moved.
+RELOCATED_PARENTS = {'.local/state/limo-real-auto-mapping': 'Capstone1_limo/records/mapping/limo-real-auto-mapping'}
+RELOCATED_ITEMS = {('.local/state', 'limo-depth-observe'): 'Capstone1_limo/records/validation/limo-depth-observe',
+                   ('.local/state', 'limo_field_cam'): 'Capstone1_limo/records/video/limo_field_cam',
+                   ('', 'maps_h107_20261120'): 'Capstone1_limo/records/maps/maps_h107_20261120'}
+
+
+def remote_path(parent, name):
+    if (parent, name) in RELOCATED_ITEMS: return f'{ROBOT_HOME}/{RELOCATED_ITEMS[(parent, name)]}'
+    if parent in RELOCATED_PARENTS: return f'{ROBOT_HOME}/{RELOCATED_PARENTS[parent]}/{name}'
+    return f'{ROBOT_HOME}/{parent}/{name}'.replace('//', '/')
 
 HELPER = r'''
 import hashlib, json, os, sys
@@ -163,7 +175,7 @@ def main():
     for sub in ('manifests', 'reuse', 'results'): (out / sub).mkdir(parents=True, exist_ok=True)
     (dest / '.partial').mkdir(parents=True, exist_ok=True)
     items = []
-    for n in ssh_ls(a.host, f'{ROBOT_HOME}/.local/state/limo-real-auto-mapping'): items.append(('.local/state/limo-real-auto-mapping', n))
+    for n in ssh_ls(a.host, f'{ROBOT_HOME}/{RELOCATED_PARENTS[".local/state/limo-real-auto-mapping"]}'): items.append(('.local/state/limo-real-auto-mapping', n))
     for n in ssh_ls(a.host, f'{ROBOT_HOME}/.local/state/limo_locked_stack'): items.append(('.local/state/limo_locked_stack', n))
     for n in ('limo_robot_agent_field_20261120', 'limo_robot_agent_field', 'limo_robot_agent', 'limo-depth-observe', 'limo_field_cam'): items.append(('.local/state', n))
     items.append(('', 'maps_h107_20261120'))
@@ -173,7 +185,7 @@ def main():
     for parent, name in items:
         key = (parent.replace('.local/state/', '').replace('.local/state', 'state').replace('/', '__') or 'home') + '__' + name
         if only and name not in only and key not in only: continue
-        remote = f'{ROBOT_HOME}/{parent}/{name}'.replace('//', '/')
+        remote = remote_path(parent, name)
         final = dest / key; partial = dest / '.partial' / key; marker = dest / f'{key}.COMPLETE.json'
         res = dict(item=key, remote=remote, started=time.strftime('%F %T'))
         if final.exists() and marker.exists():
