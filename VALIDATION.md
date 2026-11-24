@@ -1153,3 +1153,18 @@ FollowPath의 이전 목표 terminal 상태가 다음 목표의 종료 증거로
 | **합성 / Mock / 단위 시험 (실차 아님)** | USB Device Resolver 단위 시험 (`test_usb_device_resolver.py`) | 합성 sysfs fixture | **14/14 PASS** | 스왑, 포트 변경, 동일 VID/PID/Serial 거부, 3번째 CP2102, 중복 허브, 잘못된/충돌 링크, 허브 미열거, 지연 재시도, 권한 오류, 실행 직전 변경 |
 | **격리 ROS 2 Launch + Mock 드라이버 (실차 아님)** | `test_real_launch_usb_resolver_ros2.py` (`LaunchService` + Mock `limo_base`/`ydlidar`) | 격리 ROS 2 Humble (`ROS_DOMAIN_ID=179`) | **5/5 PASS** | `SetParameter`가 `ydlidar.yaml`에 가려지던 결함을 `RewrittenYaml`로 수정 후 통과; 미인식·모호 시 드라이버 0개 기동; `use_usb_resolver:=false` 우회 동작 확인 |
 | **전체 관련 회귀 (실차 아님)** | `test_real_launch_driver_isolation_20261123` (5) + `test_agent_motor_path_driver_topic_20261123` (14) + `test_usb_device_resolver` (14) + `test_real_launch_usb_resolver_ros2` (5) + `test_preflight` (18) | 단위 + Mock + 격리 ROS 2 | **56/56 PASS (0 FAIL)** | q12 후보 94/94 파일 SHA-256 소스 일치 및 `limo_package_deploy_20261122.sh stage` 검증 통과 (**`replace`/`build`/`verify`/`rollback` 리허설 미실행**, `artifact` allowlist 정책 미충족으로 배포 보류) |
+
+## 2026-11-24 LIMO 파일 정리 무결성 및 백업 복원 검증 (실차 안전 검증 아님)
+| 검증 | 방법 | 결과 | 한계 |
+|---|---|---|---|
+| 1단계 이동 사전 독립 백업 | LIMO → 노트북 `rsync -a`, SHA-256 대조 | **94/94 일치**(권한·mtime 보존) | 노트북 로컬 사본. Google Drive는 미확인 |
+| 1단계 이동 전후 (10건) | `mv -n`, 해시와 종류·권한·소유자·크기·mtime | **94/94, 메타 108/108 일치**, 이전 위치 비어 있음 | |
+| 33개 run 복원 가능성 | 노트북 사본으로 원래 구조 재구성 후 LIMO 해시와 대조 | **889/889 일치**(29개 run은 같은 상대 경로, 4개 run은 다른 폴더·신규 복사본에서 파일별 대응 `RUN_RESTORE_MAP.tsv`) | **재구성은 하드링크이므로 독립 백업이 아니다**(같은 데이터를 가리킨다). 독립 사본은 `robot_originals_20261122/` 등 원본 사본이다 |
+| 2단계 이동 전후 (3건) | 이동 직전 LIMO 해시를 다시 계산해 노트북 사본과 대조 후 이동 | **912/912, 메타 1061/1061 일치**, 이전 위치 비어 있음 | |
+| 영상 키트·개별 스크립트·`agent.out` 백업 | 비밀 파일(`secrets/`, `.env`) 제외 rsync, 해시 대조 | **18/18 일치**, 비밀 파일 미포함 확인 | 비밀 파일은 의도적으로 백업하지 않음 |
+| q10 설치본 보존 | `FILES.sha256` 대조(1단계 후, 2단계 후) | **cap1 91/91 + agent1 41/41 = 132/132 일치**, 후보 tar `af18d9bd…93b9` | q10 소스 일치이며 실차 동작 검증이 아님 |
+| 이동된 체크섬 | `verify_moved_checksums.sh`(원본 미수정, 경로 치환) | **6/6 OK**, 원본 `.sha256` 해시는 노트북 백업과 동일 | `*.files.sha256`은 현재 트리 대비 11개 항목 불일치(11-20 이후 배포로 추정, 미조사) |
+| `20261118_run_004` vs `_bag_recovered_copy` | 파일 해시, `bag_0.db3` 267,577 메시지·21 토픽 | `bag_0.db3` 포함 공통 7개 동일. 복구본은 `metadata.yaml`·`source.sha256`이 추가된 부분 집합 | 중복이 아니므로 둘 다 유지 |
+| `robot_originals_copy_20261122.py` 경로 수정 (저장소 적용) | `py_compile`, `git diff --check`; 새 원격 경로 4개 실존 확인(읽기 전용, 889+22+1+4 파일, 이전 위치 부재); 마커 미러 fixture(`robot_originals_20261122`의 완료 마커 36개 복사본)로 `--dry-run` → **36 SKIP + 10 DRY_RUN**(마커 없는 항목은 새 경로 manifest 수집 성공: 4개 run 56개 파일·`maps_h107` 4개 파일 해시가 LIMO 해시 목록과 일치); 마커 없는 격리 fixture로 `--only` 3개 항목 `--dry-run` → 새 경로에서 DRY_RUN 성공; 미패치 스크립트는 같은 조건에서 `ssh ls failed`(음성 대조) | 컴파일·fixture dry-run OK, 항목 키·완료 마커 이름 호환, 실제 마커·원본 미수정 | **실제 복사(`--dry-run` 없이)는 미실행**, SKIP은 마커 호환만 보인다(경로 정상 동작은 마커 없는 fixture 항목으로 확인) |
+| **미검증** | | | 역방향 이동 실행, Google Drive 업로드·복원, `limo_locked_stack`·`limo_video_kit`·개별 스크립트의 소유 확인, 이동 후 전체 스택 기동(노드 실행 금지) |
+역방향 복구 목록(`move_reverse.sh`, `move2_reverse.sh`)과 검증 도구(`verify_moved_checksums.sh`)는 노트북 `local_data/raw_results/limo_cleanup_20261124/`에 보존했다. 이 정리는 실차 안전 검증이 아니며 `REAL_MOTION_READY`: BLOCKED 유지.

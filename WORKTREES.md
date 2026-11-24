@@ -153,3 +153,27 @@
 
 - **새 통합 기준선 브랜치**: `integration/capstone1-field-release-20261124` (기준 `15bb5c59` 위에 위 4개 작업 + `stack_up.sh.MERGED` + `UI_INTEGRATION_PATCH_20261128b.diff` + `E2E_KEEP_STACK` + 공통 문서 최신화를 통합).
 - **통합 작업 공간 정책**: 신규 영구 worktree를 추가하지 않고 임시 스크래치 Git 클론에서 통합·검증·커밋·푸시를 수행하여 위 5개 원본 worktree와 미커밋 파일을 모두 그대로 보존했습니다.
+
+## 2026-11-24 실제 LIMO 프로젝트 디렉터리 구조 (1·2단계 정리 후)
+
+실차(`pcu@LIMO`)의 프로젝트 루트는 `/home/pcu/Capstone1_limo`이며 이 문서에만 머신 고유 경로를 기록한다. 정리는 이동만 했고(총 13건) 삭제하지 않았다.
+
+```text
+/home/pcu/Capstone1_limo/
+├── robot_ws/                          유지 (ROS 2 워크스페이스, 이동·수정 금지, q10 설치본)
+├── deploy_candidates_20261124/        유지 (agent1, cap1 = q10 후보, restore_nav2_profile)
+├── deploy_backups_20261124/           유지 (11-24 교체 전 백업, 롤백 기준)
+├── archive/
+│   ├── 20261120/  predeploy_agent_20261120_085514.tar.gz(+.files.sha256, .sha256), predeploy_mapsave_agent_20261120_134125.tar.gz(+.sha256)
+│   └── 20261122/  backups/, stage_a_v3/, stage_a_v4/
+├── tools/limo_isolated_18290_tools/   start_robot_agent_field.sh, dds_slot_precheck.py
+└── records/
+    ├── mapping/limo-real-auto-mapping/   33개 run (8.2 GB)
+    ├── validation/limo-depth-observe/
+    ├── video/limo_field_cam/
+    └── maps/maps_h107_20261120/
+```
+
+- **이동하지 않은 항목(보류)**: `~/.local/state/limo_locked_stack`(노트북 `stop_field_session.sh`가 이 경로를 수집, `latest` 파일에 절대 경로), `~/.local/state/limo_robot_agent_field_20261120`(현재 Agent state_dir), `~/.local/state/limo_robot_agent_isolated_18290`, `limo_robot_agent`, `limo_robot_agent_field`, `~/limo_video_kit`(`stop_field_session.sh`가 참조, 실행 상태·비밀 포함), 홈 직하 개별 스크립트 5개(소유 불확실·상호 절대 경로 의존), `~/.config/limo_*`(인증), `capstone_ws`, `limo_capstone`, 학교·이전 기수 환경, 휴지통.
+- **노트북 기록(git 제외 `local_data/`)**: `raw_results/limo_cleanup_20261124/` — `pre_move_backup/`(1단계 대상의 독립 사본), `phase2_backup/`(영상 키트 비밀 제외 사본 등), `unbacked_copy_from_limo/`, `restore_verify/`(하드링크 복원본), 이동 목록과 해시(`MOVES*_forward.tsv`, `LIMO*_BEFORE/AFTER_*`), 역방향 이동 `move_reverse.sh`·`move2_reverse.sh`, `verify_moved_checksums.sh`, `DOC_CHANGE_PROPOSALS.md`, `robot_originals_copy_relocation.diff`(저장소에 적용된 패치의 원본 diff).
+- 이번 정리에서 새 worktree·새 ROS 2 워크스페이스는 만들지 않았다.

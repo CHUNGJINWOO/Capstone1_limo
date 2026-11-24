@@ -473,3 +473,18 @@ For experiment backup, encryption, and Google Drive archival, follow [VALIDATION
 4. **Targeted Context Updates**:
    - Upon completing a task, update only the common documents affected by your changes ([CURRENT_STATUS.md](CURRENT_STATUS.md), [CODE_INDEX.md](CODE_INDEX.md), [WORKTREES.md](WORKTREES.md), [VALIDATION.md](VALIDATION.md), [HANDOFF.md](HANDOFF.md), and [DECISIONS.md](DECISIONS.md) only when the user approves a finalized design decision), maintaining the verification distinctions required by Sections 5.2 and 14.
    - If a shared document has conflicting concurrent edits or lacks write permission, provide a minimal diff patch in your report rather than overwriting it.
+
+---
+
+## 19. 실차(LIMO) 파일 관리 규칙 (2026-11-24 정리 이후)
+
+머신 고유 경로는 [WORKTREES.md](WORKTREES.md)에만 둔다(§15, §18). 아래는 모든 실차에 공통인 규칙이다.
+
+1. **프로젝트 루트는 LIMO 홈의 `Capstone1_limo/` 하나다.** ROS 2 워크스페이스는 기존 `Capstone1_limo/robot_ws`로 고정한다. **새로운 영구 ROS 2 워크스페이스를 만들지 않는다**(임시 검증용 워크스페이스는 사용 후 사용자 승인 하에 정리). 홈 직하에 새 프로젝트 폴더를 만들지 않는다.
+2. 프로젝트 관련 신규 실험 기록·로그·지도·rosbag·배포 후보·백업은 프로젝트 루트 하위(`deploy_candidates_*`, `deploy_backups_*`, `archive/<날짜>/`, `records/{mapping,validation,video,maps}/`, `tools/`)에서 관리한다. 기존 후보·롤백 디렉터리 이름은 바꾸지 않는다.
+3. **인증 정보(`~/.config/limo_*`)와 안전 상태(Watchdog 속도 제한 상태 파일, Gate epoch, 장치 식별 설정)는 별도 변경 승인 전까지 기존 위치를 유지한다.** 이동·복사·출력하지 않는다.
+4. **학교 및 팀원 환경을 보호한다.** `capstone_ws`, `limo_capstone`, `agilex_ws`, `limo_ws`, `jin_ws`, `YDLidar-SDK`, `.bashrc`, udev, 벤더 드라이버, 휴지통은 변경하지 않는다. 소유가 불확실한 항목은 이동하지 않는다.
+5. **삭제 금지가 기본이다.** 이동·삭제 전에는 (a) 노트북에 독립 사본을 만들고 해시를 대조하고, (b) 실제 복원 가능성을 검증하고, (c) 참조하는 스크립트·문서를 확인하고, (d) 이동 전후 해시·권한 비교와 역방향 복구 목록을 남긴다. `mv -n`만 사용한다. 해시 목록만으로, 또는 같은 데이터를 가리키는 하드링크 복원본만으로 백업이라고 하지 않는다.
+6. **대용량 실험 원본(rosbag, run 기록)은 노트북과 Google Drive에 별도 보관한다.** 보관 여부와 검증 상태를 [VALIDATION.md](VALIDATION.md)에 구분하여 기록하고, 검증하지 않은 보관을 완료로 적지 않는다(§17).
+7. 과거 실험·시험 기록에 적힌 당시 경로는 역사적 기록이므로 고치지 않는다. 현행 절차 문서와 스크립트만 새 경로로 갱신하며, 스크립트 수정은 변경 범위와 검증 방법을 먼저 확인한 뒤 한다.
+8. 실행 상태(Agent `state_dir`, `latest` 포인터, `run/*.pid`)는 해당 프로세스가 없고 참조 스크립트가 갱신된 뒤에만 이동한다. 새 실행 상태·기록의 저장 위치는 코드의 기본값에 맡기지 않고 매개변수·환경변수로 명시한다.
