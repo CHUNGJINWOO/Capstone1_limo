@@ -140,3 +140,16 @@
 | 경로 | 브랜치 | 출발 | 담당 | 상태 |
 |---|---|---|---|---|
 | `<WORKSPACE_PARENT>/Capstone1_limo_g2_20261123` | `integration/fleet-g2-main-v5b-20261123` | `40b666ec` (v5b 통합) | Claude Code | `origin/main` 병합 진행 중(no-commit), 충돌 해결 완료, 미커밋 |
+
+## 2026-11-24 최종 통합 기준선 및 5개 원본 Worktree 보존 현황
+
+| 로컬 Worktree (`<WORKSPACE_PARENT>` 기준) | 브랜치 | HEAD | 역할 / 담당 | 보존 상태 |
+|---|---|---|---|---|
+| `Capstone1_limo` | `staging/fleet-control-on-progress-c804241` | `c804241a` | 기존 staging · `local_data/` · `experiments/` 원본 보존 | 무변경 보존 |
+| `Capstone1_limo_g2_20261123` | `integration/fleet-g2-main-v5b-20261123` | `15bb5c59` | Claude Code: Real Agent · Watchdog · Gate · Fleet Server · 건식 임무 (미커밋 67건) | 무변경 보존 |
+| `Capstone1_limo_web_ui_20261123` | `feat/web-map-speed-ui-20261123` | `15bb5c59` | Antigravity: Web UI 지도·속도 제어 패널 (미커밋 10건) | 무변경 보존 |
+| `Capstone1_limo_nav_validation_20261124` | `feat/nav2-stabilization-patrol-20261124` | `15bb5c59` | Antigravity: Nav2 O6 안정화 · 7시나리오 순찰 검증 (미커밋 7건) | 무변경 보존 |
+| `Capstone1_limo_agent_harness_20261124` | `feat/agent-harness-m0-20261124` | `15bb5c59` | Antigravity: Agent Development Harness v0 / M0 (미커밋 6건) | 무변경 보존 |
+
+- **새 통합 기준선 브랜치**: `integration/capstone1-field-release-20261124` (기준 `15bb5c59` 위에 위 4개 작업 + `stack_up.sh.MERGED` + `UI_INTEGRATION_PATCH_20261128b.diff` + `E2E_KEEP_STACK` + 공통 문서 최신화를 통합).
+- **통합 작업 공간 정책**: 신규 영구 worktree를 추가하지 않고 임시 스크래치 Git 클론에서 통합·검증·커밋·푸시를 수행하여 위 5개 원본 worktree와 미커밋 파일을 모두 그대로 보존했습니다.

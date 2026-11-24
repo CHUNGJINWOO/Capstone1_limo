@@ -74,3 +74,11 @@
 ## 2026-11-17 승인 Workspace 운영 UI 적용
 
 사용자가 2026-11-17 승인한 UI: 왼쪽 로봇·임무 목록/중앙 공유 지도/오른쪽 Inspector, 선택 공유, 34px 상태바, Goal 생성 Drawer, 기존 System·Light·Dark 유지. 이 결정은 프런트엔드 화면 구조에만 적용하며 Gate·서버 안전 계약 또는 실차 이동 승인으로 확대하지 않는다. [실제 구현](fleet_control/docs/WORKSPACE_RUNTIME_20261117.md).
+
+## 2026-11-24 실차 LOCKED 통합 기준선 확정 결정 (사용자 승인 범위)
+
+1. **구동 모델**: LIMO Pro **4륜 차동 구동(Diff-Drive)** 기준 유지.
+2. **안전 체인 유지**: `Fleet Server -> Robot Agent -> Motion Watchdog -> Safety Gate -> /cmd_vel_locked (기본 잠금)` 경로를 유지하며, 실차 launch에서 새 Gate/Watchdog/건식 파라미터(`reset_gating`, `epoch_state_file`, `idle_zero_period_s`, `real_nav_dry_run`)는 모두 **기본 OFF**를 유지.
+3. **AUTO 최종 Clamp 방식**: 현재 **축별 제한(axis-independent clamp)**을 유지 (비례 스케일링 전환은 폐루프 Gazebo 실측 및 별도 사용자 결정 이전까지 미적용).
+4. **비인증 Gate 증거의 한계**: `GATE_SELF_REPORT_UNAUTHENTICATED` 자기 보고만으로 실제 운동 허가(`real_motion_authorized`)를 부여하지 않으며, 건식 임무(`POST /dry-run-missions`)와 실제 운동 임무를 엄격히 분리 유지.
+5. **실차 주행 전 물리 안전 검증 필수**: 물리 모터 차단(전원 분리/바퀴 부양), 물리 E-Stop, STM32 명령 타임아웃, 실제 제동거리, vendor `limo_base` 토픽 리매핑 확인 없이는 실차 주행 및 운동 활성화를 금지 (`REAL_MOTION_READY: BLOCKED`).

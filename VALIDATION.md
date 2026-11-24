@@ -1084,3 +1084,61 @@ FollowPath의 이전 목표 terminal 상태가 다음 목표의 종료 증거로
 | 미실시·미해결 | 안내·순찰 UI E2E(Playwright 없음), Nav2 유효 목표 성공(n03)·Agent 강제 종료 후 복구(f08)·Gate 입력 우회(g01~g03·f07b), 실차 전부 |
 
 | (36) Gate 입력 출처 검증(격리 ROS) | Gate 단위 24 OK; 체인 프로브 27/27, 27/27, 29/29(+플레이크 1회 23/28); g01/g02/f07b FAIL→PASS; g03 실행 불가; 정지 0.045 s; 실차 미검증 |
+
+| (38) 실제 launch 안전 동작(Mock 드라이버, 격리 ROS) | `real_launch_chain_faults_20261123.py` 22/22 PASS; 잠금 기본값에서 드라이버 입력 무출력; `/cmd_vel` 외부 발행 미도달; `/cmd_vel_raw` 외부 발행 0 전달; 드라이버 입력 직접 발행은 막을 수 없고 Gate가 감지(`FOREIGN_PUBLISHER`); Watchdog 종료·정지·Agent 종료·제어루프 정지·입력 중단 시 비영 전달 중단(Watchdog 종료 후 0.234–0.247 s). 모터 정지 보장·STM32·vendor limo_base 미검증 |
+| (38) 배포 후보·리허설(격리) | 두 후보 재생성 바이트 동일, 임시 workspace에서 stage→원자 교체→롤백(원본 해시 36/36 일치), 롤백 도구 결함 1건 발견·수정(`./` 경로) |
+
+| (39) 속도 제한 Agent 단위(limiter·Arbiter clamp) | `test_speed_limits_agent_20261123` 18 OK(양방향·축별 상한·0·STOP·거부 15종·Lease·재시작·모드 전환) |
+| (39) 속도 제한 서버 API(실제 limiter와 HTTP) | `test_speed_limits_server_20261123` 44/44(권한·epoch·boot·계약·ceiling·generation·idempotency·supersede·Lease 상실·Agent 재시작·서버 재시작·enforcement 없음) |
+| (39) 실제 비영속도 clamp(격리 스택, Agent→Arbiter→Watchdog→Gate) | `probe_speed_clamp_20261123` 18/18(양성 대조 0.10/0.30, 한도 0.05/0.15, 0 보존, Lease 상실 후 낮은 값 유지, 명시 요청으로 복원, Mapping Nav2 출력 0.06/0.20 포화); 첫 실행 17/18은 이전 입력 TTL 감쇠 3샘플을 0 시험에 포함한 시험 결함 |
+| (39) 체인 프로브 재실행(새 Agent) | 29/29; 회귀 72개 파일 OK, `test_ownership` 45/45 |
+| (39) 실차·real Agent clamp·Nav2 효과·가감속 | **미검증/미구현** |
+
+| (40) Watchdog clamp 단위 / Agent link / 서버 API | 15 / 7 / 47(Watchdog 확인 시나리오 포함) OK |
+| (40) 실제 launch 추출 격리 하네스(Mock 드라이버, 실제 Watchdog·Gate, 실제 limiter·link) | `real_launch_chain_faults_20261123.py` 42/42 (기존 22 + clamp 20; 로그 p33) |
+| (40) 회귀 | R2 66 OK, 70개 파일 OK, 체인 프로브 29/29, Arbiter clamp 프로브 18/18, `test_ownership` 45/45, R3 11 |
+| (40) 실차 Watchdog clamp·가감속·곡률 영향 | **미검증**(격리 ROS 측정만) |
+
+| (41) 전체 E2E Web→Server→Agent→Watchdog→Gate(격리 ROS, mock Agent, 컨트롤러 stand-in) | `e2e_web_watchdog_speed_limit_20261123.py` 43/43; 0.06 한도에서 Gate 출력 최대 0.060, Lease 상실·Watchdog 재시작·Agent 재시작 후 자동 상향 없음, STOP·FAULT에서 0 |
+| (41) 서버 정지·재개 | `e2e_server_outage_speed_limit_20261123.py` 6/6(연결 단절은 STALE, 한도 유지, 새 요청으로만 재승인); 서버 재시작은 이 하네스에서 시험 불가 |
+| (41) 회귀 | Python 77항목 OK, 서버 속도 API 61/61, 하네스 42/42, 프로브 18/18·29/29(+DDS 발견 플레이크 1), 웹 Node·Chrome 시험 통과(`test_manual_control_panel.cjs`·`test_mapping_panel.mjs`는 G2 기준에서도 실패) |
+| (41) 배포 후보·리허설 | 3개 후보 각각 독립 2회 생성 바이트 동일, 임시 workspace 교체·롤백 해시 일치(Agent·limo_capstone) |
+| (41) 실차 전부 | **미검증**(vendor 리매핑, STM32 타임아웃, E-Stop, 제동거리, 경로 추종·곡률, 가감속) |
+
+| (42) 실차형 Agent 모드 E2E(Arbiter 없음, 격리 ROS) | `e2e_real_agent_modes_20261124.py` 45/45; `e2e_real_agent_navigation_20261124.py` 12/12(미션 활성 Agent, 미션 goal 없음) |
+| (42) 단위 | 모드 정책·서버 확인 15, 선택기 9, Watchdog 모드 게이트 15(+링크 9, 속도 clamp 15), 실제 launch 추출 하네스 42/42(모드 게이트 포함), 속도 제한 E2E 43/43 재확인, 체인 프로브 29/29, clamp 프로브 18/18, Python 회귀 86항목 |
+| (42) 실차형 Agent에서 미검증 | Fleet 미션 goal과 취소, 계약 변경 주입, 실제 조이스틱 메시지 패턴, vendor/STM32/물리 정지 |
+| (43) 확장 모드 E2E 57항목 | p50 night_b 56/57(M12 타이밍, 이후 수정), night_c 56/57(M13 재시작 Gate 무장: 공백 있으면 명령 중에도 무장하는 Gate 설계). 둘 다 로그 보존, 깨끗한 57/57 완주는 아직 없음 |
+| (44) 모드 E2E 64항목(Gate 재시작·서버 ACTIVE 검증 포함, 격리 ROS) | `p53_real_agent_modes_run3/4/5.log` 각 64/64(깨끗한 새 스택). 실패 이력 보존: night_c 56/57, run1 60/63(M10·M14), run2 시험 도구 시간초과 |
+| (44) Gate 재시작 추적 | `probe_gate_restart_20261125.py`: 수정 전 6회 중 3회 비영 출력(trace `p51_*`), 수정 후 4/4 출력 0·해제 후 정상 비영, 침묵 시나리오 2/2(`p52_*`) |
+| (44) 단위·회귀 | Watchdog 모드 게이트 21, 서버 선택기·ACTIVE 검증 25 + 선택기 9, R2 22, stall backlog 23, clamp 15; 전체 discover 1186개 실패 집합 = 기준 15bb5c59와 동일; clamp 프로브 18/18; 웹 속도 제한 E2E 43 PASS; NAVIGATION 진입 12/12; launch 하네스 3/4회 42/42(1회 41/42 C4 간헐, 미해결); 필드 체인 프로브 29/29 1회, 28/29·23/28 간헐(첫 점검 DDS 이름 지연·합성 `lidar_stale`) |
+| (44) 미검증 | 실제 조이스틱 메시지 패턴(정지 시 0인지 침묵인지), 실차 Gate 재시작 시 DDS 잔존, vendor/STM32/E-Stop, Fleet 임무 승인·취소(BLOCKED) |
+| (45) 모드 E2E 67항목(조이스틱 M15 A/B 포함) | `p56_modes_A_run1.log`, `p63_modes_final_run1/2.log` 각 67/67 |
+| (45) 건식 Fleet Mission E2E(실차형, 격리) | `p59_*`: 묶음 A 14/14(admission·소유권·취소→IDLE·Lease 상실·f01~f03·n03 SUCCEEDED), f04·f05+f06·f07·f09·d05 PASS, **f08 미검증**(관리자 복구 `robot_not_ready`) |
+| (45) 단위·회귀 | Watchdog 모드 게이트 24, 건식 분리 7, 서버 25, 전체 discover 1193(실패 집합 = 기준 15bb5c59와 동일), clamp 18/18, 웹 속도 제한 43, 체인 프로브 29/29·28/29·28/29(간헐), launch 하네스 12회 중 9회 42/42·3회 C4 |
+| (45) C4 조사 | 타임라인 14회: 감지 +0.35 s(정상) / +2.73~2.78 s(실패 2회), 상향 0.15 미수용(0.06 유지), 원인(DDS discovery 지연) 미확정 |
+| (45) AUTO clamp 비교 | `p60_auto_clamp_comparison.json`(오프라인), 폐루프는 Antigravity 운동학 결과 재사용, 새 Gazebo 폐루프 없음 |
+| (45) 미검증 | 실제 조이스틱 해제 메시지, 실차 `mode:=real` 건식 경로, 하드웨어 모터 잠금, Gate attestation 배포(r13), f08 복구, 폐루프 비례 clamp |
+| (46) 건식 Fleet Mission(G2 Gate, 격리) | 독립 새 스택: 묶음 A 14/14, f05+f06·f07·d05·f09·d06(×2)·d07 PASS, f08 4회 중 2회(실패 2회는 시작 시 AMCL 미수렴); 같은 스택 누적 24시나리오 3회: 24/24, 22/24, 21/24(합성 센서 간헐·하네스 선행 조건) |
+| (46) Gate 단위(사설 ROS) | 생성 증거·reset 게이팅 7 + 기존 입력 검증 24 OK; Watchdog 모드 게이트 26(idle zero 포함), 서버·건식 분리 25+9 |
+| (46) 회귀 | 모드 E2E 67/67 ×2, discover 1196(실패 집합 = 기준 동일), 체인 29/29, clamp 18/18, 웹 속도 제한 43 ×2 |
+| (46) C4 | 10회 중 2회 감지 지연: 독립 관측자 graph 0.25/1.74 s, Watchdog 발견 2.73/2.72 s(정상 0.21~0.23), tick 간격 ≤0.07 s, load1 ≤1.1 → 원인 구간 = DDS 발견 지연, 상향 미수용, 감지 시간 상한 미보장(BLOCKED) |
+| (46) 미검증 | Gate 증거의 인증, 실차 launch에서 새 파라미터 동작, 물리 모터 차단, 실차 `mode:=real` 건식 경로, 실제 조이스틱 해제 메시지 |
+
+### 2026-11-24 최종 통합 기준선 (`integration/capstone1-field-release-20261124`) 검증 요약
+
+> **구분 원칙**: 아래 표는 (A) 과거 스크래치 통합본(`q1~q11`) 및 개별 워크트리 검증 이력(실패 포함)과 (B) 최종 통합 Git 소스에서 직접 재실행한 검증을 엄격히 구분합니다. `local_data/raw_results/...` 경로는 **로컬 보관 전용**이며 GitHub 공개 저장소에는 포함되지 않습니다.
+
+| 구분 | 시험 항목 | 환경 / 수준 | 결과 | 비고 / 실패·한계 보존 |
+|---|---|---|---|---|
+| **A. 과거 스크래치 통합 (`q1~q11`)** | 실차형 모드 E2E (`q1_modes_integrated.log`) | 격리 ROS 2 (Kinematic) | **67/67 PASS** | Watchdog 모드 게이트·조이스틱 재무장 포함 |
+| **A. 과거 스크래치 통합 (`q10`)** | 실제 브라우저 E2E (`Mapping -> Save -> Load -> Dry-run Goal -> Cancel`) | 격리 ROS 2 + 실제 브라우저 | **핵심 10단계 PASS (`PARTIAL`)** | `WEB_E2E_VERIFIED: PARTIAL`. 다건물 1·1·1만 확인, 지도 `VERIFIED` 승격은 UI 밖 예외, Manual UI playwright `SKIP`. 건식(`dry_run: true`, `real_motion_authorized: false`)이며 실차 주행 아님 |
+| **A. 과거 스크래치 통합 (`q2~q4`)** | 건식 임무 누적·독립 E2E | 격리 ROS 2 (Kinematic) | **실패 이력 보존**: 누적 `3/24`·`23/24`, 묶음 A `13/14`, `f08` 독립 `3/6`, `d06`/`d07`/`f09` 독립 PASS | 환경 간헐 지도 저장 실패, `f08` 간헐 실패 이력 보존 |
+| **A. 과거 스크래치 통합 (`q5~q6`)** | Arbiter 형태 Navigation · 순찰 · 속도 제한 | 격리 ROS 2 (Kinematic) | Nav 1회차 `14/18` → 재실행 `18/18`, 순찰 `8/8`, 속도 제한 `43/43` | 1회차 간헐 실패 이력 보존 |
+| **A. 개별 Nav 검증 (2026-11-24)** | Phase 3 `run_nav_e2e.py` (4회) + 7시나리오 순찰 (3회) + Gazebo `nav2_d3_targeted.py` (O6) | 격리 ROS 2 (Kinematic) + Gazebo (`O6_integrated`) | Kinematic `72/72` + `24/24` PASS; Gazebo `8/8 PASS` (`blocked_s=0.0`, 이상 이벤트 `0`) | **통합본 전체 Gazebo 재실행은 미실행 (`SKIP`)** |
+| **A. 안전 결함·한계 기록** | C4 DDS 발견 지연 및 Gate 자기 보고 | 격리 ROS 2 / 정적 분석 | **BLOCKED / 한계 보존** | C4: Watchdog 신규 DDS participant 발견 지연 `0.2~2.7 s` (상한 미보장 `BLOCKED`). Gate 증거: `GATE_SELF_REPORT_UNAUTHENTICATED` (비인증) |
+| **B. 최종 통합 Git 소스 재실행** | Agent Harness M0 (`scripts/agent_harness/test_preflight.py`) | 단위 시험 + 합성 Git fixture + 실제 worktree 불변 검증 | **18/18 PASS** | 타 4개 worktree 상태 100% 불변 확인 |
+| **B. 최종 통합 Git 소스 재실행** | Web UI Node 단위 시험 (`test_web_map_and_speed_ui_20261123.cjs`, `test_integration_ui_fields_20261128.cjs`) | 단위 시험 (Node.js) | **6/6 + 6/6 PASS** | `operating_mode_panel.js` 건식/selector 수정 포함 |
+| **B. 최종 통합 Git 소스 재실행** | G2 안전·모드·속도·건식 Python 단위·서버 회귀 (`test_field_preflight`, `test_agent_safety_v1`, `test_dry_run_missions`, `test_mode_selector_server`, `test_real_mode_selector`, `test_speed_limits_{agent,server}`, `test_watchdog_{mode_gate,speed_clamp,speed_link}`) | 단위 시험 / 모의 서버 (격리 ROS 2) | **205/205 PASS** (`33+9+25+9+18+26+15+9+61`) | 최종 통합 소스 총 재실행 **235/235 PASS (0 FAIL)** |
+| **B. 최종 통합 Git 소스 재실행** | q10 LOCKED 배포 후보 SHA-256 동일성 대조 | 정적 해시 대조 | **181/181 EXACT MATCH** | Agent `41/41`, LIMO `91/91`, Server `49/49` 불일치 0건 |
+| **미실행 (`SKIP` / `BLOCKED`)** | 통합본 Gazebo 재시험, Manual UI playwright, 실차(LIMO Pro) 전 항목 | Gazebo / 실차 | **SKIP / BLOCKED** | 실차 전원 OFF 및 안전 차단 조건 10건 미해소 |

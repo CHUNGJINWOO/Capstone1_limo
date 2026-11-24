@@ -634,3 +634,65 @@ A–E 기준선과 캠페인 수정분은 별도 해시로 보존한다. 이전 
 ## 2026-11-23 (36) Gate 입력 출처 검증 (Claude)
 1. G2 index에 Gate·`safety.py`·시험·문서 스테이징, 커밋 안 함. 실차 launch는 Watchdog 도입(제안 02b) 전까지 검증 OFF.
 2. 남은 것: 물리 E-Stop·제동거리, 벤더 `/cmd_vel` 발행 노드 차단, SROS2, r7+ Gate에서 g03, n03/n05/f08(목표 일관성) 조사.
+
+## 2026-11-23 (37) Phase A 진행 (Claude)
+1. 미커밋 변경: 실차 launch, Agent `topics.py`·`ros_adapter.py`(motor path가 `/limo_driver/cmd_vel`도 확인), 시험 2개. 웹 파일은 수정하지 않음(Antigravity 담당).
+2. 남음: 고장 주입(재시작·통신 중단·그래프 변경)을 실제 launch 구성으로, Phase B 배포 후보·롤백, Phase E 잠금 절차, SROS2 범위 검토.
+
+## 2026-11-23 (38) 다음 (Claude)
+1. 미커밋: 실차 launch, Agent(`topics.py`·`ros_adapter.py`), `atomic_swap_20261123.py`, 시험·하네스 4개, 제안서 개정. Antigravity 트리(`Capstone1_limo_web_ui_20261123`)는 읽기만 했고 수정·병합하지 않음.
+2. 사전 존재 실패(변경 전후 동일): `test_real_mode_agent_blocks_20261122` 2건(stub이 `session_snapshot` 없음), 일부 `test_manual_*`는 고정 ROS 도메인·환경 변수 필요, `test_manual_delayed_agent_20261120` 1건. 사용자 네임스페이스(`unshare -Urn`)에서는 R3 `file-replace` 시험이 root로 보여 실패하므로 그 시험만 일반 사용자로 실행.
+3. 차단: 물리 E-Stop·STM32 명령 타임아웃·제동거리, vendor `limo_base` 리매핑 실제 확인, `limo_capstone` 후보는 R3 allowlist 밖이라 수동 manifest(도구 확장 필요), Arbiter clamp·속도 API 구현, g03(r7+), n03/n05/f08.
+
+## 2026-11-23 (39) 속도 제한 다음 (Claude)
+1. 미커밋: Agent(`speed_limits.py`, `velocity_arbiter.py`, `core.py`, `agent_node.py`, `ros_adapter.py` 래치), 서버(`speed_limits.py`, `service.py`, `http_api.py`), 시험 3개+프로브, 문서 2개. Antigravity 트리는 읽기만.
+2. Phase C 통합: UI는 `SPEED_LIMIT_UI_INTEGRATION_20261123.md`대로 상수 상한 제거·`GET` 폴링으로 approved 확인. 양쪽 트리는 별도 통합 커밋(충돌 없음 확인 후).
+3. 차단: real Agent clamp(Watchdog, R2 변경 승인 필요), 가감속 제한 없음, Nav2 SpeedLimit 효과 미측정, 물리 E-Stop·STM32·제동거리, vendor 리매핑 실확인.
+
+## 2026-11-23 (40) Watchdog clamp 다음 (Claude)
+1. 미커밋: `speed_clamp.py`, `watchdog_speed_link.py`, `motion_watchdog.py`(연결부), `speed_limits.py`(확인 흐름), `agent_node.py`, 서버 `speed_limits.py`, 실차 launch, 시험·하네스, 문서 `WATCHDOG_SPEED_CLAMP_20261123.md`.
+2. Phase C: UI는 `enforced_by`가 ARBITER/WATCHDOG일 때만 활성, `GET` 폴링 25 s. 두 트리 통합은 별도 승인.
+3. 실제 LIMO 잠금 검증 전 남은 것: vendor `limo_base` 리매핑 확인, `/limo_driver/cmd_vel` 직접 발행 우회(감지만), STM32 타임아웃, 물리 E-Stop, 제동거리, `normal` 프로파일의 0.15 clamp 영향, 실차에서 Watchdog·Agent 동기화 순서, SROS2/DDS 접근 통제 범위 결정, 배포 후보 재생성(Agent·limo_capstone SHA 변경).
+
+## 2026-11-24 (41) Phase C 다음 (Claude)
+1. 문서: `fleet_control/docs/PHASE_C_INTEGRATION_20261123.md`(통합 기록·E2E 결과·결함), `REAL_LIMO_LOCKED_PREFLIGHT_20261123.md`(읽기 전용 점검표), `UI_INTEGRATION_PATCH_20261123.diff`(Antigravity 적용 요청).
+2. 통합 커밋 순서(승인 필요): G2 커밋 → Antigravity UI 커밋 → 한 곳에서 병합 후 E2E 재실행 → 후보 재생성(커밋 기준, SHA 변경).
+3. 설계 한계(결정 필요): 실차와 같은 Agent(Arbiter 없음)는 서버 모드 확인 규칙 때문에 MAPPING/NAVIGATION에 들어갈 수 없다. 실차 모터 활성화 전에 모드 확인 계약을 실차용으로 설계해야 한다(또는 실차는 웹 모드 없이 별도 경로).
+4. 미측정: Nav2 경로 추종·곡률 영향(움직이는 시뮬레이터 필요), 가감속 제한 부재, 서버 재시작 하네스 시험.
+
+## 2026-11-24 (42) 모드 선택 다음 (Claude)
+1. 문서 `fleet_control/docs/REAL_AGENT_MODE_SELECTION_20261124.md`. 미커밋 변경은 Agent·서버(`operating_mode.py` 한 파일)·launch·스크립트·시험이며 UI 파일과 겹치지 않는다(교집합 0).
+2. 통합 순서(승인 필요): G2 커밋 → Antigravity UI 커밋(+`UI_INTEGRATION_PATCH_20261123.diff` 적용) → 병합 → E2E 3종 재실행 → 후보 3종 재생성.
+3. 남은 설계 결정: 서버가 ACTIVE 모드를 재검증하지 않아 Watchdog이 IDLE인데 서버가 MANUAL로 남는 불일치(선택기 blocker와 UI 표시 필요); 실차형 Agent의 Fleet 미션 admission(Safety Context의 실차 증명); 조이스틱 해제 시 0 명령 여부.
+
+## 2026-11-25 (44) Gate 재시작·서버 ACTIVE 검증 다음 (Claude)
+1. 문서 `fleet_control/docs/REAL_AGENT_MODE_SELECTION_20261124.md` §7. 미커밋 변경 추가분: Watchdog `motion_watchdog.py`(해제 후 재개, `trips` 보고), `mode_selector.py`(증거에 `watchdog_trips`), 서버 `operating_mode.py`·`service.py`(`mode_motion`, `mode_unverified`), 시험.
+2. **Antigravity Navigation worktree(`Capstone1_limo_nav_validation_20261124`, 미커밋, 읽기 전용 확인)의 통합 준비 목록**: ① `integrated_nav2_lidar_only_slow_params.yaml`(rotate-to-heading, PoseProgressChecker) — Mapping·Depth·LiDAR 프로파일에 영향 가능하므로 통합 후 모드 E2E 64항목·mapping 프로파일 회귀 필요; ② `lidar_scan_matcher_odom_node.py`(keyframe_threshold·trim_percentile 파라미터화, 기본값은 기존과 동일) ; ③ 시험 도구 4개(`nav2_d3_targeted.py`, `mode_e2e/stack_up.sh`, `nav_e2e/run_nav_e2e.py`, 신규 7시나리오 하네스); ④ 보고서 `NAV2_STABILIZATION_AND_PATROL_20261124.md`. G2는 이 5개 수정 파일을 하나도 바꾸지 않았다(파일 교집합 0, 텍스트 충돌 없음; 단 Nav2 파라미터는 G2의 실차 launch·모드 E2E 동작과 함께 시험해야 함). 그들이 제안한 속도 clamp 비례 스케일링은 G2 Watchdog clamp가 축별 포화(`C1b`, 곡률 변화 측정됨)라는 점과 관련되므로 사용자 결정 필요. 미검증: 실차, Gazebo+AMCL+Web 전체 순찰.
+3. 사용자 결정 필요: 실차형 Agent의 Fleet 임무 승인·취소(§7.4의 건식 임무 `real_nav_dry_run` + `locked_motor_proof` 제안).
+
+## 2026-11-26 (45) 건식 임무·조이스틱 정책 다음 (Claude)
+1. 문서 `fleet_control/docs/REAL_NAV_DRY_RUN_20261126.md`(§6 통합 준비, §7 P0 차단 조건). UI에 새 필드 `mode_motion`, 임무 `dry_run`/`real_motion_authorized`, endpoint `/dry-run-missions`, 오류 코드 `mode_unverified`·`dry_run_agent`·`not_dry_run_agent` 처리가 필요(UI 파일 미수정).
+2. 사용자 결정 대기: (a) Gate r13급 attestation 통합·배포와 reset 정책(`INPUT_SILENT`: 유휴 0 스트림 또는 reset 조건), (b) 실차 `real_nav_dry_run` 시험 전 물리 모터 차단 확인 절차, (c) AUTO 최종 clamp를 비례로 바꿀지(폐루프 Gazebo 측정 후), (d) 조이스틱 해제가 침묵뿐인 하드웨어에서의 운용.
+3. Antigravity worktree는 읽기 전용으로만 확인(변경 5 + 신규 2, 변화 없음). `stack_up.sh` 한 줄 충돌 가능성만 주의.
+
+## 2026-11-27 (46) Gate 증거·reset·복구 다음 (Claude)
+1. 문서 `fleet_control/docs/GATE_EVIDENCE_AND_DRY_RUN_RECOVERY_20261127.md`(§7 실차 전 차단 조건, §8 통합 준비). Harness M0 preflight는 `overwrite_other_agent_uncommitted` 한 항목이 BLOCKED였으나 동명 파일이 다른 worktree에 있는 오탐이며 다른 worktree의 파일은 수정하지 않았다(`edit_source`·`ros_isolated_test`·`safety_contract_change`는 사용자 결정으로 승인 항목으로 전달).
+2. 사용자 결정 대기: (a) 실차 launch에 `epoch_state_file`·`reset_gating`·`idle_zero_period_s`를 켤지, (b) 비인증 Gate 증거를 실차 건식 시험에 쓸 조건과 물리 모터 차단 확인 절차, (c) C4 감지 시간 상한을 어떻게 다룰지(DDS 보안·discovery 설정), (d) Gate r13의 남은 기능 이식 여부.
+3. 파일 충돌: 다른 worktree와의 교집합은 `fleet_control/tests/mode_e2e/stack_up.sh`(G2 한 줄) 하나. UI 신규 필드 대응 목록은 문서 §8.
+
+## 2026-11-24 (47) 최종 Git 통합, 공통 문서 최신화 및 LOCKED 현장 인계
+1. **통합 기준선**: 브랜치 `integration/capstone1-field-release-20261124` (출발 `15bb5c59`, 4개 원본 worktree 변경 + `stack_up.sh.MERGED` + `UI_INTEGRATION_PATCH_20261128b.diff` + `operating_mode_panel.js` + `E2E_KEEP_STACK` + 공통 문서 8종 최신화). 기존 5개 원본 worktree는 무변경 보존.
+2. **LOCKED 배포 후보 (로컬 전용 보관, 미설치, `deployment_approved: false`)**:
+   - 보관 경로(로컬 전용, GitHub 미포함): `local_data/raw_results/real_limo_integ_claude_20261122/field_ready_01/q10_candidates_integrated_20261128b/`
+   - Agent (`limo_robot_agent_candidate_integ20261128b.tar.gz`, 41파일): `4327ff37ed1ed9888b64c6773e012cd17c77b0938a16505304832e533835d1be`
+   - LIMO ROS (`limo_capstone_candidate_integ20261128b.tar.gz`, 91파일): `af18d9bdfa9dca579b790b02a37cd5efadb7da82166f47a980d11fd8c8a793b9`
+   - Fleet Server + UI (`fleet_server_candidate_integ20261128b.tar.gz`, 49파일): `c3d4cf069cd72bb25fd1ff93b60be37a1fb9468bd02669ee9c7eedc42a7fb32f`
+   - 통합 Git 소스와 181/181 파일 SHA-256 완전 일치 확인. (후보 준비 완료 ≠ 실차 설치 완료; 소스가 바뀌면 새 후보 재생성 필요.)
+   - Nav2 O6 이전 설정 복원본(`15bb5c59` 기준, SHA-256 `208d7f44…75e4`)은 로컬 `restore_nav2_profile/`에 보관.
+3. **실차 LOCKED 현장 점검 순서 (사용자 현장 승인 후)**:
+   - ① 노트북: 후보별 `sha256sum -c TAR.sha256` 및 `deployment_approved: false` 확인.
+   - ② 로봇(SSH 승인 후, 읽기 전용): `REAL_LIMO_LOCKED_PREFLIGHT_20261123.md` 및 `ros2 topic info -v`로 `/limo_driver/cmd_vel`(구독자 `limo_base`·발행자 0), `/cmd_vel`(구독자 0·발행자 0), `/cmd_vel_locked`(발행자 `stall_detector_node` 1·구독자 0), `/cmd_vel_raw`(발행자 `fleet_motion_watchdog` 1·구독자 Gate 1), `limo_ros2_application` 비실행, `allow_motor_drive` 기본 `false` 확인.
+   - ③ 노트북: `fleet_control/scripts/field_preflight_20261123.py --real` 전 항목(A~G) PASS 확인.
+   - ④ 패키지별 백업·설치·검증(`limo_package_deploy_20261122.sh`, `18190` 무접촉) 후 ②~③ 재확인.
+   - ⑤ **물리 안전 확인(사람이 실측 기록)**: 구동 전원 분리/바퀴 부양, 물리 E-Stop 동작·복구, STM32 타임아웃, 제동거리(0.05~0.10 m/s), 실제 조이스틱 해제 패턴.
+4. **남은 실차 차단 조건 (`REAL_MOTION_READY: BLOCKED`)**: `CURRENT_STATUS.md` (47)의 10개 UNVERIFIED/BLOCKED 항목 전부 해소 및 사용자 현장 승인 전까지 실차 구동·운동 Mission 금지.

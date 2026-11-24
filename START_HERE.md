@@ -63,3 +63,10 @@
 ## 2026-11-15 추가 확인 안내
 
 Map Registry, Operation Manager와 Gate 후보의 최신 근거 및 차단 조건은 [CURRENT_STATUS.md](CURRENT_STATUS.md)의 2026-11-15 추가 항목과 [VALIDATION.md](VALIDATION.md)의 같은 날짜 항목을 먼저 확인한다. 아래 과거 워크트리 개수 설명은 당시 기록이며 현재 연결 상태는 [WORKTREES.md](WORKTREES.md)의 추가 확인을 따른다.
+
+## 2026-11-24 통합 기준선 진입 안내 (`integration/capstone1-field-release-20261124`)
+
+- **개발 시작 전 필수 Preflight (읽기 전용)**: [scripts/agent_harness/preflight.py](scripts/agent_harness/preflight.py) (사용법: [scripts/agent_harness/README.md](scripts/agent_harness/README.md), 종료 보고 템플릿: [scripts/agent_harness/REPORT_TEMPLATE.md](scripts/agent_harness/REPORT_TEMPLATE.md)). Preflight `PASS`는 개발 위생 점검이며 실차 운동 안전 승인이 아닙니다.
+- **중앙 관제 · 실차형 안전 체인 · 건식 임무 문서**: [fleet_control/docs/REAL_AGENT_MODE_SELECTION_20261124.md](fleet_control/docs/REAL_AGENT_MODE_SELECTION_20261124.md), [fleet_control/docs/REAL_NAV_DRY_RUN_20261126.md](fleet_control/docs/REAL_NAV_DRY_RUN_20261126.md), [fleet_control/docs/GATE_EVIDENCE_AND_DRY_RUN_RECOVERY_20261127.md](fleet_control/docs/GATE_EVIDENCE_AND_DRY_RUN_RECOVERY_20261127.md).
+- **Nav2 안정화 · 순찰 및 웹 UI 통합 문서**: [fleet_control/docs/NAV2_STABILIZATION_AND_PATROL_20261124.md](fleet_control/docs/NAV2_STABILIZATION_AND_PATROL_20261124.md), [fleet_control/docs/WEB_MAP_SPEED_INTEGRATION_PROPOSAL_20261123.md](fleet_control/docs/WEB_MAP_SPEED_INTEGRATION_PROPOSAL_20261123.md).
+- **실차 LOCKED 현장 점검 절차**: [fleet_control/docs/REAL_LIMO_LOCKED_PREFLIGHT_20261123.md](fleet_control/docs/REAL_LIMO_LOCKED_PREFLIGHT_20261123.md) 및 `fleet_control/scripts/field_preflight_20261123.py`. (로컬 전용 배포 후보·상세 인계 기록은 GitHub에 포함되지 않으며 로컬 `local_data/raw_results/real_limo_integ_claude_20261122/field_ready_01/`에 보관됩니다.)

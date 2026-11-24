@@ -173,3 +173,15 @@ Perception·Localization·Safety·Bringup의 기존 launch와 패키지 배치�
 ### 전체 기능 구현 우선 격리 경로
 `limo_fleet_bringup`은 기존 Perception·Localization·Navigation·Safety 노드 및 Fleet Bridge를 기능별 launch 모듈로 조합한다. Mapping은 Agent가 SLAM Toolbox와 Frontier 후보 프로세스를 소유한다. Fleet Server는 Mapping 명령 저널에 Frontier 슬롯 예약을 같은 Agent boot와 session으로 기록한다. Agent는 Fleet·Frontier 제출을 단일 ROS 작업 큐와 공유 Goal 슬롯으로 중재한다. PAUSE/STOP은 소유 Action 핸들이 반환한 terminal 결과를 기다린다.
 격리 속도 체인은 Nav2의 `/fleet/cmd_vel_nav`와 Lease가 검증된 웹 입력에서 샘플 하나를 골라 Smoother → `/cmd_vel_raw` → 기존 Safety Gate → `/cmd_vel_locked`로 전달한다. Bag recorder는 Agent 밖의 세션 Supervisor가 소유하며 익명 pipe로 Fleet 연결 상태를 갱신한다. 로봇별 RGB·Depth는 Agent에서 읽기 전용으로 수집해 Fleet 관제 화면에 표시한다. 인터페이스와 하네스는 [ISOLATED_E2E.md](fleet_control/docs/ISOLATED_E2E.md)에 정리했다.
+
+## 2026-11-24 통합 기준선 아키텍처 보완 (`integration/capstone1-field-release-20261124`)
+
+### 1. 통합 제어 및 속도 명령 경로 (구현 완료 · 격리 검증)
+- **실차형 제어 체인**: `Fleet Server` → `Robot Agent` (`RealModeSelector`, Arbiter 없음) → `Motion Watchdog` (`fleet_motion_watchdog`: 모드 게이트, 축별 AUTO 속도 Clamp, 유휴 0 발행 옵션) → `Safety Gate` (`stall_detector_node`: 비인증 자기 보고 `boot_id`·영속 `fault_epoch`·`fault_latched`·`reset_readiness`) → `/cmd_vel_locked` (기본 잠금) 또는 `/limo_driver/cmd_vel` (`allow_motor_drive:=true` 명시 시에만).
+- **운영 모드**: `IDLE` / `MAPPING` / `NAVIGATION` / `MANUAL`은 서버 `operating_mode.py`가 Watchdog 증거(모드·revision·boot·채널·trip)로 ACTIVE 상태를 지속 검증하며, 불일치 시 `mode_unverified`로 신규 운동·임무를 거부합니다.
+- **Web UI · 지도 Registry · Localization**: `fleet_control/server/fleet_server/static/` (`app.js`, `map_view.js`, `speed_control_panel.js`, `operating_mode_panel.js`, `manual_control_panel.js`, `state_helpers.js`)가 지도·경로·궤적·`/odom` 속도·속도 제한 적용 증거·`mode_motion`·비인증 Gate 증거 라벨을 표시합니다.
+
+### 2. 건식 임무(`real_nav_dry_run`) vs 실제 운동 허가 경계
+- **건식 임무**는 별도 `POST /dry-run-missions`로 접수되며 `dry_run: true`, `real_motion_authorized: false`, `missions_enabled: false`를 유지합니다. 명령 체인은 Nav2 → Watchdog → Gate로 동일하되, Gate 출력이 `/cmd_vel_locked`에 격리되고 `locked_motor_proof`(소프트웨어 그래프 관측)가 참일 때만 허용됩니다.
+- **실제 운동 허가 (`REAL_MOTION_READY`)**: **BLOCKED (미구현/미승인)**. 비인증 Gate 자기 보고(`GATE_SELF_REPORT_UNAUTHENTICATED`)와 소프트웨어 그래프 관측은 물리 모터 차단을 증명하지 못합니다.
+- **제안·미검증 구분**: 실차 `limo_base` 토픽 리매핑, 물리 E-Stop, STM32 타임아웃, 실차 Nav2 O6 거동, 비례 AUTO Clamp(제안만 존재, 현재 축별 Clamp 유지)는 모두 **실차 미검증**입니다.
