@@ -1,5 +1,11 @@
 # LIMO를 이용한 실내 자율 순찰 및 안내 (LIMO Indoor Autonomous Patrol & Guidance)
 
+> [!CAUTION]
+> **실차 자동 맵핑과 원격 주행은 현재 차단 중입니다.** 전원 사고 원인과 정지 경로를 포함한 안전 조건이 해결되지 않았고 현장 배포본 전체가 이 저장소에 없습니다. 팀원은 [현재 상태 및 빠른 시작](docs/team/QUICK_START.md)부터 읽으세요. 과거 실차 시험과 시뮬레이션 결과는 현 구성의 주행 승인을 뜻하지 않습니다.
+
+팀원 문서: [설치와 재현 범위](docs/team/SETUP.md) · [빠른 시작](docs/team/QUICK_START.md) · [문제 해결](docs/team/TROUBLESHOOTING.md) · [구조와 알고리즘](docs/team/ALGORITHMS.md) · [검증 기준선](docs/team/STATUS.md).
+
+
 > **2026학년도 2학기 캡스톤디자인 1 (4조)**<br>
 > **개인 개발 저장소 및 엔지니어링 포트폴리오**<br>
 > **주요 개발 범위:** 자율주행(Navigation2), TF 좌표계, Costmap, 위치추정(AMCL) 및 동적 장애물 회피
